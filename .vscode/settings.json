@@ -1,0 +1,12 @@
+{
+	"editor.defaultFormatter": null,
+	"python.formatting.provider": "black",
+	"editor.formatOnSave": true,
+	"python.linting.flake8Enabled": true,
+	"isort.check": true,
+	"isort.path": [
+		"isort"
+	],
+	"editor.formatOnPaste": false,
+	"python.analysis.typeCheckingMode": "basic"
+}

@@ -1,0 +1,2 @@
+{"rule":"MORFOLOGIK_RULE_EN_US","sentence":"^\\QWhen creating a new repository on GitHub, be sure to select in the template field \\E(?:Dummy|Ina|Jimmy-)[0-9]+\\Q from LASSE organization.\\E$"}
+{"rule":"GITHUB","sentence":"^\\QGithub Actions\\E$"}
