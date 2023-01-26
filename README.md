@@ -1,6 +1,6 @@
 # Python template
 
-Python template containing formatter, linter and other automatic verifications. First you need to install the Conda environment with required packages using `conda env create -f env.yml`. After, activate the environment using `conda activate` (after this, all your commands will be executed into the python environment). Finally, execute the command 
+Python template containing formatter, linter and other automatic verifications. First you need to install the Conda environment with required packages using `conda env create -f env.yml` (if you want to change the name of the environment from env to something else such as your_env_name, edit the entry "name" in the env.yml file). After successfully creating the environment, activate it using the `conda activate` command, such `conda activate your_env_name` (after this, all your commands will be executed into the python environment). Finally, execute the command 
 `pre-commit install` to activate the pre-commit, so every time you make a commit it will verify your code and assure that you complied with all project standards.
 
 ## Using this template
