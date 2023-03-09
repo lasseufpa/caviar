@@ -1,4 +1,14 @@
 def getFacesFromObjFile(pathToObjFile):
+    """Reads an object file and returns a list containing the vertices points of
+    each face composing the object.
+
+    Args:
+        pathToObjFile (String): path to the .object file
+
+    Returns:
+        faces (List): a list with one elements for each face, with each face element
+        containing a list for the vertice points
+    """
     with open(pathToObjFile, encoding="utf-8") as file:
         obj_lines = file.readlines()
         startReadingVertices = False  # Indicates if the line above was 'nVertices'
@@ -27,6 +37,7 @@ def getFacesFromObjFile(pathToObjFile):
                 startReadingVertices = True
                 initialVerticeIdx = line_idx
                 nVertices = int(line[line.find(" ") : -1])
+    return faces
 
 
 if __name__ == "__main__":
