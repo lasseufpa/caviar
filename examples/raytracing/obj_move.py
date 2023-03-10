@@ -93,26 +93,33 @@ def modifyFacesOnObjFile(pathToObjFile: str, nparray_faces):
     file_write.close()
 
 
-def move(pathToObjFile: str, axis: str, movement_step: int):
-    """Makes an object execute a movement on a given axis.
+def move(
+    pathToObjFile: str,
+    x_movement_step: float = 0,
+    y_movement_step: float = 0,
+    z_movement_step: float = 0,
+):
+    """Makes an object execute a movement on a given axis or axes.
 
     Args:
         pathToObjFile (str): path to the object file
-        axis (str): a cartesian axis (x, y or z)
-        movement_step (int): the step size
+        x_movement_step (float): the step size for x
+        y_movement_step (float): the step size for y
+        z_movement_step (float): the step size for z
     """
     nparray_faces = np.array(getFacesFromObjFile(pathToObjFile))
 
-    match str(axis).lower():
-        case "x":
-            nparray_faces[:, :, 0] = nparray_faces[:, :, 0] + movement_step
-        case "y":
-            nparray_faces[:, :, 1] = nparray_faces[:, :, 1] + movement_step
-        case "z":
-            nparray_faces[:, :, 2] = nparray_faces[:, :, 2] + movement_step
+    nparray_faces[:, :, 0] = nparray_faces[:, :, 0] + x_movement_step
+    nparray_faces[:, :, 1] = nparray_faces[:, :, 1] + y_movement_step
+    nparray_faces[:, :, 2] = nparray_faces[:, :, 2] + z_movement_step
 
     modifyFacesOnObjFile(pathToObjFile, nparray_faces)
 
 
 if __name__ == "__main__":
-    move("./simple_car.object", "x", 1)
+    move(
+        "./simple_car.object",
+        x_movement_step=-0.1727235913,
+        y_movement_step=0.8878211975,
+        z_movement_step=-2.7066750526,
+    )
