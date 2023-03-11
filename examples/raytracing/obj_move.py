@@ -116,6 +116,29 @@ def translate(
     modifyFacesOnObjFile(pathToObjFile, nparray_faces)
 
 
+def moveTo(
+    pathToObjFile: str,
+    new_x: float = 0,
+    new_y: float = 0,
+    new_z: float = 0,
+):
+    """Makes an object move to a given point.
+
+    Args:
+        pathToObjFile (str): path to the object file
+        new_x (float): new x value
+        new_y (float): new y value
+        new_z (float): new z value
+    """
+    nparray_faces = np.array(getFacesFromObjFile(pathToObjFile))
+
+    nparray_faces[:, :, 0] = new_x
+    nparray_faces[:, :, 1] = new_y
+    nparray_faces[:, :, 2] = new_z
+
+    modifyFacesOnObjFile(pathToObjFile, nparray_faces)
+
+
 if __name__ == "__main__":
     translate(
         "./simple_car.object",
@@ -123,3 +146,10 @@ if __name__ == "__main__":
         y_translation_step=0.8878211975,
         z_translation_step=-2.7066750526,
     )
+
+    # moveTo(
+    #     "./simple_car.object",
+    #     new_x=0,
+    #     new_y=0,
+    #     new_z=0,
+    # )
