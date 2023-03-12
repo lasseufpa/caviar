@@ -127,6 +127,7 @@ def generateNewStepFolder(path_to_obj_file: str, current_step: int = 0) -> str:
 
 def translate(
     path_to_obj_file: str,
+    current_step: int = 0,
     x_translation_step: float = 0,
     y_translation_step: float = 0,
     z_translation_step: float = 0,
@@ -135,6 +136,7 @@ def translate(
 
     Args:
         path_to_obj_file (str): path to the object file
+        current_step (int, optional): number to identify new step folder. Defaults to 0.
         x_translation_step (float, optional): the step size for x. Defaults to 0.
         y_translation_step (float, optional): the step size for y. Defaults to 0.
         z_translation_step (float, optional): the step size for z. Defaults to 0.
@@ -145,13 +147,14 @@ def translate(
     nparray_faces[:, :, 1] = nparray_faces[:, :, 1] + y_translation_step
     nparray_faces[:, :, 2] = nparray_faces[:, :, 2] + z_translation_step
 
-    path_to_next_obj_file = generateNewStepFolder(path_to_obj_file, 1)
+    path_to_next_obj_file = generateNewStepFolder(path_to_obj_file, current_step)
 
     modifyFacesOnObjFile(path_to_next_obj_file, nparray_faces)
 
 
 def moveTo(
     path_to_obj_file: str,
+    current_step: int = 0,
     new_x: float = 0,
     new_y: float = 0,
     new_z: float = 0,
@@ -160,6 +163,7 @@ def moveTo(
 
     Args:
         path_to_obj_file (str): path to the object file
+        current_step (int, optional): number to identify new step folder. Defaults to 0.
         new_x (float, optional): new x value. Defaults to 0.
         new_y (float, optional): new y value. Defaults to 0.
         new_z (float, optional): new z value. Defaults to 0.
@@ -170,7 +174,7 @@ def moveTo(
     nparray_faces[:, :, 1] = new_y
     nparray_faces[:, :, 2] = new_z
 
-    path_to_next_obj_file = generateNewStepFolder(path_to_obj_file, 1)
+    path_to_next_obj_file = generateNewStepFolder(path_to_obj_file, current_step)
 
     modifyFacesOnObjFile(path_to_next_obj_file, nparray_faces)
 
@@ -178,6 +182,7 @@ def moveTo(
 if __name__ == "__main__":
     translate(
         "./run0/simple_car.object",
+        current_step=1,
         x_translation_step=-0.1727235913,
         y_translation_step=0.8878211975,
         z_translation_step=-2.7066750526,
@@ -185,6 +190,7 @@ if __name__ == "__main__":
 
     # moveTo(
     #     "./run0/simple_car.object",
+    #     current_step=1,
     #     new_x=0,
     #     new_y=0,
     #     new_z=0,
