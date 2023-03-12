@@ -140,6 +140,9 @@ def translate(
         x_translation_step (float, optional): the step size for x. Defaults to 0.
         y_translation_step (float, optional): the step size for y. Defaults to 0.
         z_translation_step (float, optional): the step size for z. Defaults to 0.
+
+    Returns:
+        str: The path to the object file on the new folder
     """
     nparray_faces = np.array(getFacesFromObjFile(path_to_obj_file))
 
@@ -150,6 +153,8 @@ def translate(
     path_to_next_obj_file = generateNewStepFolder(path_to_obj_file, current_step)
 
     modifyFacesOnObjFile(path_to_next_obj_file, nparray_faces)
+
+    return path_to_next_obj_file
 
 
 def moveTo(
@@ -167,6 +172,9 @@ def moveTo(
         new_x (float, optional): new x value. Defaults to 0.
         new_y (float, optional): new y value. Defaults to 0.
         new_z (float, optional): new z value. Defaults to 0.
+
+    Returns:
+        str: The path to the object file on the new folder
     """
     nparray_faces = np.array(getFacesFromObjFile(path_to_obj_file))
 
@@ -178,20 +186,26 @@ def moveTo(
 
     modifyFacesOnObjFile(path_to_next_obj_file, nparray_faces)
 
+    return path_to_next_obj_file
+
 
 if __name__ == "__main__":
-    translate(
-        "./run0/simple_car.object",
-        current_step=1,
-        x_translation_step=-0.1727235913,
-        y_translation_step=0.8878211975,
-        z_translation_step=-2.7066750526,
-    )
+    current_position_path = "./base/simple_car.object"
+    number_of_steps = 5
 
-    # moveTo(
-    #     "./run0/simple_car.object",
-    #     current_step=1,
-    #     new_x=0,
-    #     new_y=0,
-    #     new_z=0,
-    # )
+    for i in range(number_of_steps):
+        current_position_path = translate(
+            current_position_path,
+            current_step=i,
+            x_translation_step=1,
+            y_translation_step=1,
+            z_translation_step=1,
+        )
+
+        # current_position_path = moveTo(
+        #     current_position_path,
+        #     current_step=i,
+        #     new_x=i,
+        #     new_y=i,
+        #     new_z=i,
+        # )
