@@ -190,7 +190,16 @@ def moveTo(
 
 
 if __name__ == "__main__":
-    current_position_path = "./base/simple_car.object"
+    current_position_path = os.path.join(
+        "C:",
+        "Users",
+        "takashi",
+        "Desktop",
+        "CAVIAR_test",
+        "simulation",
+        "base",
+        "Simple_car.object",
+    )
     number_of_steps = 5
 
     for i in range(number_of_steps):
@@ -198,8 +207,6 @@ if __name__ == "__main__":
             current_position_path,
             current_step=i,
             x_translation_step=1,
-            y_translation_step=1,
-            z_translation_step=1,
         )
 
         # current_position_path = moveTo(
