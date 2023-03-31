@@ -52,5 +52,5 @@ def moveTo(
     params.update()
 
 
-mitsuba_file = "/home/joao/codes/caviar/examples/sionna/simple_street_canyon/simple_street_canyon.xml"
-translate(mitsuba_file, "mesh-Cube", -741, 0, 0)
+# mitsuba_file = "/home/joao/codes/caviar/examples/sionna/simple_street_canyon/simple_street_canyon.xml"
+# translate(mitsuba_file, "mesh-Cube", -741, 0, 0)
