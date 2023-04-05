@@ -130,3 +130,6 @@ dmypy.json
 
 # Ignore the venv
 caviar
+
+# Ignore outputs
+runs
