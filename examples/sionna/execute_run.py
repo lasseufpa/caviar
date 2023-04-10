@@ -11,6 +11,7 @@ mi.set_variant("cuda_ad_rgb")
 ################################# Configure paths ##############################
 
 current_dir = os.getcwd()
+output_dir = os.path.join(current_dir, "runs")
 
 simple_street_canyon_path = os.path.join(
     current_dir,
@@ -153,7 +154,10 @@ for current_step in range(number_of_steps):
     # print(f"Zenith angle of arrival: {theta_r[0,0,0,path_idx]:.4f} rad")
     # print(f"Azimuth angle of arrival: {phi_r[0,0,0,path_idx]:.4f} rad")
 
-    output_filename = os.path.join(current_dir, "runs", f"run_{str(current_step)}.png")
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+
+    output_filename = os.path.join(output_dir, f"run_{str(current_step)}.png")
 
     scene.render_to_file(
         camera="scene-cam-0",
