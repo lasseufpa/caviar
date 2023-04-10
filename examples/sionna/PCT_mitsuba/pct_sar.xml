@@ -1,0 +1,95 @@
+<scene version="2.1.0">
+
+
+
+
+
+
+	<integrator type="path">
+		<integer name="max_depth" value="12" />
+	</integrator>
+
+
+
+	<bsdf type="twosided" id="default-bsdf">
+		<bsdf type="diffuse" />
+	</bsdf>
+
+
+
+
+
+
+	<shape type="ply" id="mesh-pct_espaco_INOVACAO_2">
+		<string name="filename" value="meshes/pct_espaco_INOVACAO_2.ply" />
+		<ref id="default-bsdf" name="bsdf" />
+	</shape>
+	<shape type="ply" id="mesh-pct_torre_5">
+		<string name="filename" value="meshes/pct_torre_5.ply" />
+		<ref id="default-bsdf" name="bsdf" />
+	</shape>
+	<shape type="ply" id="mesh-pct_portico_8">
+		<string name="filename" value="meshes/pct_portico_8.ply" />
+		<ref id="default-bsdf" name="bsdf" />
+	</shape>
+	<shape type="ply" id="mesh-grama_18">
+		<string name="filename" value="meshes/grama_18.ply" />
+		<ref id="default-bsdf" name="bsdf" />
+	</shape>
+	<shape type="ply" id="mesh-pct_calcada_24">
+		<string name="filename" value="meshes/pct_calcada_24.ply" />
+		<ref id="default-bsdf" name="bsdf" />
+	</shape>
+	<shape type="ply" id="mesh-pct_cemazon_27">
+		<string name="filename" value="meshes/pct_cemazon_27.ply" />
+		<ref id="default-bsdf" name="bsdf" />
+	</shape>
+	<shape type="ply" id="mesh-pct_escola_tecnica_2">
+		<string name="filename" value="meshes/pct_escola_tecnica_2.ply" />
+		<ref id="default-bsdf" name="bsdf" />
+	</shape>
+	<shape type="ply" id="mesh-pct_espaco_empreendedor2_8">
+		<string name="filename" value="meshes/pct_espaco_empreendedor2_8.ply" />
+		<ref id="default-bsdf" name="bsdf" />
+	</shape>
+	<shape type="ply" id="mesh-pct_inpe_11">
+		<string name="filename" value="meshes/pct_inpe_11.ply" />
+		<ref id="default-bsdf" name="bsdf" />
+	</shape>
+	<shape type="ply" id="mesh-pct_lab_alta_tensao_16">
+		<string name="filename" value="meshes/pct_lab_alta_tensao_16.ply" />
+		<ref id="default-bsdf" name="bsdf" />
+	</shape>
+	<shape type="ply" id="mesh-pct_lab_leite_19">
+		<string name="filename" value="meshes/pct_lab_leite_19.ply" />
+		<ref id="default-bsdf" name="bsdf" />
+	</shape>
+	<shape type="ply" id="mesh-pct_Restaurante_22">
+		<string name="filename" value="meshes/pct_Restaurante_22.ply" />
+		<ref id="default-bsdf" name="bsdf" />
+	</shape>
+	<shape type="ply" id="mesh-pct_terrain_9">
+		<string name="filename" value="meshes/pct_terrain_9.ply" />
+		<ref id="default-bsdf" name="bsdf" />
+	</shape>
+	<shape type="ply" id="mesh-tree2_trunk_12">
+		<string name="filename" value="meshes/tree2_trunk_12.ply" />
+		<ref id="default-bsdf" name="bsdf" />
+	</shape>
+	<shape type="ply" id="mesh-tree4_Trunk3_28">
+		<string name="filename" value="meshes/tree4_Trunk3_28.ply" />
+		<ref id="default-bsdf" name="bsdf" />
+	</shape>
+	<shape type="ply" id="mesh-tree4_leafttexture3_31">
+		<string name="filename" value="meshes/tree4_leafttexture3_31.ply" />
+		<ref id="default-bsdf" name="bsdf" />
+	</shape>
+	<shape type="ply" id="mesh-Cube">
+		<string name="filename" value="meshes/Cube.ply" />
+		<boolean name="face_normals" value="true" />
+		<ref id="mat-itu_metal" name="bsdf" />
+		<transform name="to_world">
+			<translate value="0 0 0" />
+		</transform>
+	</shape>
+</scene>

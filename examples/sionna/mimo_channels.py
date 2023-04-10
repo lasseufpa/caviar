@@ -128,7 +128,8 @@ def getNarrowBandULAMIMOChannel(
     azimuths_tx = np.deg2rad(azimuths_tx)
     azimuths_rx = np.deg2rad(azimuths_rx)
     # nt = number_Rx_antennas * number_Tx_antennas #np.power(antenna_number, 2)
-    m = np.shape(azimuths_tx)[0]  # number of rays
+    # m = np.shape(azimuths_tx)[0]  # number of rays
+    m = azimuths_tx.size  # number of rays
     H = np.matrix(np.zeros((number_Rx_antennas, number_Tx_antennas)))
 
     gain_dB = p_gainsdB

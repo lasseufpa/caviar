@@ -1,42 +1,10 @@
 import mitsuba as mi
+import drjit as dr
 import xml.etree.ElementTree as ET
-from sionna.rt import load_scene, Transmitter, Receiver, PlanarArray
+from sionna.rt import load_scene, Transmitter, Receiver, PlanarArray, Paths2CIR
 import numpy as np
 from obj_move import translate
 import mimo_channels
-import os
-
-mi.set_variant("cuda_ad_rgb")
-
-################################# Configure paths ##############################
-
-current_dir = os.getcwd()
-
-simple_street_canyon_path = os.path.join(
-    current_dir,
-    "examples",
-    "sionna",
-    "simple_street_canyon",
-    "simple_street_canyon.xml",
-)
-pct_path = os.path.join(current_dir, "examples", "sionna", "PCT_mitsuba", "pct_sar.xml")
-
-mitsuba_file = simple_street_canyon_path
-
-################################# Configure Rx mobility parameters #############
-
-rx_3D_object_name = "mesh-Cube"
-rx_starting_x = -60.8888
-rx_starting_y = -0.471238
-rx_starting_z = 2.673
-
-################################# Configure simulation parameters ##############
-
-step_size = 15
-number_of_steps = 5
-
-nTx = 32
-nRx = 8
 
 
 def getRunMIMOdata(
@@ -73,6 +41,27 @@ def getRunMIMOdata(
     return mimoChannel, equivalentChannel, equivalentChannelMagnitude, best_ray
 
 
+mi.set_variant("cuda_ad_rgb")
+# mitsuba_file = "/home/joao/codes/caviar/examples/sionna/simple_street_canyon/simple_street_canyon.xml"
+mitsuba_file = "/home/joao/codes/caviar/examples/sionna/PCT_mitsuba/pct_sar.xml"
+
+rx_3D_object_name = "mesh-Cube"
+# simple_street_canyon
+# rx_starting_x = -60.8888
+# rx_starting_y = -0.471238
+# rx_starting_z = 2.673
+
+# pct_sar
+rx_starting_x = -1900
+rx_starting_y = 2231
+rx_starting_z = 560.6
+
+step_size = 15
+number_of_steps = 2
+
+nTx = 32
+nRx = 8
+
 for current_step in range(number_of_steps):
     translate(
         mitsuba_file, rx_3D_object_name, -(current_step * step_size), 0, 0
@@ -105,7 +94,8 @@ for current_step in range(number_of_steps):
     )
 
     # Create transmitter
-    tx = Transmitter(name="tx", position=[-62.11, -8.71, 22])
+    # tx = Transmitter(name="tx", position=[-62.11, -8.71, 22]) # simple_street_canyon
+    tx = Transmitter(name="tx", position=[-1774, 2277, 597.6])  # pct_sar
 
     # Add transmitter instance to scene
     scene.add(tx)
@@ -122,6 +112,14 @@ for current_step in range(number_of_steps):
     scene.add(rx)
 
     tx.look_at(rx)  # Transmitter points towards receiver
+
+    filename2 = f"/home/joao/codes/caviar/runs/run_{current_step+5}"
+    scene.render_to_file(
+        camera="scene-cam-0",  # Also try camera="preview"
+        show_devices=True,
+        filename=f"{filename2}.png",
+        resolution=[650, 500],
+    )
 
     scene.frequency = 40e9  # in Hz; implicitly updates RadioMaterials
 
@@ -153,26 +151,26 @@ for current_step in range(number_of_steps):
     # print(f"Zenith angle of arrival: {theta_r[0,0,0,path_idx]:.4f} rad")
     # print(f"Azimuth angle of arrival: {phi_r[0,0,0,path_idx]:.4f} rad")
 
-    output_filename = os.path.join(current_dir, "runs", f"run_{str(current_step)}.png")
+    filename = f"/home/joao/codes/caviar/runs/run_{current_step}"
 
     scene.render_to_file(
-        camera="scene-cam-0",
+        camera="scene-cam-0",  # Also try camera="preview"
         paths=paths,
         show_devices=True,
         show_paths=True,
-        filename=output_filename,
+        filename=f"{filename}.png",
         resolution=[650, 500],
     )
     ########################### COPIED FROM SIONNA EXAMPLE #####################
 
     L = mat_t.shape[3]  # Number of paths
 
-    # getRunMIMOdata(
-    #     output_file=output_filename,
-    #     # mimoChannel=mat_t[0, 0, 0, path_idx, ...],
-    #     AoD_az=theta_t,
-    #     AoA_az=phi_r,
-    #     gain_in_dB=np.array([L, 0]),
-    #     number_Tx_antennas=nTx,
-    #     number_Rx_antennas=nRx,
-    # )
+    getRunMIMOdata(
+        output_file=filename,
+        # mimoChannel=mat_t[0, 0, 0, path_idx, ...],
+        AoD_az=theta_t,
+        AoA_az=phi_r,
+        gain_in_dB=np.array([L, 0]),
+        number_Tx_antennas=nTx,
+        number_Rx_antennas=nRx,
+    )
