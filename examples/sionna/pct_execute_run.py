@@ -1,24 +1,63 @@
-import mitsuba as mi
-import drjit as dr
-import xml.etree.ElementTree as ET
-from sionna.rt import load_scene, Transmitter, Receiver, PlanarArray, Paths2CIR
+import os
 import numpy as np
+import tensorflow as tf
+import mitsuba as mi
+from sionna.rt import load_scene, Transmitter, Receiver, PlanarArray, Paths2CIR
+from sionna.channel import (
+    cir_to_ofdm_channel,
+    subcarrier_frequencies,
+    OFDMChannel,
+    ApplyOFDMChannel,
+    CIRDataset,
+)
 from obj_move import translate
 import mimo_channels
+
+mi.set_variant("cuda_ad_rgb")
+
+################################# Configure paths ##############################
+
+current_dir = os.getcwd()
+output_dir = os.path.join(current_dir, "runs")
+
+simple_street_canyon_path = os.path.join(
+    current_dir,
+    "examples",
+    "sionna",
+    "simple_street_canyon",
+    "simple_street_canyon.xml",
+)
+pct_path = os.path.join(current_dir, "examples", "sionna", "PCT_mitsuba", "pct_sar.xml")
+
+mitsuba_file = pct_path
+
+################################# Configure Rx mobility parameters #############
+
+rx_3D_object_name = "mesh-Cube"
+rx_starting_x = -1900
+rx_starting_y = 2231
+rx_starting_z = 560.6
+################################# Configure simulation parameters ##############
+
+step_size = 15
+number_of_steps = 5
+
+nTx = 32
+nRx = 8
 
 
 def getRunMIMOdata(
     output_file,
-    # mimoChannel,
-    AoD_az,
-    AoA_az,
-    gain_in_dB,
+    mimoChannel,
+    # AoD_az,
+    # AoA_az,
+    # gain_in_dB,
     number_Tx_antennas,
     number_Rx_antennas,
 ):
-    mimoChannel = mimo_channels.getNarrowBandULAMIMOChannel(
-        AoD_az, AoA_az, gain_in_dB, number_Tx_antennas, number_Rx_antennas
-    )
+    # mimoChannel = mimo_channels.getNarrowBandULAMIMOChannel(
+    #     AoD_az, AoA_az, gain_in_dB, number_Tx_antennas, number_Rx_antennas
+    # )
 
     equivalentChannel = mimo_channels.getDFTOperatedChannel(
         mimoChannel, number_Tx_antennas, number_Rx_antennas
@@ -41,27 +80,6 @@ def getRunMIMOdata(
     return mimoChannel, equivalentChannel, equivalentChannelMagnitude, best_ray
 
 
-mi.set_variant("cuda_ad_rgb")
-# mitsuba_file = "/home/joao/codes/caviar/examples/sionna/simple_street_canyon/simple_street_canyon.xml"
-mitsuba_file = "/home/joao/codes/caviar/examples/sionna/PCT_mitsuba/pct_sar.xml"
-
-rx_3D_object_name = "mesh-Cube"
-# simple_street_canyon
-# rx_starting_x = -60.8888
-# rx_starting_y = -0.471238
-# rx_starting_z = 2.673
-
-# pct_sar
-rx_starting_x = -1900
-rx_starting_y = 2231
-rx_starting_z = 560.6
-
-step_size = 15
-number_of_steps = 2
-
-nTx = 32
-nRx = 8
-
 for current_step in range(number_of_steps):
     translate(
         mitsuba_file, rx_3D_object_name, -(current_step * step_size), 0, 0
@@ -70,6 +88,8 @@ for current_step in range(number_of_steps):
     rx_current_y = rx_starting_y
     rx_current_z = rx_starting_z
     scene = load_scene(mitsuba_file)  # Sionna scene
+
+    
     # rx_current_y = rx_starting_y + (current_step * step_size)
     # rx_current_z = rx_starting_z + (current_step * step_size)
     ########################### COPIED FROM SIONNA EXAMPLE #####################
@@ -79,7 +99,7 @@ for current_step in range(number_of_steps):
         num_cols=1,
         vertical_spacing=0.5,
         horizontal_spacing=0.5,
-        pattern="hw_dipole",
+        pattern="tr38901",
         polarization="V",
     )
 
@@ -89,13 +109,12 @@ for current_step in range(number_of_steps):
         num_cols=1,
         vertical_spacing=0.5,
         horizontal_spacing=0.5,
-        pattern="hw_dipole",
-        polarization="cross",
+        pattern="tr38901",
+        polarization="V",
     )
 
     # Create transmitter
-    # tx = Transmitter(name="tx", position=[-62.11, -8.71, 22]) # simple_street_canyon
-    tx = Transmitter(name="tx", position=[-1774, 2277, 597.6])  # pct_sar
+    tx = Transmitter(name="tx", position=[-1774, 2277, 597.6])
 
     # Add transmitter instance to scene
     scene.add(tx)
@@ -113,17 +132,10 @@ for current_step in range(number_of_steps):
 
     tx.look_at(rx)  # Transmitter points towards receiver
 
-    filename2 = f"/home/joao/codes/caviar/runs/run_{current_step+5}"
-    scene.render_to_file(
-        camera="scene-cam-0",  # Also try camera="preview"
-        show_devices=True,
-        filename=f"{filename2}.png",
-        resolution=[650, 500],
-    )
+    scene.frequency = 10e9  # in Hz; implicitly updates RadioMaterials
 
-    scene.frequency = 40e9  # in Hz; implicitly updates RadioMaterials
+    scene.synthetic_array = False  # If set to False, ray tracing will be done per antenna element (slower for large arrays)
 
-    scene.synthetic_array = True  # If set to False, ray tracing will be done per antenna element (slower for large arrays)
 
     # Compute propagation paths
     paths = scene.compute_paths(
@@ -133,14 +145,29 @@ for current_step in range(number_of_steps):
         seed=1,
     )  # By fixing the seed, reproducible results can be ensured
 
+    output_filename = os.path.join(current_dir, "runs", f"run_{str(current_step)}")
+
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+
+    scene.render_to_file(
+        camera="scene-cam-0",
+        paths=paths,
+        show_devices=True,
+        show_paths=True,
+        filename=f"{output_filename}.png",
+        resolution=[650, 500],
+    )
+
+    # --------------------------------------------------------------------------
     # We can now access for every path the resulting transfer matrices, the propagation delay,
     # as well as the angles of departure and arrival, respectively (zenith and azimuth).
-    mat_t, tau, theta_t, phi_t, theta_r, phi_r = paths.as_tuple()
+    # mat_t, tau, theta_t, phi_t, theta_r, phi_r = paths.as_tuple()
 
     # print("Shape of mat_t:", mat_t.shape)
 
     # Let us inspect a specific path in detail
-    path_idx = 0
+    # path_idx = 0
 
     # The dimensions are batch_size, num_rx, num_tx, max_num_paths, 2, 2] where the transfer matrices have an additional 2x2 dimension
     # print(f"\n--- Detailed results for path {path_idx} ---\n")
@@ -150,27 +177,49 @@ for current_step in range(number_of_steps):
     # print(f"Azimuth angle of departure: {phi_t[0,0,0,path_idx]:.4f} rad")
     # print(f"Zenith angle of arrival: {theta_r[0,0,0,path_idx]:.4f} rad")
     # print(f"Azimuth angle of arrival: {phi_r[0,0,0,path_idx]:.4f} rad")
+    # --------------------------------------------------------------------------
 
-    filename = f"/home/joao/codes/caviar/runs/run_{current_step}"
+    # Default parameters in the PUSCHConfig
+    subcarrier_spacing = 15e3
+    fft_size = 48
 
-    scene.render_to_file(
-        camera="scene-cam-0",  # Also try camera="preview"
-        paths=paths,
-        show_devices=True,
-        show_paths=True,
-        filename=f"{filename}.png",
-        resolution=[650, 500],
+    # Configure a Paths2CIR instance
+    p2c = Paths2CIR(
+        sampling_frequency=subcarrier_spacing,  # Set to 15e3 Hz
+        num_time_steps=14,  # Number of OFDM symbols
+        scene=scene,
     )
+
+    # Transform paths into channel impulse responses
+    a, tau = p2c(paths.as_tuple())
+
+    print("Shape of a: ", a.shape)
+    print("Shape of tau: ", tau.shape)
+
+    # Compute frequencies of subcarriers and center around carrier frequency
+    frequencies = subcarrier_frequencies(fft_size, subcarrier_spacing)
+
+    # Compute the frequency response of the channel at frequencies.
+    h_freq = cir_to_ofdm_channel(
+        frequencies, a, tau, normalize=True
+    )  # Non-normalized includes path-loss
+
+    # Verify that the channel is normalized
+    h_avg_power = tf.reduce_mean(tf.abs(h_freq) ** 2).numpy()
+
+    print("Shape of h_freq: ", h_freq.shape)
+    print("Average power h_freq: ", h_avg_power)  # Channel is normalized
+
     ########################### COPIED FROM SIONNA EXAMPLE #####################
 
-    L = mat_t.shape[3]  # Number of paths
+    L = a.shape[5]  # Number of paths
 
     getRunMIMOdata(
-        output_file=filename,
-        # mimoChannel=mat_t[0, 0, 0, path_idx, ...],
-        AoD_az=theta_t,
-        AoA_az=phi_r,
-        gain_in_dB=np.array([L, 0]),
+        output_file=output_filename,
+        mimoChannel=h_freq.numpy().squeeze()[:, :, 0, 0],
+        # AoD_az=theta_t,
+        # AoA_az=phi_r,
+        # gain_in_dB=np.array([L, 0]),
         number_Tx_antennas=nTx,
         number_Rx_antennas=nRx,
     )
