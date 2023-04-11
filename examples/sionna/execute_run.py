@@ -49,16 +49,16 @@ nRx = 8
 
 def getRunMIMOdata(
     output_file,
-    # mimoChannel,
-    AoD_az,
-    AoA_az,
-    gain_in_dB,
+    mimoChannel,
+    # AoD_az,
+    # AoA_az,
+    # gain_in_dB,
     number_Tx_antennas,
     number_Rx_antennas,
 ):
-    mimoChannel = mimo_channels.getNarrowBandULAMIMOChannel(
-        AoD_az, AoA_az, gain_in_dB, number_Tx_antennas, number_Rx_antennas
-    )
+    # mimoChannel = mimo_channels.getNarrowBandULAMIMOChannel(
+    #     AoD_az, AoA_az, gain_in_dB, number_Tx_antennas, number_Rx_antennas
+    # )
 
     equivalentChannel = mimo_channels.getDFTOperatedChannel(
         mimoChannel, number_Tx_antennas, number_Rx_antennas
@@ -98,7 +98,7 @@ for current_step in range(number_of_steps):
         num_cols=1,
         vertical_spacing=0.5,
         horizontal_spacing=0.5,
-        pattern="hw_dipole",
+        pattern="tr38901",
         polarization="V",
     )
 
@@ -108,8 +108,8 @@ for current_step in range(number_of_steps):
         num_cols=1,
         vertical_spacing=0.5,
         horizontal_spacing=0.5,
-        pattern="hw_dipole",
-        polarization="cross",
+        pattern="tr38901",
+        polarization="V",
     )
 
     # Create transmitter
@@ -133,7 +133,7 @@ for current_step in range(number_of_steps):
 
     scene.frequency = 40e9  # in Hz; implicitly updates RadioMaterials
 
-    scene.synthetic_array = True  # If set to False, ray tracing will be done per antenna element (slower for large arrays)
+    scene.synthetic_array = False  # If set to False, ray tracing will be done per antenna element (slower for large arrays)
 
     # Compute propagation paths
     paths = scene.compute_paths(
@@ -143,14 +143,14 @@ for current_step in range(number_of_steps):
         seed=1,
     )  # By fixing the seed, reproducible results can be ensured
 
-    output_filename = os.path.join(current_dir, "runs", f"run_{str(current_step)}.png")
+    output_filename = os.path.join(current_dir, "runs", f"run_{str(current_step)}")
 
     scene.render_to_file(
         camera="scene-cam-0",
         paths=paths,
         show_devices=True,
         show_paths=True,
-        filename=output_filename,
+        filename=f"{output_filename}.png",
         resolution=[650, 500],
     )
 
@@ -178,6 +178,10 @@ for current_step in range(number_of_steps):
         os.mkdir(output_dir)
 
     output_filename = os.path.join(output_dir, f"run_{str(current_step)}.png")
+
+    # Default parameters in the PUSCHConfig
+    subcarrier_spacing = 15e3
+    fft_size = 48
 
     # Configure a Paths2CIR instance
     p2c = Paths2CIR(
@@ -212,10 +216,10 @@ for current_step in range(number_of_steps):
 
     getRunMIMOdata(
         output_file=output_filename,
-        # mimoChannel=mat_t[0, 0, 0, path_idx, ...],
-        AoD_az=theta_t,
-        AoA_az=phi_r,
-        gain_in_dB=np.array([L, 0]),
+        mimoChannel=h_freq.numpy().squeeze()[:, :, 0, 0],
+        # AoD_az=theta_t,
+        # AoA_az=phi_r,
+        # gain_in_dB=np.array([L, 0]),
         number_Tx_antennas=nTx,
         number_Rx_antennas=nRx,
     )
