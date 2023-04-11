@@ -145,6 +145,9 @@ for current_step in range(number_of_steps):
 
     output_filename = os.path.join(current_dir, "runs", f"run_{str(current_step)}")
 
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+
     scene.render_to_file(
         camera="scene-cam-0",
         paths=paths,
@@ -173,9 +176,6 @@ for current_step in range(number_of_steps):
     # print(f"Zenith angle of arrival: {theta_r[0,0,0,path_idx]:.4f} rad")
     # print(f"Azimuth angle of arrival: {phi_r[0,0,0,path_idx]:.4f} rad")
     # --------------------------------------------------------------------------
-
-    if not os.path.exists(output_dir):
-        os.mkdir(output_dir)
 
     # Default parameters in the PUSCHConfig
     subcarrier_spacing = 15e3
