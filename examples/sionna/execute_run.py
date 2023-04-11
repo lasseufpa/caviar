@@ -177,8 +177,6 @@ for current_step in range(number_of_steps):
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
-    output_filename = os.path.join(output_dir, f"run_{str(current_step)}.png")
-
     # Default parameters in the PUSCHConfig
     subcarrier_spacing = 15e3
     fft_size = 48
