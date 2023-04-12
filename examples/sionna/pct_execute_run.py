@@ -2,7 +2,7 @@ import os
 import numpy as np
 import tensorflow as tf
 import mitsuba as mi
-from sionna.rt import load_scene, Transmitter, Receiver, PlanarArray, Paths2CIR
+from sionna.rt import load_scene, Transmitter, Receiver, PlanarArray, Paths2CIR, Camera
 from sionna.channel import (
     cir_to_ofdm_channel,
     subcarrier_frequencies,
@@ -40,7 +40,7 @@ rx_starting_z = 560.6
 ################################# Configure simulation parameters ##############
 
 step_size = 15
-number_of_steps = 5
+number_of_steps = 1
 
 nTx = 32
 nRx = 8
@@ -89,7 +89,6 @@ for current_step in range(number_of_steps):
     rx_current_z = rx_starting_z
     scene = load_scene(mitsuba_file)  # Sionna scene
 
-    
     # rx_current_y = rx_starting_y + (current_step * step_size)
     # rx_current_z = rx_starting_z + (current_step * step_size)
     ########################### COPIED FROM SIONNA EXAMPLE #####################
@@ -134,14 +133,13 @@ for current_step in range(number_of_steps):
 
     scene.frequency = 10e9  # in Hz; implicitly updates RadioMaterials
 
-    scene.synthetic_array = False  # If set to False, ray tracing will be done per antenna element (slower for large arrays)
-
+    scene.synthetic_array = True  # If set to False, ray tracing will be done per antenna element (slower for large arrays)
 
     # Compute propagation paths
     paths = scene.compute_paths(
         max_depth=5,
         method="stochastic",  # For small scenes the method can be also set to "exhaustive"
-        num_samples=1e6,  # Number of rays shot into random directions, too few rays can lead to missing paths
+        num_samples=10,  # Number of rays shot into random directions, too few rays can lead to missing paths
         seed=1,
     )  # By fixing the seed, reproducible results can be ensured
 
@@ -150,8 +148,12 @@ for current_step in range(number_of_steps):
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
+    # Create new camera with different configuration
+    my_cam = Camera("my_cam", position=[-1774, 2277, 597.6], look_at=[-15, 30, 28])
+    scene.add(my_cam)
+
     scene.render_to_file(
-        camera="scene-cam-0",
+        camera="my_cam",
         paths=paths,
         show_devices=True,
         show_paths=True,
