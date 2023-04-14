@@ -1,0 +1,371 @@
+<scene version="2.1.0">
+
+
+
+
+
+
+	<integrator type="path">
+		<integer name="max_depth" value="12" />
+	</integrator>
+
+
+
+	<bsdf type="twosided" id="mat-itu_concrete.001">
+		<bsdf type="principled">
+			<rgb value="0.800000 0.800000 0.800000" name="base_color" />
+			<float name="spec_tint" value="0.000000" />
+			<float name="spec_trans" value="0.000000" />
+			<float name="metallic" value="0.000000" />
+			<float name="anisotropic" value="0.000000" />
+			<float name="roughness" value="0.500000" />
+			<float name="sheen" value="0.000000" />
+			<float name="sheen_tint" value="0.500000" />
+			<float name="clearcoat" value="0.000000" />
+			<float name="clearcoat_gloss" value="0.173205" />
+			<float name="specular" value="0.500000" />
+		</bsdf>
+	</bsdf>
+	<bsdf type="twosided" id="mat-itu_concrete.002">
+		<bsdf type="principled">
+			<rgb value="0.800000 0.800000 0.800000" name="base_color" />
+			<float name="spec_tint" value="0.000000" />
+			<float name="spec_trans" value="0.000000" />
+			<float name="metallic" value="0.000000" />
+			<float name="anisotropic" value="0.000000" />
+			<float name="roughness" value="0.500000" />
+			<float name="sheen" value="0.000000" />
+			<float name="sheen_tint" value="0.500000" />
+			<float name="clearcoat" value="0.000000" />
+			<float name="clearcoat_gloss" value="0.173205" />
+			<float name="specular" value="0.500000" />
+		</bsdf>
+	</bsdf>
+	<bsdf type="twosided" id="mat-itu_medium_dry_ground">
+		<bsdf type="principled">
+			<rgb value="0.800000 0.800000 0.800000" name="base_color" />
+			<float name="spec_tint" value="0.000000" />
+			<float name="spec_trans" value="0.000000" />
+			<float name="metallic" value="0.000000" />
+			<float name="anisotropic" value="0.000000" />
+			<float name="roughness" value="0.500000" />
+			<float name="sheen" value="0.000000" />
+			<float name="sheen_tint" value="0.500000" />
+			<float name="clearcoat" value="0.000000" />
+			<float name="clearcoat_gloss" value="0.173205" />
+			<float name="specular" value="0.500000" />
+		</bsdf>
+	</bsdf>
+	<bsdf type="twosided" id="mat-itu_medium_dry_ground.003">
+		<bsdf type="principled">
+			<rgb value="0.800000 0.800000 0.800000" name="base_color" />
+			<float name="spec_tint" value="0.000000" />
+			<float name="spec_trans" value="0.000000" />
+			<float name="metallic" value="0.000000" />
+			<float name="anisotropic" value="0.000000" />
+			<float name="roughness" value="0.500000" />
+			<float name="sheen" value="0.000000" />
+			<float name="sheen_tint" value="0.500000" />
+			<float name="clearcoat" value="0.000000" />
+			<float name="clearcoat_gloss" value="0.173205" />
+			<float name="specular" value="0.500000" />
+		</bsdf>
+	</bsdf>
+	<bsdf type="twosided" id="mat-itu_medium_dry_ground.004">
+		<bsdf type="principled">
+			<rgb value="0.800000 0.800000 0.800000" name="base_color" />
+			<float name="spec_tint" value="0.000000" />
+			<float name="spec_trans" value="0.000000" />
+			<float name="metallic" value="0.000000" />
+			<float name="anisotropic" value="0.000000" />
+			<float name="roughness" value="0.500000" />
+			<float name="sheen" value="0.000000" />
+			<float name="sheen_tint" value="0.500000" />
+			<float name="clearcoat" value="0.000000" />
+			<float name="clearcoat_gloss" value="0.173205" />
+			<float name="specular" value="0.500000" />
+		</bsdf>
+	</bsdf>
+	<bsdf type="twosided" id="mat-itu_medium_dry_ground.002">
+		<bsdf type="principled">
+			<rgb value="0.800000 0.800000 0.800000" name="base_color" />
+			<float name="spec_tint" value="0.000000" />
+			<float name="spec_trans" value="0.000000" />
+			<float name="metallic" value="0.000000" />
+			<float name="anisotropic" value="0.000000" />
+			<float name="roughness" value="0.500000" />
+			<float name="sheen" value="0.000000" />
+			<float name="sheen_tint" value="0.500000" />
+			<float name="clearcoat" value="0.000000" />
+			<float name="clearcoat_gloss" value="0.173205" />
+			<float name="specular" value="0.500000" />
+		</bsdf>
+	</bsdf>
+	<bsdf type="twosided" id="mat-itu_concrete.003">
+		<bsdf type="principled">
+			<rgb value="0.800000 0.800000 0.800000" name="base_color" />
+			<float name="spec_tint" value="0.000000" />
+			<float name="spec_trans" value="0.000000" />
+			<float name="metallic" value="0.000000" />
+			<float name="anisotropic" value="0.000000" />
+			<float name="roughness" value="0.500000" />
+			<float name="sheen" value="0.000000" />
+			<float name="sheen_tint" value="0.500000" />
+			<float name="clearcoat" value="0.000000" />
+			<float name="clearcoat_gloss" value="0.173205" />
+			<float name="specular" value="0.500000" />
+		</bsdf>
+	</bsdf>
+	<bsdf type="twosided" id="mat-itu_concrete">
+		<bsdf type="principled">
+			<rgb value="0.800000 0.800000 0.800000" name="base_color" />
+			<float name="spec_tint" value="0.000000" />
+			<float name="spec_trans" value="0.000000" />
+			<float name="metallic" value="0.000000" />
+			<float name="anisotropic" value="0.000000" />
+			<float name="roughness" value="0.500000" />
+			<float name="sheen" value="0.000000" />
+			<float name="sheen_tint" value="0.500000" />
+			<float name="clearcoat" value="0.000000" />
+			<float name="clearcoat_gloss" value="0.173205" />
+			<float name="specular" value="0.500000" />
+		</bsdf>
+	</bsdf>
+	<bsdf type="twosided" id="mat-itu_medium_dry_ground.005">
+		<bsdf type="principled">
+			<rgb value="0.800000 0.800000 0.800000" name="base_color" />
+			<float name="spec_tint" value="0.000000" />
+			<float name="spec_trans" value="0.000000" />
+			<float name="metallic" value="0.000000" />
+			<float name="anisotropic" value="0.000000" />
+			<float name="roughness" value="0.500000" />
+			<float name="sheen" value="0.000000" />
+			<float name="sheen_tint" value="0.500000" />
+			<float name="clearcoat" value="0.000000" />
+			<float name="clearcoat_gloss" value="0.173205" />
+			<float name="specular" value="0.500000" />
+		</bsdf>
+	</bsdf>
+	<bsdf type="twosided" id="mat-itu_medium_dry_ground.001">
+		<bsdf type="principled">
+			<rgb value="0.800000 0.800000 0.800000" name="base_color" />
+			<float name="spec_tint" value="0.000000" />
+			<float name="spec_trans" value="0.000000" />
+			<float name="metallic" value="0.000000" />
+			<float name="anisotropic" value="0.000000" />
+			<float name="roughness" value="0.500000" />
+			<float name="sheen" value="0.000000" />
+			<float name="sheen_tint" value="0.500000" />
+			<float name="clearcoat" value="0.000000" />
+			<float name="clearcoat_gloss" value="0.173205" />
+			<float name="specular" value="0.500000" />
+		</bsdf>
+	</bsdf>
+	<bsdf type="twosided" id="mat-itu_concrete.004">
+		<bsdf type="principled">
+			<rgb value="0.800000 0.800000 0.800000" name="base_color" />
+			<float name="spec_tint" value="0.000000" />
+			<float name="spec_trans" value="0.000000" />
+			<float name="metallic" value="0.000000" />
+			<float name="anisotropic" value="0.000000" />
+			<float name="roughness" value="0.500000" />
+			<float name="sheen" value="0.000000" />
+			<float name="sheen_tint" value="0.500000" />
+			<float name="clearcoat" value="0.000000" />
+			<float name="clearcoat_gloss" value="0.173205" />
+			<float name="specular" value="0.500000" />
+		</bsdf>
+	</bsdf>
+	<bsdf type="twosided" id="mat-itu_medium_dry_ground.007">
+		<bsdf type="principled">
+			<rgb value="0.800000 0.800000 0.800000" name="base_color" />
+			<float name="spec_tint" value="0.000000" />
+			<float name="spec_trans" value="0.000000" />
+			<float name="metallic" value="0.000000" />
+			<float name="anisotropic" value="0.000000" />
+			<float name="roughness" value="0.500000" />
+			<float name="sheen" value="0.000000" />
+			<float name="sheen_tint" value="0.500000" />
+			<float name="clearcoat" value="0.000000" />
+			<float name="clearcoat_gloss" value="0.173205" />
+			<float name="specular" value="0.500000" />
+		</bsdf>
+	</bsdf>
+	<bsdf type="twosided" id="mat-itu_medium_dry_ground.006">
+		<bsdf type="principled">
+			<rgb value="0.800000 0.800000 0.800000" name="base_color" />
+			<float name="spec_tint" value="0.000000" />
+			<float name="spec_trans" value="0.000000" />
+			<float name="metallic" value="0.000000" />
+			<float name="anisotropic" value="0.000000" />
+			<float name="roughness" value="0.500000" />
+			<float name="sheen" value="0.000000" />
+			<float name="sheen_tint" value="0.500000" />
+			<float name="clearcoat" value="0.000000" />
+			<float name="clearcoat_gloss" value="0.173205" />
+			<float name="specular" value="0.500000" />
+		</bsdf>
+	</bsdf>
+	<bsdf type="twosided" id="mat-itu_metal">
+		<bsdf type="principled">
+			<rgb value="0.800000 0.800000 0.800000" name="base_color" />
+			<float name="spec_tint" value="0.000000" />
+			<float name="spec_trans" value="0.000000" />
+			<float name="metallic" value="0.000000" />
+			<float name="anisotropic" value="0.000000" />
+			<float name="roughness" value="0.500000" />
+			<float name="sheen" value="0.000000" />
+			<float name="sheen_tint" value="0.500000" />
+			<float name="clearcoat" value="0.000000" />
+			<float name="clearcoat_gloss" value="0.173205" />
+			<float name="specular" value="0.500000" />
+		</bsdf>
+	</bsdf>
+
+
+
+
+
+
+	<shape type="ply" id="mesh-map_4_osm_buildings">
+		<string name="filename" value="meshes/map_4_osm_buildings.ply" />
+		<ref id="mat-itu_concrete.001" name="bsdf" />
+	</shape>
+	<shape type="ply" id="mesh-map_4_osm_areas_pedestrian">
+		<string name="filename" value="meshes/map_4_osm_areas_pedestrian.ply" />
+		<boolean name="face_normals" value="true" />
+		<ref id="mat-itu_concrete.002" name="bsdf" />
+	</shape>
+	<shape type="ply" id="mesh-Terrain">
+		<string name="filename" value="meshes/Terrain.ply" />
+		<ref id="mat-itu_medium_dry_ground" name="bsdf" />
+	</shape>
+	<shape type="shapegroup" id="mesh-map_4_osm_roads_residential">
+		<shape type="ply">
+			<string name="filename" value="meshes/map_4_osm_roads_residential.ply" />
+			<ref id="mat-itu_medium_dry_ground.003" name="bsdf" />
+		</shape>
+	</shape>
+	<shape type="instance">
+		<ref id="mesh-map_4_osm_roads_residential" name="shape" />
+		<transform name="to_world">
+			<matrix value="1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 12.000000 38.000000 0.000000 0.000000 0.000000 1.000000" />
+		</transform>
+	</shape>
+	<shape type="shapegroup" id="mesh-map_4_osm_roads_secondary">
+		<shape type="ply">
+			<string name="filename" value="meshes/map_4_osm_roads_secondary.ply" />
+			<ref id="mat-itu_medium_dry_ground.004" name="bsdf" />
+		</shape>
+	</shape>
+	<shape type="instance">
+		<ref id="mesh-map_4_osm_roads_secondary" name="shape" />
+		<transform name="to_world">
+			<matrix value="1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 12.000000 38.000000 0.000000 0.000000 0.000000 1.000000" />
+		</transform>
+	</shape>
+	<shape type="shapegroup" id="mesh-map_4_osm_roads_primary">
+		<shape type="ply">
+			<string name="filename" value="meshes/map_4_osm_roads_primary.ply" />
+			<ref id="mat-itu_medium_dry_ground.002" name="bsdf" />
+		</shape>
+	</shape>
+	<shape type="instance">
+		<ref id="mesh-map_4_osm_roads_primary" name="shape" />
+		<transform name="to_world">
+			<matrix value="1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 12.000000 38.000000 0.000000 0.000000 0.000000 1.000000" />
+		</transform>
+	</shape>
+	<shape type="shapegroup" id="mesh-map_4_osm_paths_cycleway">
+		<shape type="ply">
+			<string name="filename" value="meshes/map_4_osm_paths_cycleway.ply" />
+			<ref id="mat-itu_concrete.003" name="bsdf" />
+		</shape>
+	</shape>
+	<shape type="instance">
+		<ref id="mesh-map_4_osm_paths_cycleway" name="shape" />
+		<transform name="to_world">
+			<matrix value="1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 12.000000 38.000000 0.000000 0.000000 0.000000 1.000000" />
+		</transform>
+	</shape>
+	<shape type="shapegroup" id="mesh-map_4_osm_roads_pedestrian">
+		<shape type="ply">
+			<string name="filename" value="meshes/map_4_osm_roads_pedestrian.ply" />
+			<ref id="mat-itu_concrete" name="bsdf" />
+		</shape>
+	</shape>
+	<shape type="instance">
+		<ref id="mesh-map_4_osm_roads_pedestrian" name="shape" />
+		<transform name="to_world">
+			<matrix value="1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 12.000000 38.000000 0.000000 0.000000 0.000000 1.000000" />
+		</transform>
+	</shape>
+	<shape type="shapegroup" id="mesh-map_4_osm_roads_service">
+		<shape type="ply">
+			<string name="filename" value="meshes/map_4_osm_roads_service.ply" />
+			<ref id="mat-itu_medium_dry_ground.005" name="bsdf" />
+		</shape>
+	</shape>
+	<shape type="instance">
+		<ref id="mesh-map_4_osm_roads_service" name="shape" />
+		<transform name="to_world">
+			<matrix value="1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 12.000000 38.000000 0.000000 0.000000 0.000000 1.000000" />
+		</transform>
+	</shape>
+	<shape type="shapegroup" id="mesh-map_4_osm_paths_footway">
+		<shape type="ply">
+			<string name="filename" value="meshes/map_4_osm_paths_footway.ply" />
+			<ref id="mat-itu_medium_dry_ground.001" name="bsdf" />
+		</shape>
+	</shape>
+	<shape type="instance">
+		<ref id="mesh-map_4_osm_paths_footway" name="shape" />
+		<transform name="to_world">
+			<matrix value="1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 12.000000 38.000000 0.000000 0.000000 0.000000 1.000000" />
+		</transform>
+	</shape>
+	<shape type="shapegroup" id="mesh-map_4_osm_paths_steps">
+		<shape type="ply">
+			<string name="filename" value="meshes/map_4_osm_paths_steps.ply" />
+			<ref id="mat-itu_concrete.004" name="bsdf" />
+		</shape>
+	</shape>
+	<shape type="instance">
+		<ref id="mesh-map_4_osm_paths_steps" name="shape" />
+		<transform name="to_world">
+			<matrix value="1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 12.000000 38.000000 0.000000 0.000000 0.000000 1.000000" />
+		</transform>
+	</shape>
+	<shape type="shapegroup" id="mesh-map_4_osm_roads_unclassified">
+		<shape type="ply">
+			<string name="filename" value="meshes/map_4_osm_roads_unclassified.ply" />
+			<ref id="mat-itu_medium_dry_ground.007" name="bsdf" />
+		</shape>
+	</shape>
+	<shape type="instance">
+		<ref id="mesh-map_4_osm_roads_unclassified" name="shape" />
+		<transform name="to_world">
+			<matrix value="1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 12.000000 38.000000 0.000000 0.000000 0.000000 1.000000" />
+		</transform>
+	</shape>
+	<shape type="shapegroup" id="mesh-map_4_osm_roads_tertiary">
+		<shape type="ply">
+			<string name="filename" value="meshes/map_4_osm_roads_tertiary.ply" />
+			<ref id="mat-itu_medium_dry_ground.006" name="bsdf" />
+		</shape>
+	</shape>
+	<shape type="instance">
+		<ref id="mesh-map_4_osm_roads_tertiary" name="shape" />
+		<transform name="to_world">
+			<matrix value="1.000000 0.000000 0.000000 0.000000 0.000000 1.000000 0.000000 0.000000 0.000000 0.000000 12.000000 38.000000 0.000000 0.000000 0.000000 1.000000" />
+		</transform>
+	</shape>
+	<shape type="ply" id="mesh-Cube">
+		<string name="filename" value="meshes/Cube.ply" />
+		<boolean name="face_normals" value="true" />
+		<ref id="mat-itu_metal" name="bsdf" />
+		<transform name="to_world">
+			<translate value="0 0 0" />
+		</transform>
+	</shape>
+</scene>
