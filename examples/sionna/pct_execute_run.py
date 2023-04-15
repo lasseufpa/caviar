@@ -20,13 +20,6 @@ mi.set_variant("cuda_ad_rgb")
 current_dir = os.getcwd()
 output_dir = os.path.join(current_dir, "runs")
 
-simple_street_canyon_path = os.path.join(
-    current_dir,
-    "examples",
-    "sionna",
-    "simple_street_canyon",
-    "simple_street_canyon.xml",
-)
 pct_path = os.path.join(current_dir, "examples", "sionna", "PCT_mitsuba", "pct_sar.xml")
 
 mitsuba_file = pct_path
@@ -49,16 +42,9 @@ nRx = 8
 def getRunMIMOdata(
     output_file,
     mimoChannel,
-    # AoD_az,
-    # AoA_az,
-    # gain_in_dB,
     number_Tx_antennas,
     number_Rx_antennas,
 ):
-    # mimoChannel = mimo_channels.getNarrowBandULAMIMOChannel(
-    #     AoD_az, AoA_az, gain_in_dB, number_Tx_antennas, number_Rx_antennas
-    # )
-
     equivalentChannel = mimo_channels.getDFTOperatedChannel(
         mimoChannel, number_Tx_antennas, number_Rx_antennas
     )
@@ -136,12 +122,12 @@ for current_step in range(number_of_steps):
     scene.synthetic_array = True  # If set to False, ray tracing will be done per antenna element (slower for large arrays)
 
     # Compute propagation paths
-    paths = scene.compute_paths(
-        max_depth=5,
-        method="stochastic",  # For small scenes the method can be also set to "exhaustive"
-        num_samples=10,  # Number of rays shot into random directions, too few rays can lead to missing paths
-        seed=1,
-    )  # By fixing the seed, reproducible results can be ensured
+    # paths = scene.compute_paths(
+    #     max_depth=5,
+    #     method="stochastic",  # For small scenes the method can be also set to "exhaustive"
+    #     num_samples=10,  # Number of rays shot into random directions, too few rays can lead to missing paths
+    #     seed=1,
+    # )  # By fixing the seed, reproducible results can be ensured
 
     output_filename = os.path.join(current_dir, "runs", f"run_{str(current_step)}")
 
@@ -149,14 +135,15 @@ for current_step in range(number_of_steps):
         os.mkdir(output_dir)
 
     # Create new camera with different configuration
-    my_cam = Camera("my_cam", position=[-1774, 2277, 597.6], look_at=[-15, 30, 28])
+    # my_cam = Camera("my_cam", position=[-1774, 2277, 597.6], look_at=[0, 0, 0])
+    my_cam = Camera("my_cam", position=[-207.7, 272.3, 52.22], look_at=[0, 90, 0])
     scene.add(my_cam)
 
     scene.render_to_file(
         camera="my_cam",
-        paths=paths,
+        # paths=paths,
         show_devices=True,
-        show_paths=True,
+        # show_paths=True,
         filename=f"{output_filename}.png",
         resolution=[650, 500],
     )
