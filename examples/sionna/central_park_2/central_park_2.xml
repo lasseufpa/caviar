@@ -13,37 +13,16 @@
 	</integrator>
 	<sensor type="perspective" id="Camera">
 		<string name="fov_axis" value="x"/>
-		<float name="fov" value="39.597755"/>
+		<float name="fov" value="59.997802"/>
 		<float name="principal_point_offset_x" value="0.000000"/>
 		<float name="principal_point_offset_y" value="-0.000000"/>
 		<float name="near_clip" value="0.100000"/>
 		<float name="far_clip" value="100.000000"/>
 		<transform name="to_world">
-			<rotate x="1" angle="140.7999920791224"/>
-			<rotate y="1" angle="8.686586421608431e-07"/>
-			<rotate z="1" angle="150.00001100431945"/>
-			<translate value="-91.606819 -400.794586 382.692322"/>
-		</transform>
-		<sampler type="independent">
-			<integer name="sample_count" value="$spp"/>
-		</sampler>
-		<film type="hdrfilm">
-			<integer name="width" value="$resx"/>
-			<integer name="height" value="$resy"/>
-		</film>
-	</sensor>
-	<sensor type="perspective" id="Camera.001">
-		<string name="fov_axis" value="x"/>
-		<float name="fov" value="0.646322"/>
-		<float name="principal_point_offset_x" value="0.000000"/>
-		<float name="principal_point_offset_y" value="-0.000000"/>
-		<float name="near_clip" value="0.100000"/>
-		<float name="far_clip" value="1000.000000"/>
-		<transform name="to_world">
-			<rotate x="1" angle="130.40015480356422"/>
-			<rotate y="1" angle="-1.5921798518533477e-05"/>
-			<rotate z="1" angle="175.99995936305172"/>
-			<translate value="-56.213612 -351.997833 320.045563"/>
+			<rotate x="1" angle="177.1999962794663"/>
+			<rotate y="1" angle="5.177169510524073e-07"/>
+			<rotate z="1" angle="148.79998774828323"/>
+			<translate value="-56.414463 -351.645782 333.454193"/>
 		</transform>
 		<sampler type="independent">
 			<integer name="sample_count" value="$spp"/>
@@ -97,8 +76,5 @@
 		<string name="filename" value="meshes/Cube.ply"/>
 		<boolean name="face_normals" value="true"/>
 		<ref id="mat-itu_metal" name="bsdf"/>
-		<transform name="to_world">
-			<translate value="0 0 0" />
-		</transform>
 	</shape>
 </scene>

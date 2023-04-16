@@ -68,12 +68,12 @@
 		<ref id="mat-itu_concrete" name="bsdf" />
 	</shape>
 	<shape type="ply" id="mesh-Cube">
-		<string name="filename" value="meshes/Cube.ply" />
-		<boolean name="face_normals" value="true" />
-		<ref id="mat-itu_metal" name="bsdf" />
 		<transform name="to_world">
 			<translate value="0 0 0" />
 		</transform>
+		<string name="filename" value="meshes/Cube.ply" />
+		<boolean name="face_normals" value="true" />
+		<ref id="mat-itu_metal" name="bsdf" />
 	</shape>
 	<shape type="ply" id="mesh-Plane">
 		<string name="filename" value="meshes/Plane.ply" />
