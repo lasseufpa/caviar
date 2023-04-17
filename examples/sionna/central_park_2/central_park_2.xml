@@ -13,16 +13,16 @@
 	</integrator>
 	<sensor type="perspective" id="Camera">
 		<string name="fov_axis" value="x"/>
-		<float name="fov" value="59.997802"/>
+		<float name="fov" value="39.597755"/>
 		<float name="principal_point_offset_x" value="0.000000"/>
 		<float name="principal_point_offset_y" value="-0.000000"/>
 		<float name="near_clip" value="0.100000"/>
-		<float name="far_clip" value="100.000000"/>
+		<float name="far_clip" value="1000.000000"/>
 		<transform name="to_world">
-			<rotate x="1" angle="177.1999962794663"/>
-			<rotate y="1" angle="5.177169510524073e-07"/>
-			<rotate z="1" angle="148.79998774828323"/>
-			<translate value="-56.414463 -351.645782 333.454193"/>
+			<rotate x="1" angle="137.89298160609493"/>
+			<rotate y="1" angle="-0.259702255098985"/>
+			<rotate z="1" angle="174.89916509527745"/>
+			<translate value="90.442253 -625.889160 608.601990"/>
 		</transform>
 		<sampler type="independent">
 			<integer name="sample_count" value="$spp"/>
@@ -37,17 +37,17 @@
 
 	<bsdf type="twosided" id="mat-itu_concrete.001">
 		<bsdf type="diffuse">
-			<rgb value="1.000000 1.000000 1.000000" name="reflectance"/>
+			<rgb value="0.049303 0.092348 0.226584" name="reflectance"/>
 		</bsdf>
 	</bsdf>
 	<bsdf type="twosided" id="mat-itu_concrete">
 		<bsdf type="diffuse">
-			<rgb value="1.000000 1.000000 1.000000" name="reflectance"/>
+			<rgb value="0.102461 0.083181 0.093718" name="reflectance"/>
 		</bsdf>
 	</bsdf>
 	<bsdf type="twosided" id="mat-itu_metal">
 		<bsdf type="diffuse">
-			<rgb value="0.300054 0.667545 0.800000" name="reflectance"/>
+			<rgb value="0.007845 0.384374 0.011409" name="reflectance"/>
 		</bsdf>
 	</bsdf>
 
@@ -55,10 +55,6 @@
 
 	<emitter type="constant" id="World">
 		<rgb value="1.000000 1.000000 1.000000" name="radiance"/>
-	</emitter>
-	<emitter type="point" id="emit-Light">
-		<point name="position" x="4.076245307922363" y="1.0054539442062378" z="5.903861999511719"/>
-		<rgb value="79.577469 79.577469 79.577469" name="intensity"/>
 	</emitter>
 
 <!-- Shapes -->
