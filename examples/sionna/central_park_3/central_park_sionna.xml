@@ -45,6 +45,11 @@
 			<rgb value="0.603816 0.029959 0.007736" name="reflectance"/>
 		</bsdf>
 	</bsdf>
+	<bsdf type="twosided" id="mat-itu_concrete.001">
+		<bsdf type="diffuse">
+			<rgb value="0.116896 0.130745 0.142400" name="reflectance"/>
+		</bsdf>
+	</bsdf>
 
 <!-- Emitters -->
 
@@ -66,6 +71,6 @@
 	</shape>
 	<shape type="ply" id="mesh-map_2_osm_buildings">
 		<string name="filename" value="meshes/map_2_osm_buildings.ply"/>
-		<ref id="mat-itu_concrete" name="bsdf"/>
+		<ref id="mat-itu_concrete.001" name="bsdf"/>
 	</shape>
 </scene>
