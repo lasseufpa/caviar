@@ -2,14 +2,8 @@ import os
 import numpy as np
 import tensorflow as tf
 import mitsuba as mi
-from sionna.rt import load_scene, Transmitter, Receiver, PlanarArray, Paths2CIR
-from sionna.channel import (
-    cir_to_ofdm_channel,
-    subcarrier_frequencies,
-    OFDMChannel,
-    ApplyOFDMChannel,
-    CIRDataset,
-)
+from sionna.rt import load_scene, Transmitter, Receiver, PlanarArray, Paths2CIR, Camera
+from sionna.channel import cir_to_ofdm_channel, subcarrier_frequencies
 from obj_move import translate
 import mimo_channels
 
@@ -20,28 +14,25 @@ mi.set_variant("cuda_ad_rgb")
 current_dir = os.getcwd()
 output_dir = os.path.join(current_dir, "runs")
 
-simple_street_canyon_path = os.path.join(
+mitsuba_file = os.path.join(
     current_dir,
     "examples",
     "sionna",
-    "simple_street_canyon",
-    "simple_street_canyon.xml",
+    "central_park_2",
+    "central_park_2.xml",
 )
-pct_path = os.path.join(current_dir, "examples", "sionna", "PCT_mitsuba", "pct_sar.xml")
-
-mitsuba_file = simple_street_canyon_path
 
 ################################# Configure Rx mobility parameters #############
 
 rx_3D_object_name = "mesh-Cube"
-rx_starting_x = -60.8888
-rx_starting_y = -0.471238
-rx_starting_z = 2.673
+rx_starting_x = -56.21
+rx_starting_y = -352
+rx_starting_z = 321
 
 ################################# Configure simulation parameters ##############
 
 step_size = 15
-number_of_steps = 5
+number_of_steps = 1
 
 nTx = 32
 nRx = 8
@@ -50,16 +41,9 @@ nRx = 8
 def getRunMIMOdata(
     output_file,
     mimoChannel,
-    # AoD_az,
-    # AoA_az,
-    # gain_in_dB,
     number_Tx_antennas,
     number_Rx_antennas,
 ):
-    # mimoChannel = mimo_channels.getNarrowBandULAMIMOChannel(
-    #     AoD_az, AoA_az, gain_in_dB, number_Tx_antennas, number_Rx_antennas
-    # )
-
     equivalentChannel = mimo_channels.getDFTOperatedChannel(
         mimoChannel, number_Tx_antennas, number_Rx_antennas
     )
@@ -113,7 +97,7 @@ for current_step in range(number_of_steps):
     )
 
     # Create transmitter
-    tx = Transmitter(name="tx", position=[-62.11, -8.71, 22])
+    tx = Transmitter(name="tx", position=[rx_starting_x, rx_starting_y, rx_starting_z])
 
     # Add transmitter instance to scene
     scene.add(tx)
@@ -133,7 +117,7 @@ for current_step in range(number_of_steps):
 
     scene.frequency = 40e9  # in Hz; implicitly updates RadioMaterials
 
-    scene.synthetic_array = False  # If set to False, ray tracing will be done per antenna element (slower for large arrays)
+    scene.synthetic_array = True  # If set to False, ray tracing will be done per antenna element (slower for large arrays)
 
     # Compute propagation paths
     paths = scene.compute_paths(
@@ -148,34 +132,18 @@ for current_step in range(number_of_steps):
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
+    # Create new camera with different configuration
+    my_cam = Camera("my_cam", position=[rx_starting_x, rx_starting_y, rx_starting_z])
+    scene.add(my_cam)
+
     scene.render_to_file(
-        camera="scene-cam-0",
+        camera="my_cam",
         paths=paths,
         show_devices=True,
         show_paths=True,
         filename=f"{output_filename}.png",
         resolution=[650, 500],
     )
-
-    # --------------------------------------------------------------------------
-    # We can now access for every path the resulting transfer matrices, the propagation delay,
-    # as well as the angles of departure and arrival, respectively (zenith and azimuth).
-    # mat_t, tau, theta_t, phi_t, theta_r, phi_r = paths.as_tuple()
-
-    # print("Shape of mat_t:", mat_t.shape)
-
-    # Let us inspect a specific path in detail
-    # path_idx = 0
-
-    # The dimensions are batch_size, num_rx, num_tx, max_num_paths, 2, 2] where the transfer matrices have an additional 2x2 dimension
-    # print(f"\n--- Detailed results for path {path_idx} ---\n")
-    # print(f"Transfer matrix:\n{mat_t[0,0,0,path_idx,...]}")
-    # print(f"\nPropagation delay: {tau[0,0,0,path_idx]*1e6:.5f} us\n")
-    # print(f"Zenith angle of departure: {theta_t[0,0,0,path_idx]:.4f} rad")
-    # print(f"Azimuth angle of departure: {phi_t[0,0,0,path_idx]:.4f} rad")
-    # print(f"Zenith angle of arrival: {theta_r[0,0,0,path_idx]:.4f} rad")
-    # print(f"Azimuth angle of arrival: {phi_r[0,0,0,path_idx]:.4f} rad")
-    # --------------------------------------------------------------------------
 
     # Default parameters in the PUSCHConfig
     subcarrier_spacing = 15e3
@@ -205,19 +173,13 @@ for current_step in range(number_of_steps):
     # Verify that the channel is normalized
     h_avg_power = tf.reduce_mean(tf.abs(h_freq) ** 2).numpy()
 
-    print("Shape of h_freq: ", h_freq.shape)
     print("Average power h_freq: ", h_avg_power)  # Channel is normalized
 
     ########################### COPIED FROM SIONNA EXAMPLE #####################
 
-    L = a.shape[5]  # Number of paths
-
     getRunMIMOdata(
         output_file=output_filename,
         mimoChannel=h_freq.numpy().squeeze()[:, :, 0, 0],
-        # AoD_az=theta_t,
-        # AoA_az=phi_r,
-        # gain_in_dB=np.array([L, 0]),
         number_Tx_antennas=nTx,
         number_Rx_antennas=nRx,
     )
