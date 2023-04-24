@@ -30,6 +30,14 @@ rx_starting_x = 23.69
 rx_starting_y = -3.351
 rx_starting_z = 138.2
 
+cam_x = -350
+cam_y = 200
+cam_z = 338.2
+
+cam_angle_x = 250
+cam_angle_y = -220
+cam_angle_z = 0
+
 ################################# Configure Tx parameters #############
 # Ground
 # tx_x = -11
@@ -148,9 +156,13 @@ def run(current_step, new_x, new_y, new_z):
         os.mkdir(output_dir)
 
     # Create new camera with different configuration
-    my_cam = Camera(
-        "my_cam", position=[rx_starting_x, rx_starting_y, rx_starting_z]
-    )
+    my_cam = Camera("my_cam", position=[
+    cam_x, 
+    cam_y, 
+    cam_z],
+    look_at=[cam_angle_x,
+            cam_angle_y,
+            cam_angle_z])
     scene.add(my_cam)
 
     scene.render_to_file(
@@ -202,4 +214,4 @@ def run(current_step, new_x, new_y, new_z):
     )
 
 if __name__ == "__main__":
-    run(0, rx_starting_x+1, rx_starting_y+1, rx_starting_z+1)
+    run(0, 0, 0, 0)
