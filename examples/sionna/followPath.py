@@ -30,7 +30,7 @@ airsim_client.armDisarm(True)
 airsim_client.moveToPositionAsync(0, 0, -50, 10).join()
 
 # Move to the end of the road on Unreal
-airsim_client.moveToPositionAsync(-700, 0, -50, 10)
+airsim_client.moveToPositionAsync(100, 70, -50, 10)
 
-for current_step in range(3):
-    executeOneStep(current_step)
+# for current_step in range(3):
+#     executeOneStep(current_step)
