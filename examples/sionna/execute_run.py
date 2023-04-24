@@ -65,121 +65,124 @@ def getRunMIMOdata(
     return mimoChannel, equivalentChannel, equivalentChannelMagnitude, best_ray
 
 
-for current_step in range(number_of_steps):
-    translate(
-        mitsuba_file, rx_3D_object_name, -(current_step * step_size), 0, 0
-    )  # move the receiver 3D object
-    rx_current_x = -(rx_starting_x + (current_step * step_size))
-    rx_current_y = rx_starting_y
-    rx_current_z = rx_starting_z
-    scene = load_scene(mitsuba_file)  # Sionna scene
-    # rx_current_y = rx_starting_y + (current_step * step_size)
-    # rx_current_z = rx_starting_z + (current_step * step_size)
-    ########################### COPIED FROM SIONNA EXAMPLE #####################
-    # Configure antenna array for all transmitters
-    scene.tx_array = PlanarArray(
-        num_rows=nTx,
-        num_cols=1,
-        vertical_spacing=0.5,
-        horizontal_spacing=0.5,
-        pattern="tr38901",
-        polarization="V",
-    )
+def run(new_x, new_y, new_z):
+    for current_step in range(number_of_steps):
+        translate(
+            mitsuba_file, rx_3D_object_name, new_x, new_y, new_z
+        )  # move the receiver 3D object
+        rx_current_x = rx_starting_x
+        rx_current_y = rx_starting_y
+        rx_current_z = rx_starting_z
+        scene = load_scene(mitsuba_file)  # Sionna scene
+        ########################### COPIED FROM SIONNA EXAMPLE #####################
+        # Configure antenna array for all transmitters
+        scene.tx_array = PlanarArray(
+            num_rows=nTx,
+            num_cols=1,
+            vertical_spacing=0.5,
+            horizontal_spacing=0.5,
+            pattern="tr38901",
+            polarization="V",
+        )
 
-    # Configure antenna array for all receivers
-    scene.rx_array = PlanarArray(
-        num_rows=nRx,
-        num_cols=1,
-        vertical_spacing=0.5,
-        horizontal_spacing=0.5,
-        pattern="tr38901",
-        polarization="V",
-    )
+        # Configure antenna array for all receivers
+        scene.rx_array = PlanarArray(
+            num_rows=nRx,
+            num_cols=1,
+            vertical_spacing=0.5,
+            horizontal_spacing=0.5,
+            pattern="tr38901",
+            polarization="V",
+        )
 
-    # Create transmitter
-    tx = Transmitter(name="tx", position=[rx_starting_x, rx_starting_y, rx_starting_z])
+        # Create transmitter
+        tx = Transmitter(
+            name="tx", position=[rx_starting_x, rx_starting_y, rx_starting_z]
+        )
 
-    # Add transmitter instance to scene
-    scene.add(tx)
+        # Add transmitter instance to scene
+        scene.add(tx)
 
-    # Create a receiver
+        # Create a receiver
 
-    rx = Receiver(
-        name="rx",
-        position=[rx_current_x, rx_current_y, rx_current_z],
-        orientation=[0, 0, 0],
-    )
+        rx = Receiver(
+            name="rx",
+            position=[rx_current_x, rx_current_y, rx_current_z],
+            orientation=[0, 0, 0],
+        )
 
-    # Add receiver instance to scene
-    scene.add(rx)
+        # Add receiver instance to scene
+        scene.add(rx)
 
-    tx.look_at(rx)  # Transmitter points towards receiver
+        tx.look_at(rx)  # Transmitter points towards receiver
 
-    scene.frequency = 40e9  # in Hz; implicitly updates RadioMaterials
+        scene.frequency = 40e9  # in Hz; implicitly updates RadioMaterials
 
-    scene.synthetic_array = True  # If set to False, ray tracing will be done per antenna element (slower for large arrays)
+        scene.synthetic_array = True  # If set to False, ray tracing will be done per antenna element (slower for large arrays)
 
-    # Compute propagation paths
-    paths = scene.compute_paths(
-        max_depth=5,
-        method="stochastic",  # For small scenes the method can be also set to "exhaustive"
-        num_samples=1e6,  # Number of rays shot into random directions, too few rays can lead to missing paths
-        seed=1,
-    )  # By fixing the seed, reproducible results can be ensured
+        # Compute propagation paths
+        paths = scene.compute_paths(
+            max_depth=5,
+            method="stochastic",  # For small scenes the method can be also set to "exhaustive"
+            num_samples=1e6,  # Number of rays shot into random directions, too few rays can lead to missing paths
+            seed=1,
+        )  # By fixing the seed, reproducible results can be ensured
 
-    output_filename = os.path.join(current_dir, "runs", f"run_{str(current_step)}")
+        output_filename = os.path.join(current_dir, "runs", f"run_{str(current_step)}")
 
-    if not os.path.exists(output_dir):
-        os.mkdir(output_dir)
+        if not os.path.exists(output_dir):
+            os.mkdir(output_dir)
 
-    # Create new camera with different configuration
-    my_cam = Camera("my_cam", position=[rx_starting_x, rx_starting_y, rx_starting_z])
-    scene.add(my_cam)
+        # Create new camera with different configuration
+        my_cam = Camera(
+            "my_cam", position=[rx_starting_x, rx_starting_y, rx_starting_z]
+        )
+        scene.add(my_cam)
 
-    scene.render_to_file(
-        camera="my_cam",
-        paths=paths,
-        show_devices=True,
-        show_paths=True,
-        filename=f"{output_filename}.png",
-        resolution=[650, 500],
-    )
+        scene.render_to_file(
+            camera="my_cam",
+            paths=paths,
+            show_devices=True,
+            show_paths=True,
+            filename=f"{output_filename}.png",
+            resolution=[650, 500],
+        )
 
-    # Default parameters in the PUSCHConfig
-    subcarrier_spacing = 15e3
-    fft_size = 48
+        # Default parameters in the PUSCHConfig
+        subcarrier_spacing = 15e3
+        fft_size = 48
 
-    # Configure a Paths2CIR instance
-    p2c = Paths2CIR(
-        sampling_frequency=subcarrier_spacing,  # Set to 15e3 Hz
-        num_time_steps=14,  # Number of OFDM symbols
-        scene=scene,
-    )
+        # Configure a Paths2CIR instance
+        p2c = Paths2CIR(
+            sampling_frequency=subcarrier_spacing,  # Set to 15e3 Hz
+            num_time_steps=14,  # Number of OFDM symbols
+            scene=scene,
+        )
 
-    # Transform paths into channel impulse responses
-    a, tau = p2c(paths.as_tuple())
+        # Transform paths into channel impulse responses
+        a, tau = p2c(paths.as_tuple())
 
-    print("Shape of a: ", a.shape)
-    print("Shape of tau: ", tau.shape)
+        # print("Shape of a: ", a.shape)
+        # print("Shape of tau: ", tau.shape)
 
-    # Compute frequencies of subcarriers and center around carrier frequency
-    frequencies = subcarrier_frequencies(fft_size, subcarrier_spacing)
+        # Compute frequencies of subcarriers and center around carrier frequency
+        frequencies = subcarrier_frequencies(fft_size, subcarrier_spacing)
 
-    # Compute the frequency response of the channel at frequencies.
-    h_freq = cir_to_ofdm_channel(
-        frequencies, a, tau, normalize=True
-    )  # Non-normalized includes path-loss
+        # Compute the frequency response of the channel at frequencies.
+        h_freq = cir_to_ofdm_channel(
+            frequencies, a, tau, normalize=True
+        )  # Non-normalized includes path-loss
 
-    # Verify that the channel is normalized
-    h_avg_power = tf.reduce_mean(tf.abs(h_freq) ** 2).numpy()
+        # Verify that the channel is normalized
+        # h_avg_power = tf.reduce_mean(tf.abs(h_freq) ** 2).numpy()
 
-    print("Average power h_freq: ", h_avg_power)  # Channel is normalized
+        # print("Average power h_freq: ", h_avg_power)  # Channel is normalized
 
-    ########################### COPIED FROM SIONNA EXAMPLE #####################
+        ########################### COPIED FROM SIONNA EXAMPLE #####################
 
-    getRunMIMOdata(
-        output_file=output_filename,
-        mimoChannel=h_freq.numpy().squeeze()[:, :, 0, 0],
-        number_Tx_antennas=nTx,
-        number_Rx_antennas=nRx,
-    )
+        getRunMIMOdata(
+            output_file=output_filename,
+            mimoChannel=h_freq.numpy().squeeze()[:, :, 0, 0],
+            number_Tx_antennas=nTx,
+            number_Rx_antennas=nRx,
+        )
