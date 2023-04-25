@@ -10,7 +10,6 @@ V1.0
 '''
 
 import caviar_config
-from communications.mimo_channels import arrayFactorGivenAngleForULA
 import airsim
 import csv
 import time
@@ -18,7 +17,6 @@ import os
 import sys
 import pandas as pd
 import numpy as np
-from communications.UPA_class import UPA
 import matplotlib.pyplot as plt
 
 def airsim_connect():
