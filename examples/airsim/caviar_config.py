@@ -1,15 +1,3 @@
-'''
-UFPA - LASSE - Telecommunications, Automation and Electronics Research and Development Center - www.lasse.ufpa.br
-CAVIAR - Communication Networks and Artificial Intelligence Immersed in Virtual or Augmented Reality
-Ailton Oliveira, Felipe Bastos, João Borges, Emerson Oliveira, Daniel Suzuki, Lucas Matni, Rebecca Aben-Athar, Aldebaro Klautau (UFPA): aldebaro@ufpa.br
-CAVIAR: https://github.com/lasseufpa/ITU-Challenge-ML5G-PHY-RL.git
-
-Parameters for Caviar simulation
-V1.0
-'''
-
-# This file has the main configurations of the project
-
 # If isOnline == true, the beamselection will be performed with the AirSim simulation.
 isOnline = True
 

@@ -1,14 +1,3 @@
-'''
-UFPA - LASSE - Telecommunications, Automation and Electronics Research and Development Center - www.lasse.ufpa.br
-CAVIAR - Communication Networks and Artificial Intelligence Immersed in Virtual or Augmented Reality
-Ailton Oliveira, Felipe Bastos, João Borges, Emerson Oliveira, Daniel Suzuki, Lucas Matni, Rebecca Aben-Athar, Aldebaro Klautau (UFPA): aldebaro@ufpa.br
-CAVIAR: https://github.com/lasseufpa/ITU-Challenge-ML5G-PHY-RL.git
-
-
-Auxiliary methods for CAVIAR simulations
-V1.0
-'''
-
 import caviar_config
 import airsim
 import csv
@@ -38,7 +27,6 @@ def airsim_reset(client):
 
 def airsim_land(client, uav_id):
     landed = client.getMultirotorState(vehicle_name=uav_id).landed_state
-    #Ailton OBS: Check if this if works
     if landed == airsim.LandedState.Landed:
         print("already landed...")
     else:
@@ -62,30 +50,6 @@ def move_on_path(client, uav, path, speed = 5):
 
     client.enableApiControl(True, uav)
     client.moveOnPathAsync(path_list, speed,3e+38, airsim.DrivetrainType.ForwardOnly, airsim.YawMode(False,0), vehicle_name=uav)
-
-def UPA_DFT_angles(Nx, Ny, user_angle):
-    user_azhi, user_elev = user_angle
-    UPA(Nx, Ny)
-    array_factor_UPA = UPA.ArrayFactorUPA()
-    azhimut, elevat = UPA.get_angles()
-    Roffset = 0.5 # Offset to define the radiation peak
-    azhimutal = []
-    elevation = []
-    maxR = np.amax(abs(array_factor_UPA[indX,:,:]))
-    indices = np.where((abs(array_factor_UPA[indX,:,:])<maxR + Roffset) & (abs(array_factor_UPA[indX,:,:])>maxR - Roffset))
-    for ind_az in list(indices[0]):
-        angles = np.rad2deg(azhimut[ind_az])
-        azhimutal.append(float(angles))
-    for ind_elev in list(indices[1]):
-        angles = np.rad2deg(elevat[ind_elev])
-        elevation.append(float(angles))
-    #TO-DO filter de angle closest to the angle target
-    print("UPA Angles:")
-    azhimutal.sort()
-    #print(azhimutal)
-    print('######')
-    elevation.sort()
-    #print(elevation)
 
 def info_csv(user_id,episode):
     with open('./episodes/ep{}.csv'.format(episode)) as cs:
@@ -193,36 +157,6 @@ def airsim_save_images(client, record_path = './'):
 def airsim_getimages(client,  uav_id):
     image = client.simGetImage("0", airsim.ImageType.Scene,  vehicle_name=uav_id)
     return image
-
-def dft_codebook(dim):
-    seq = np.matrix(np.arange(dim))
-    mat = seq.conj().T * seq
-    w = np.exp(-1j * 2 * np.pi * mat / dim)
-    return w
-
-def get_ula_beamangles(wt, Nt, beam_index):
-    # Nt = Number of antennas ; target = Target ID ; Plot = Plot radiantion pattern ; all_angles = return angle for all ID
-    theta = np.linspace(-np.pi,np.pi,500) #Angular domain
-    theta = theta[:, np.newaxis]
-    Roffset = 0.008 # Offset to define the radiation peak
-    arrayFactors = arrayFactorGivenAngleForULA(Nt,theta,angleWithArrayNormal=0)
-    steeredArrayFactors = np.squeeze(np.matmul(arrayFactors, wt))
-
-    radiantion = []
-    maxR = np.amax(abs(steeredArrayFactors[:,beam_index]))
-    indices = np.where((abs(steeredArrayFactors[:,beam_index])<maxR + Roffset) & (abs(steeredArrayFactors[:,beam_index])>maxR - Roffset))
-    for indx in list(indices[0]):
-        angles = np.rad2deg(theta[indx])
-        radiantion.append(float(angles))
-
-    #plt.figure()
-    #plt.title('Beams\n')
-    #plt.subplot(projection='polar') # Just work with Python3.6 or less (bizarre)
-    #plt.polar(theta,abs(steeredArrayFactors[:,beam_index]))
-    #plt.show()
-    ula_angle = max(radiantion)
-
-    return ula_angle
 
 def linecount(eps):
     if len(eps)<2:

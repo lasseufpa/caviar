@@ -41,4 +41,4 @@ with NATSClient() as client:
             + b"}}",
         )
 
-        client.wait(count=2)
+        client.wait(count=500)
