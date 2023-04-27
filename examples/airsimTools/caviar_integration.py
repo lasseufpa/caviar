@@ -97,7 +97,7 @@ with NATSClient() as natsclient:
                     + b'"'
                     + b',"timestamp":'
                     + b'"'
-                    + str(airsim_timestamp).enconde()
+                    + str(airsim_timestamp).encode()
                     + b'"'
                     + b',"position": {"x":'
                     + str(uav_pose[0]).encode()
