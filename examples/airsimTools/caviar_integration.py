@@ -22,10 +22,9 @@ with NATSClient() as natsclient:
 
     # Creat a folder to write the UE4 simulation result
     try:
-        os.mkdir('./episodes')
+        os.mkdir("./episodes")
     except OSError as error:
         print(error)
-
 
     client = caviar_tools.airsim_connect()
 
@@ -38,7 +37,7 @@ with NATSClient() as natsclient:
     natsclient.subscribe(subject="caviar.su.sionna.state", callback=callback)
 
     for episode in range(n_trajectories):
-        print('Episode: ' + str(episode))
+        print("Episode: " + str(episode))
 
         # Save the actual time to compute the run-time at the end of the episode
         initial_time = time.time()
@@ -54,13 +53,17 @@ with NATSClient() as natsclient:
 
         # takeoff and start the UAV trajectory
         caviar_tools.airsim_takeoff_all(client)
-        caviar_tools.move_on_path(client, caviar_config.drone_ids[0], os.path.join(trajectories_files, 'path' + str(episode ) + '.csv'))
+        caviar_tools.move_on_path(
+            client,
+            caviar_config.drone_ids[0],
+            os.path.join(trajectories_files, "path" + str(episode) + ".csv"),
+        )
 
         # Pause the simulation
         client.simPause(True)
 
-        while not(landed):
-            #Continue the simulation for 10ms
+        while not (landed):
+            # Continue the simulation for 10ms
             client.simContinueForTime(0.10)
 
             # Get an write information about each UAV in the configuration file (caviar_config.py)
@@ -74,38 +77,53 @@ with NATSClient() as natsclient:
                 airsim_timestamp = caviar_tools.airsim_gettimestamp(client, uav)
 
                 # Get frames
-                rawimg = caviar_tools.airsim_getimages(client, caviar_config.drone_ids[0])
-                #img = cv2.imdecode(airsim.string_to_uint8_array(rawimg), cv2.IMREAD_COLOR)
-                #height, width, depth = img.shape
-                #img_size_bits = height * width * depth * 8 # Considering that each channel from a RGB image is represented by 8 bits color depth (0, 255)
-                #img_size_bytes = img_size_bits/1024
-                #cv2.imshow("window_name", img)
-                #print('img_size_bytes: ', img_size_bytes)
-
+                rawimg = caviar_tools.airsim_getimages(
+                    client, caviar_config.drone_ids[0]
+                )
+                # img = cv2.imdecode(airsim.string_to_uint8_array(rawimg), cv2.IMREAD_COLOR)
+                # height, width, depth = img.shape
+                # img_size_bits = height * width * depth * 8 # Considering that each channel from a RGB image is represented by 8 bits color depth (0, 255)
+                # img_size_bytes = img_size_bits/1024
+                # cv2.imshow("window_name", img)
+                # print('img_size_bytes: ', img_size_bytes)
 
                 print("Sending request %s …" % episode)
-                
+
                 natsclient.publish(
                     subject="caviar.ue.mobility.positions",
-                    payload=b'{"UE_type":"UAV","UE_Id":' + b'"' + str(uav).encode() + b'"' + b',"position": {"x":'
+                    payload=b'{"UE_type":"UAV","UE_Id":'
+                    + b'"'
+                    + str(uav).encode()
+                    + b'"'
+                    + b',"timestamp":'
+                    + b'"'
+                    + str(airsim_timestamp).enconde()
+                    + b'"'
+                    + b',"position": {"x":'
                     + str(uav_pose[0]).encode()
                     + b',"y":'
                     + str(uav_pose[1]).encode()
                     + b',"z":'
                     + str(uav_pose[2]).encode()
-                    + b'}}',
+                    + b"}}",
                 )
 
                 # Check if the UAV is landed or has collided and finish the episode
                 if takeoff_complete:
-                    if (uav_pose[2] >= 7.5):
-                        print('Episode ' + str(episode) + ' concluded with ' + str(time.time() - initial_time) + 's')
+                    if uav_pose[2] >= 7.5:
+                        print(
+                            "Episode "
+                            + str(episode)
+                            + " concluded with "
+                            + str(time.time() - initial_time)
+                            + "s"
+                        )
                         client.simPause(False)
                         landed = True
                 else:
-                    if (uav_pose[2] <= -5):
+                    if uav_pose[2] <= -5:
                         takeoff_complete = True
-                if (caviar_tools.airsim_getcollision(client, uav)):
+                if caviar_tools.airsim_getcollision(client, uav):
                     client.simPause(False)
                     landed = True
 
