@@ -1,9 +1,19 @@
 import bpy
 
 classes = {
-    "1": {"min_faces": 1, "max_faces": 10, "decimate_ratio": 0.1},
-    "2": {"min_faces": 11, "max_faces": 20, "decimate_ratio": 0.5},
+    "1": {"min_faces": 1, "max_faces": 10, "decimate_ratio": 0.8},
+    "2": {"min_faces": 11, "max_faces": 20, "decimate_ratio": 0.3},
 }
+
+
+def getAllObjectsNumberOfFaces():
+    for OBJ_NAME in bpy.data.objects.keys():
+        OBJ = bpy.data.objects[OBJ_NAME]
+        try:
+            number_of_faces = len(OBJ.data.polygons)
+            print(number_of_faces)
+        except:
+            print("Data unavailable")
 
 
 def getDecimateRatioFromNumberOfFaces(number_of_faces: int, classes: dict):
