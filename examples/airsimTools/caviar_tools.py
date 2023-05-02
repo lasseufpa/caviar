@@ -8,15 +8,22 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
-def airsim_connect():
-    client = airsim.MultirotorClient()
+def airsim_connect(ip):
+    client = airsim.MultirotorClient(ip)
     client.confirmConnection()
     return client
+
+
+def airsim_moveToInitialPosition(client):
+    client.moveToPositionAsync(0, 0, 0, 1).join()
+
 
 def airsim_takeoff(client, uav_id):
     client.enableApiControl(True, uav_id)
     client.armDisarm(True, uav_id)
     client.takeoffAsync(vehicle_name=uav_id).join()
+    airsim_moveToInitialPosition(client)
+
 
 def airsim_takeoff_all(client):
     for uav in caviar_config.drone_ids:

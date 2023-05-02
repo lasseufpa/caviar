@@ -24,7 +24,7 @@ def convertMovementFromAirSimToSionna(airsim_position):
     }
 
 
-with NATSClient() as natsclient:
+with NATSClient(url="nats://200.239.93.193:4222") as natsclient:
     natsclient.connect()
 
     def executeOneStep(msg):

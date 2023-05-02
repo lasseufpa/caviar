@@ -6,7 +6,7 @@ import cv2
 from pynats import NATSClient
 
 
-with NATSClient() as natsclient:
+with NATSClient(url="nats://200.239.93.193:4222") as natsclient:
     # Number of trajectories to be executed
     # Each trajectory is an episode
     n_trajectories = 500
@@ -26,7 +26,7 @@ with NATSClient() as natsclient:
     except OSError as error:
         print(error)
 
-    client = caviar_tools.airsim_connect()
+    client = caviar_tools.airsim_connect("200.239.93.193")
 
     #  Socket to talk to server
     natsclient.connect()
@@ -77,9 +77,9 @@ with NATSClient() as natsclient:
                 airsim_timestamp = caviar_tools.airsim_gettimestamp(client, uav)
 
                 # Get frames
-                rawimg = caviar_tools.airsim_getimages(
-                    client, caviar_config.drone_ids[0]
-                )
+                # rawimg = caviar_tools.airsim_getimages(
+                #     client, caviar_config.drone_ids[0]
+                # )
                 # img = cv2.imdecode(airsim.string_to_uint8_array(rawimg), cv2.IMREAD_COLOR)
                 # height, width, depth = img.shape
                 # img_size_bits = height * width * depth * 8 # Considering that each channel from a RGB image is represented by 8 bits color depth (0, 255)
