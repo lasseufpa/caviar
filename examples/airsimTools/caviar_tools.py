@@ -85,11 +85,11 @@ def move_to_point(client, uav, x, y, z, speed = 5):
     client.moveToPositionAsync(x, y, z, speed, 3e+38, airsim.DrivetrainType.ForwardOnly, airsim.YawMode(False,0), vehicle_name=uav)
 
 def airsim_getpose(client,uav_id):
-    coordinates =  client.getMultirotorState(vehicle_name=uav_id).kinematics_estimated.position.to_numpy_array()
+    coordinates = client.getMultirotorState(vehicle_name=uav_id).kinematics_estimated.position.to_numpy_array()
     return coordinates
 
 def airsim_getpose_offset(client,uav_id):
-    coordinates =  client.getMultirotorState(vehicle_name=uav_id).kinematics_estimated.position.to_numpy_array()
+    coordinates = client.getMultirotorState(vehicle_name=uav_id).kinematics_estimated.position.to_numpy_array()
     coordinates_offset = np.add(coordinates, caviar_config.initial_pose_offset)
     return coordinates_offset
 

@@ -68,7 +68,7 @@ with NATSClient(url="nats://200.239.93.193:4222") as natsclient:
 
             # Get an write information about each UAV in the configuration file (caviar_config.py)
             for uav in caviar_config.drone_ids:
-                uav_pose = caviar_tools.airsim_getpose_offset(client, uav)
+                uav_pose = caviar_tools.airsim_getpose(client, uav)
                 uav_orien = caviar_tools.airsim_getorientation(client, uav)
                 uav_linear_acc = caviar_tools.airsim_getlinearacc(client, uav)
                 uav_linear_vel = caviar_tools.airsim_getlinearvel(client, uav)
