@@ -28,7 +28,7 @@ mitsuba_file = os.path.join(
 rx_3D_object_name = "mesh-Cube"
 rx_starting_x = 23.69
 rx_starting_y = -3.351
-rx_starting_z = 138.2
+rx_starting_z = 139
 
 cam_x = -350
 cam_y = 200
@@ -47,7 +47,7 @@ cam_angle_z = 0
 # Next to Rx
 tx_x = 21.95
 tx_y = -8.985
-tx_z = 135.4
+tx_z = 137
 
 ################################# Configure simulation parameters ##############
 
@@ -59,7 +59,6 @@ nRx = 8
 
 
 def getRunMIMOdata(
-    output_file,
     mimoChannel,
     number_Tx_antennas,
     number_Rx_antennas,
@@ -74,14 +73,6 @@ def getRunMIMOdata(
         equivalentChannelMagnitude == np.max(equivalentChannelMagnitude)
     )
 
-    np.savez(
-        output_file,
-        mimoChannel=mimoChannel,
-        equivalentChannel=equivalentChannel,
-        equivalentChannelMagnitude=equivalentChannelMagnitude,
-        best_ray=best_ray,
-    )
-
     return mimoChannel, equivalentChannel, equivalentChannelMagnitude, best_ray
 
 
@@ -89,9 +80,9 @@ def run(current_step, new_x, new_y, new_z):
     translate(
         mitsuba_file, rx_3D_object_name, new_x, new_y, new_z
     )  # move the receiver 3D object
-    rx_current_x = new_x
-    rx_current_y = new_y
-    rx_current_z = new_z
+    rx_current_x = rx_starting_x + new_x
+    rx_current_y = rx_starting_y + new_y
+    rx_current_z = rx_starting_z + new_z
     scene = load_scene(mitsuba_file)  # Sionna scene
     ########################### COPIED FROM SIONNA EXAMPLE #####################
     # Configure antenna array for all transmitters
@@ -155,6 +146,10 @@ def run(current_step, new_x, new_y, new_z):
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
+    mat_t, tau, theta_t, phi_t, theta_r, phi_r = paths.as_tuple()
+
+    print("Shape of mat_t:", mat_t.shape)
+
     # Create new camera with different configuration
     my_cam = Camera("my_cam", position=[
     cam_x, 
@@ -206,11 +201,23 @@ def run(current_step, new_x, new_y, new_z):
 
     ########################### COPIED FROM SIONNA EXAMPLE #####################
 
-    getRunMIMOdata(
-        output_file=output_filename,
+    mimoChannel, equivalentChannel, equivalentChannelMagnitude, best_ray = getRunMIMOdata(
         mimoChannel=h_freq.numpy().squeeze()[:, :, 0, 0],
         number_Tx_antennas=nTx,
         number_Rx_antennas=nRx,
+    )
+
+    np.savez(
+        output_filename,
+        path_coefficients=a,
+        path_delays=tau,
+        rx_airsim_position=[new_x, new_y, new_z],
+        rx_starting_position=[rx_starting_x, rx_starting_y, rx_starting_z],
+        rx_current_position=[rx_current_x, rx_current_y, rx_current_z],
+        mimoChannel=mimoChannel,
+        equivalentChannel=equivalentChannel,
+        equivalentChannelMagnitude=equivalentChannelMagnitude,
+        best_ray=best_ray,
     )
 
 if __name__ == "__main__":
