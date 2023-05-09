@@ -10,6 +10,8 @@ import mimo_channels
 
 mi.set_variant("cuda_ad_rgb")
 
+render_to_file = False
+
 ################################# Configure paths ##############################
 
 current_dir = os.getcwd()
@@ -106,9 +108,7 @@ def run(current_step, new_x, new_y, new_z):
     )
 
     # Create transmitter
-    tx = Transmitter(
-        name="tx", position=[tx_x, tx_y, tx_z]
-    )
+    tx = Transmitter(name="tx", position=[tx_x, tx_y, tx_z])
 
     # Add transmitter instance to scene
     scene.add(tx)
@@ -130,7 +130,7 @@ def run(current_step, new_x, new_y, new_z):
 
     scene.synthetic_array = True  # If set to False, ray tracing will be done per antenna element (slower for large arrays)
 
-    start_time = time.time()
+    starting_instant = time.time()
     # Compute propagation paths
     paths = scene.compute_paths(
         max_depth=5,
@@ -138,8 +138,8 @@ def run(current_step, new_x, new_y, new_z):
         num_samples=1e6,  # Number of rays shot into random directions, too few rays can lead to missing paths
         seed=1,
     )  # By fixing the seed, reproducible results can be ensured
-    end_time = time.time()
-    print(f'RT duration: {end_time-start_time}')
+    ending_instant = time.time()
+    print(f"RT duration: {ending_instant-starting_instant}")
 
     output_filename = os.path.join(current_dir, "runs", f"run_{str(current_step)}")
 
@@ -150,24 +150,23 @@ def run(current_step, new_x, new_y, new_z):
 
     print("Shape of mat_t:", mat_t.shape)
 
-    # Create new camera with different configuration
-    my_cam = Camera("my_cam", position=[
-    cam_x, 
-    cam_y, 
-    cam_z],
-    look_at=[cam_angle_x,
-            cam_angle_y,
-            cam_angle_z])
-    scene.add(my_cam)
+    if render_to_file:
+        # Create new camera with different configuration
+        my_cam = Camera(
+            "my_cam",
+            position=[cam_x, cam_y, cam_z],
+            look_at=[cam_angle_x, cam_angle_y, cam_angle_z],
+        )
+        scene.add(my_cam)
 
-    scene.render_to_file(
-        camera="my_cam",
-        paths=paths,
-        show_devices=True,
-        show_paths=True,
-        filename=f"{output_filename}.png",
-        resolution=[650, 500],
-    )
+        scene.render_to_file(
+            camera="my_cam",
+            paths=paths,
+            show_devices=True,
+            show_paths=True,
+            filename=f"{output_filename}.png",
+            resolution=[650, 500],
+        )
 
     # Default parameters in the PUSCHConfig
     subcarrier_spacing = 15e3
@@ -201,7 +200,12 @@ def run(current_step, new_x, new_y, new_z):
 
     ########################### COPIED FROM SIONNA EXAMPLE #####################
 
-    mimoChannel, equivalentChannel, equivalentChannelMagnitude, best_ray = getRunMIMOdata(
+    (
+        mimoChannel,
+        equivalentChannel,
+        equivalentChannelMagnitude,
+        best_ray,
+    ) = getRunMIMOdata(
         mimoChannel=h_freq.numpy().squeeze()[:, :, 0, 0],
         number_Tx_antennas=nTx,
         number_Rx_antennas=nRx,
@@ -219,6 +223,7 @@ def run(current_step, new_x, new_y, new_z):
         equivalentChannelMagnitude=equivalentChannelMagnitude,
         best_ray=best_ray,
     )
+
 
 if __name__ == "__main__":
     run(0, 0, 0, 0)

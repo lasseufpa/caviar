@@ -6,7 +6,7 @@ import cv2
 from pynats import NATSClient
 
 
-with NATSClient(url="nats://200.239.93.193:4222") as natsclient:
+with NATSClient() as natsclient:
     # Number of trajectories to be executed
     # Each trajectory is an episode
     n_trajectories = 500
@@ -26,7 +26,7 @@ with NATSClient(url="nats://200.239.93.193:4222") as natsclient:
     except OSError as error:
         print(error)
 
-    client = caviar_tools.airsim_connect("200.239.93.193")
+    client = caviar_tools.airsim_connect(ip="127.0.0.1")
 
     #  Socket to talk to server
     natsclient.connect()
