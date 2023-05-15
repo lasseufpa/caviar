@@ -66,7 +66,7 @@ with NATSClient() as natsclient:
             # Continue the simulation for 10ms
             client.simContinueForTime(0.10)
 
-            # Get an write information about each UAV in the configuration file (caviar_config.py)
+            # Get information about each UAV in the configuration file (caviar_config.py)
             for uav in caviar_config.drone_ids:
                 uav_pose = caviar_tools.airsim_getpose(client, uav)
                 uav_orien = caviar_tools.airsim_getorientation(client, uav)
