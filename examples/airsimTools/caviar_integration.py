@@ -6,7 +6,7 @@ import cv2
 from pynats import NATSClient
 
 
-with NATSClient(url="nats://200.239.93.193:4222") as natsclient:
+with NATSClient() as natsclient:
     # Number of trajectories to be executed
     # Each trajectory is an episode
     n_trajectories = 500
@@ -26,7 +26,7 @@ with NATSClient(url="nats://200.239.93.193:4222") as natsclient:
     except OSError as error:
         print(error)
 
-    client = caviar_tools.airsim_connect("200.239.93.193")
+    client = caviar_tools.airsim_connect("127.0.0.1")
 
     #  Socket to talk to server
     natsclient.connect()
@@ -64,6 +64,8 @@ with NATSClient(url="nats://200.239.93.193:4222") as natsclient:
 
         while not (landed):
             # Continue the simulation for 10ms
+            start_time = time.time()
+            natsclient.wait(count=1)
             client.simContinueForTime(0.10)
 
             # Get an write information about each UAV in the configuration file (caviar_config.py)
@@ -131,3 +133,5 @@ with NATSClient(url="nats://200.239.93.193:4222") as natsclient:
             for obj in caviar_config.ue_objects:
                 object_pose = caviar_tools.unreal_getpose(client, obj)
                 object_orien = caviar_tools.unreal_getorientation(client, obj)
+            end_time = time.time()
+            print(f'Step duration: {end_time-start_time}')
