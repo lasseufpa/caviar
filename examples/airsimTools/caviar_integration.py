@@ -26,7 +26,7 @@ with NATSClient() as natsclient:
     except OSError as error:
         print(error)
 
-    client = caviar_tools.airsim_connect("127.0.0.1")
+    client = caviar_tools.airsim_connect(ip="127.0.0.1")
 
     #  Socket to talk to server
     natsclient.connect()
@@ -68,7 +68,7 @@ with NATSClient() as natsclient:
             natsclient.wait(count=1)
             client.simContinueForTime(0.10)
 
-            # Get an write information about each UAV in the configuration file (caviar_config.py)
+            # Get information about each UAV in the configuration file (caviar_config.py)
             for uav in caviar_config.drone_ids:
                 uav_pose = caviar_tools.airsim_getpose(client, uav)
                 uav_orien = caviar_tools.airsim_getorientation(client, uav)
@@ -134,4 +134,4 @@ with NATSClient() as natsclient:
                 object_pose = caviar_tools.unreal_getpose(client, obj)
                 object_orien = caviar_tools.unreal_getorientation(client, obj)
             end_time = time.time()
-            print(f'Step duration: {end_time-start_time}')
+            print(f"Step duration: {end_time-start_time}")
