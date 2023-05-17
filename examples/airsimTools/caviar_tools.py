@@ -286,3 +286,23 @@ def linecount(eps):
                 count += 1
         episode_file.close()
     return count
+
+def addPedestriansOnPath(client, path):
+    path_list = []
+
+    with open(path) as csv_file:
+        csv_reader = csv.reader(csv_file, delimiter=",")
+        csv_reader.__next__()
+        for row in csv_reader:
+            path_list.append(
+                airsim.Vector3r(float(row[0]), float(row[1]), float(135.81))
+            )
+    if(len(path_list)-1 != len(caviar_config.pedestrians)):
+        print("The number os pedestrian objects and waypoints should be equal")
+    else:
+        #client.enableApiControl(True, uav)
+        for i in range(len(caviar_config.pedestrians)):
+            #print(f'caviar_config.pedestrians[i]: {caviar_config.pedestrians[i]} | path_list[i+1]: {path_list[i+1]} | type(path_list[i+1]): {type(path_list[i+1])}')
+            client.simSetObjectPose(caviar_config.pedestrians[i],airsim.Pose(path_list[i+1], airsim.to_quaternion(0,0,0)), True)
+            #print(unreal_getpose(client, caviar_config.pedestrians[i]))
+
