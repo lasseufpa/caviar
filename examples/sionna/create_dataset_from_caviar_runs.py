@@ -1,36 +1,53 @@
 import numpy as np
 import os
+from os import listdir
 
-dataset_dir_name = "runs01"
 current_dir = os.getcwd()
-dataset_dir = os.path.join(current_dir, dataset_dir_name)
+# dataset_dir = os.path.join(current_dir, "data_study", "runs03")
+dataset_dir = os.path.join(
+    current_dir, "data_study", "LOS_and_NLOS_caviar_run03", "LOS"
+)
+# dataset_dir = os.path.join(
+#     current_dir, "data_study", "LOS_and_NLOS_caviar_run03", "NLOS"
+# )
 
-# Iterate over all npz and create one big npz to separate into data and label
+rx_airsim_position = []
+rx_starting_position = []
+rx_current_position = []
+mimoChannel = []
+equivalentChannel = []
+equivalentChannelMagnitude = []
+best_ray = []
 
-############################ Example of creating a npz
-# np.savez(
-#         output_filename,
-#         path_coefficients=a,
-#         path_delays=tau,
-#         rx_airsim_position=[new_x, new_y, new_z],
-#         rx_starting_position=[rx_starting_x, rx_starting_y, rx_starting_z],
-#         rx_current_position=[rx_current_x, rx_current_y, rx_current_z],
-#         mimoChannel=mimoChannel,
-#         equivalentChannel=equivalentChannel,
-#         equivalentChannelMagnitude=equivalentChannelMagnitude,
-#         best_ray=best_ray,
-#     )
+onlynpz = [file for file in listdir(dataset_dir) if file[-3:] == "npz"]
+for i in range(len(onlynpz)):
+    dataset_file_name = str(onlynpz[i])
+    dataset_file = os.path.join(dataset_dir, dataset_file_name)
+    caviar_output = np.load(dataset_file, allow_pickle=True)
+    rx_airsim_position.append(caviar_output["rx_airsim_position"])
+    rx_starting_position.append(caviar_output["rx_starting_position"])
+    rx_current_position.append(caviar_output["rx_current_position"])
+    mimoChannel.append(caviar_output["mimoChannel"])
+    equivalentChannel.append(caviar_output["equivalentChannel"])
+    equivalentChannelMagnitude.append(caviar_output["equivalentChannelMagnitude"])
+    best_ray.append(caviar_output["best_ray"])
 
-############################ Example of loading a npz
-# caviar_output = np.load("/home/joao/Downloads/run_1683048632505798144.npz")
+output_filename = os.path.join(current_dir, "los.npz")
+rx_airsim_position = np.array(rx_airsim_position)
+rx_starting_position = np.array(rx_starting_position)
+rx_current_position = np.array(rx_current_position)
+mimoChannel = np.array(mimoChannel)
+equivalentChannel = np.array(equivalentChannel)
+equivalentChannelMagnitude = np.array(equivalentChannelMagnitude)
+best_ray = np.array(best_ray, dtype=object)
 
-############################ Example of accessing data from inside a npz
-# rx_airsim_position=caviar_output["rx_airsim_position"],
-# rx_starting_position=caviar_output["rx_starting_position"],
-# rx_current_position=caviar_output["rx_current_position"],
-# mimoChannel=caviar_output["mimoChannel"]
-# equivalentChannel=caviar_output["equivalentChannel"]
-# equivalentChannelMagnitude=caviar_output["equivalentChannelMagnitude"]
-# best_ray=caviar_output["best_ray"]
-
-print("END")
+np.savez(
+    output_filename,
+    rx_airsim_position=rx_airsim_position,
+    rx_starting_position=rx_starting_position,
+    rx_current_position=rx_current_position,
+    mimoChannel=mimoChannel,
+    equivalentChannel=equivalentChannel,
+    equivalentChannelMagnitude=equivalentChannelMagnitude,
+    best_ray=best_ray,
+)
