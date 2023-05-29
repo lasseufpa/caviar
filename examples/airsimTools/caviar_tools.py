@@ -4,6 +4,7 @@ import csv
 import time
 import os
 import numpy as np
+import math
 
 
 def airsim_connect(ip):
@@ -104,6 +105,13 @@ def move_to_point(client, uav, x, y, z, speed=5):
         airsim.YawMode(False, 0),
         vehicle_name=uav,
     )
+
+def has_uav_arrived(client, uav, x, y, z):
+    uav_pose = airsim_getpose(client, uav)
+    if (math.isclose(uav_pose[0], x, abs_tol = 0.5) and math.isclose(uav_pose[1], y, abs_tol = 0.5) and math.isclose(uav_pose[2], z, abs_tol = 0.5)):
+        return True
+    else:
+        return False
 
 
 def airsim_getpose(client, uav_id):

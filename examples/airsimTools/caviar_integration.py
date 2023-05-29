@@ -42,8 +42,7 @@ with NATSClient() as natsclient:
         # Save the actual time to compute the run-time at the end of the episode
         initial_time = time.time()
 
-        landed = False
-        takeoff_complete = False
+        isFinished = False
 
         # Delay between episodes to avoid crashs
         time.sleep(1)
@@ -71,10 +70,10 @@ with NATSClient() as natsclient:
         actualWaypoint = 0
         # Pause the simulation
         #client.simPause(True)
-        while not (landed):
+        while not (isFinished):
             # Continue the simulation for 10ms
             start_time = time.time()
-            natsclient.wait(count=1)
+            #natsclient.wait(count=1)
             client.simContinueForTime(0.10)
 
             # Get information about each UAV in the configuration file (caviar_config.py)
@@ -99,8 +98,6 @@ with NATSClient() as natsclient:
                 # cv2.imshow("window_name", img)
                 # print('img_size_bytes: ', img_size_bytes)
 
-                print("Sending request %s …" % episode)
-
                 natsclient.publish(
                     subject="caviar.ue.mobility.positions",
                     payload=b'{"UE_type":"UAV","UE_Id":'
@@ -120,24 +117,38 @@ with NATSClient() as natsclient:
                     + b"}}",
                 )
 
+                
                 # Check if the UAV is landed or has collided and finish the episode
-                if takeoff_complete:
-                    if uav_pose[2] >= 7.5:
-                        print(
-                            "Episode "
-                            + str(episode)
-                            + " concluded with "
-                            + str(time.time() - initial_time)
-                            + "s"
-                        )
-                        client.simPause(False)
-                        landed = True
-                else:
-                    if uav_pose[2] <= -5:
-                        takeoff_complete = True
                 if caviar_tools.airsim_getcollision(client, uav):
                     client.simPause(False)
-                    landed = True
+                    isFinished = True
+                    print(
+                    "Episode "
+                    + str(episode)
+                    + " concluded with "
+                    + str(time.time() - initial_time)
+                    + "s"
+                    )
+                print("teste1111")
+                # Verify actual position
+                if (caviar_tools.has_uav_arrived(client, uav, path_list[actualWaypoint][0], path_list[actualWaypoint][1], path_list[actualWaypoint][2])):
+                    actualWaypoint = actualWaypoint + 1
+                    print("teste1")
+                    # Add here the YOLO for object detection
+
+                    caviar_tools.move_to_point(client,caviar_config.drone_ids[0],path_list[actualWaypoint][0],path_list[actualWaypoint][1],path_list[actualWaypoint][2])
+
+                    if (actualWaypoint == (len(path_list)-1)):
+                        client.simPause(False)
+                        caviar_tools.airsim_land_all(client)
+                        isFinished = True
+                        print(
+                        "Episode "
+                        + str(episode)
+                        + " concluded with "
+                        + str(time.time() - initial_time)
+                        + "s"
+                        )
 
             # Get an write information about others objects in the simulation (cars and pedestrians). Each object is described in the configuration file (caviar_config.py)
             for obj in caviar_config.ue_objects:
