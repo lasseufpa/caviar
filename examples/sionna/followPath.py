@@ -41,10 +41,12 @@ with NATSClient() as natsclient:
             new_y=sionna_position["y"],
             new_z=sionna_position["z"],
         )
+        natsclient.publish(subject="caviar.su.sionna.state", payload=b"Ready")
         natsclient.wait(count=total_ues)
 
     natsclient.subscribe(
         subject="caviar.ue.mobility.positions", callback=executeOneStep
     )
 
+    natsclient.publish(subject="caviar.su.sionna.state", payload=b"Ready")
     natsclient.wait(count=total_ues)

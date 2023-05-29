@@ -3,6 +3,7 @@ import caviar_tools
 import time
 import os
 import cv2
+import csv
 from pynats import NATSClient
 
 
@@ -32,7 +33,7 @@ with NATSClient() as natsclient:
     natsclient.connect()
 
     def callback(msg):
-        print(f"Received a message with subject {msg.subject}: {msg}")
+        #print(f"Received a message with subject {msg.subject}: {msg}")
 
     natsclient.subscribe(subject="caviar.su.sionna.state", callback=callback)
 
@@ -47,23 +48,35 @@ with NATSClient() as natsclient:
         # Delay between episodes to avoid crashs
         time.sleep(1)
 
+        caviar_tools.addPedestriansOnPath(
+            client, os.path.join(trajectories_files, "path" + str(episode) + ".csv")
+        )
+
         # Reset the airsim simulation
         caviar_tools.airsim_reset(client)
 
         # takeoff and start the UAV trajectory
         caviar_tools.airsim_takeoff_all(client)
-        caviar_tools.move_on_path(
-            client,
-            caviar_config.drone_ids[0],
-            os.path.join(trajectories_files, "path" + str(episode) + ".csv"),
-        )
+
+        caviar_tools.move_to_point(client, caviar_config.drone_ids[0], 0, 0, -22, 10)
+
+        path_list = []
+
+        with open(
+            os.path.join(trajectories_files, "path" + str(episode) + ".csv")
+        ) as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=",")
+            csv_reader.__next__()
+            for row in csv_reader:
+                path_list.append([float(row[0]), float(row[1]), float(row[2])])
+        actualWaypoint = 0
 
         # Pause the simulation
-        # client.simPause(True)
+        client.simPause(True)
         while not (isFinished):
             # Continue the simulation for 10ms
             start_time = time.time()
-            # natsclient.wait(count=1)
+            natsclient.wait(count=1)
             client.simContinueForTime(0.10)
 
             # Get information about each UAV in the configuration file (caviar_config.py)
@@ -117,7 +130,6 @@ with NATSClient() as natsclient:
                         + str(time.time() - initial_time)
                         + "s"
                     )
-                print("teste1111")
                 # Verify actual position
                 if caviar_tools.has_uav_arrived(
                     client,
@@ -127,7 +139,6 @@ with NATSClient() as natsclient:
                     path_list[actualWaypoint][2],
                 ):
                     actualWaypoint = actualWaypoint + 1
-                    print("teste1")
                     # Add here the YOLO for object detection
 
                     caviar_tools.move_to_point(

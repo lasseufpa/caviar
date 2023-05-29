@@ -66,8 +66,8 @@ if __name__ == "__main__":
         orchestrator_thread.start()
         threeD_thread.start()
         time.sleep(5)
-        # mobility_thread.start()
-        # communications_thread.start()
+        mobility_thread.start()
+        communications_thread.start()
     except Exception as e:
         print(f"Error: {str(e)}")
 
