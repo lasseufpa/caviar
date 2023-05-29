@@ -3,13 +3,29 @@ from pynats import NATSClient
 
 
 def reset():
-    fake_uav["position"] = [-110, 10, 100]
+    # fake_uav["position"] = [-110, 10, 100]  # start
+    fake_uav["position"] = [-146, 82, 100]  # start
+    # fake_uav["position"] = [-144.5, 79, -100]  # intersection
+    # fake_uav["position"] = [-27, 146.5, -100] # upper limit
 
 
 def move(step):
-    fake_uav["position"][0] = fake_uav["position"][0] - 0.5
-    fake_uav["position"][1] = fake_uav["position"][1] + 1
-    fake_uav["position"][2] = 100
+    print("Up")
+    fake_uav["position"][0] = fake_uav["position"][0] + 1
+    fake_uav["position"][1] = fake_uav["position"][1] + 0.4
+    # if fake_uav["position"][0] > -144.5:
+    #     print("Right")
+    #     # Right
+    #     fake_uav["position"][0] = fake_uav["position"][0] - 0.5
+    #     fake_uav["position"][1] = fake_uav["position"][1] + 1
+    # else:
+    #     print("Up")
+    #     fake_uav["position"][0] = fake_uav["position"][0] + 1
+    #     fake_uav["position"][1] = fake_uav["position"][1] + 0.6
+    ## Down
+    # fake_uav["position"][0] = fake_uav["position"][0] - 1
+    # fake_uav["position"][1] = fake_uav["position"][1] - 0.6
+    # fake_uav["position"][2] = 100
 
 
 fake_uav = {"position": [0, 0, 0], "reset": reset, "move": move}
