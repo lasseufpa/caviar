@@ -148,6 +148,9 @@ def run(current_step, new_x, new_y, new_z):
         os.mkdir(output_dir)
 
     if render_to_file:
+        # Checks if figures output folder exists
+        if not os.path.exists(os.path.dirname(figures_output_filename)):
+            os.mkdir(os.path.dirname(figures_output_filename))
         # Create new camera with different configuration
         my_cam = Camera(
             "my_cam",
