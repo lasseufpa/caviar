@@ -13,8 +13,8 @@ import mimo_channels
 
 mi.set_variant("cuda_ad_rgb")
 
-render_to_file = False
-save_data = False
+render_to_file = True
+save_data = True
 
 ################################# Configure paths ##############################
 
@@ -36,32 +36,25 @@ rx_starting_x = 23.69
 rx_starting_y = -3.351
 rx_starting_z = 139
 
-cam_x = -350
-cam_y = 200
-cam_z = 338.2
-
-cam_angle_x = 250
-cam_angle_y = -220
-cam_angle_z = 0
-
 ################################# Configure Tx parameters #############
 # Ground
-# tx_x = -11
-# tx_y = 69
-# tx_z = 10
+tx_x = -108
+tx_y = -33
+tx_z = 15
 
-# Next to Rx
-tx_x = 21.95
-tx_y = -8.985
-tx_z = 137
+################################# Configure camera parameters #############
+
+cam_x = tx_x
+cam_y = tx_y
+cam_z = 700
 
 ################################# Configure simulation parameters ##############
 
 step_size = 15
 number_of_steps = 1
 
-nTx = 32
-nRx = 8
+nTx = 64
+nRx = 4
 
 
 def getRunMIMOdata(
@@ -93,8 +86,8 @@ def run(current_step, new_x, new_y, new_z):
     ########################### COPIED FROM SIONNA EXAMPLE #####################
     # Configure antenna array for all transmitters
     scene.tx_array = PlanarArray(
-        num_rows=nTx,
-        num_cols=1,
+        num_rows=int(np.sqrt(nTx)),
+        num_cols=int(np.sqrt(nTx)),
         vertical_spacing=0.5,
         horizontal_spacing=0.5,
         pattern="tr38901",
@@ -103,8 +96,8 @@ def run(current_step, new_x, new_y, new_z):
 
     # Configure antenna array for all receivers
     scene.rx_array = PlanarArray(
-        num_rows=nRx,
-        num_cols=1,
+        num_rows=int(np.sqrt(nRx)),
+        num_cols=int(np.sqrt(nRx)),
         vertical_spacing=0.5,
         horizontal_spacing=0.5,
         pattern="tr38901",
@@ -112,7 +105,11 @@ def run(current_step, new_x, new_y, new_z):
     )
 
     # Create transmitter
-    tx = Transmitter(name="tx", position=[tx_x, tx_y, tx_z])
+    tx = Transmitter(
+        name="tx",
+        position=[tx_x, tx_y, tx_z],
+        look_at=[-94, -53, tx_z],
+    )
 
     # Add transmitter instance to scene
     scene.add(tx)
@@ -121,14 +118,12 @@ def run(current_step, new_x, new_y, new_z):
 
     rx = Receiver(
         name="rx",
-        position=[rx_current_x, rx_current_y, rx_current_z],
-        orientation=[0, 0, 0],
+        position=[rx_current_x, rx_current_y, rx_current_z - 10],
+        look_at=[tx_x, tx_y, tx_z],
     )
 
     # Add receiver instance to scene
     scene.add(rx)
-
-    tx.look_at(rx)  # Transmitter points towards receiver
 
     scene.frequency = 40e9  # in Hz; implicitly updates RadioMaterials
 
@@ -146,20 +141,21 @@ def run(current_step, new_x, new_y, new_z):
     # print(f"RT duration: {ending_instant-starting_instant}")
 
     output_filename = os.path.join(current_dir, "runs", f"run_{str(current_step)}")
-
+    figures_output_filename = os.path.join(
+        current_dir, "runs", "figures", f"run_{str(current_step)}.png"
+    )
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
 
-    mat_t, tau, theta_t, phi_t, theta_r, phi_r = paths.as_tuple()
-
-    # print("Shape of mat_t:", mat_t.shape)
-
     if render_to_file:
+        # Checks if figures output folder exists
+        if not os.path.exists(os.path.dirname(figures_output_filename)):
+            os.mkdir(os.path.dirname(figures_output_filename))
         # Create new camera with different configuration
         my_cam = Camera(
             "my_cam",
             position=[cam_x, cam_y, cam_z],
-            look_at=[cam_angle_x, cam_angle_y, cam_angle_z],
+            look_at=[tx_x, tx_y, tx_z],
         )
         scene.add(my_cam)
 
@@ -168,7 +164,7 @@ def run(current_step, new_x, new_y, new_z):
             paths=paths,
             show_devices=True,
             show_paths=True,
-            filename=f"{output_filename}.png",
+            filename=figures_output_filename,
             resolution=[650, 500],
         )
 
@@ -186,9 +182,6 @@ def run(current_step, new_x, new_y, new_z):
     # Transform paths into channel impulse responses
     path_coefficients, path_delays = p2c(paths.as_tuple())
 
-    # print("Shape of path_coefficients: ", path_coefficients.shape)
-    # print("Shape of path_delays: ", path_delays.shape)
-
     # Compute frequencies of subcarriers and center around carrier frequency
     frequencies = subcarrier_frequencies(fft_size, subcarrier_spacing)
 
@@ -196,11 +189,6 @@ def run(current_step, new_x, new_y, new_z):
     h_freq = cir_to_ofdm_channel(
         frequencies, path_coefficients, path_delays, normalize=True
     )  # Non-normalized includes path-loss
-
-    # Verify that the channel is normalized
-    # h_avg_power = tf.reduce_mean(tf.abs(h_freq) ** 2).numpy()
-
-    # print("Average power h_freq: ", h_avg_power)  # Channel is normalized
 
     ########################### COPIED FROM SIONNA EXAMPLE #####################
 

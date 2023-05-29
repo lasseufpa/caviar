@@ -4,7 +4,7 @@ import time
 import os
 import cv2
 from pynats import NATSClient
-import csv
+
 
 with NATSClient() as natsclient:
     # Number of trajectories to be executed
@@ -46,34 +46,24 @@ with NATSClient() as natsclient:
 
         # Delay between episodes to avoid crashs
         time.sleep(1)
-        
-        caviar_tools.addPedestriansOnPath(
-            client,
-            os.path.join(trajectories_files, "path" + str(episode) + ".csv")
-        )
+
         # Reset the airsim simulation
         caviar_tools.airsim_reset(client)
 
         # takeoff and start the UAV trajectory
         caviar_tools.airsim_takeoff_all(client)
+        caviar_tools.move_on_path(
+            client,
+            caviar_config.drone_ids[0],
+            os.path.join(trajectories_files, "path" + str(episode) + ".csv"),
+        )
 
-        caviar_tools.move_to_point(client,caviar_config.drone_ids[0],0,0,-22,10)
-
-        path_list = []
-
-        with open(os.path.join(trajectories_files, "path" + str(episode) + ".csv")) as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=",")
-            csv_reader.__next__()
-            for row in csv_reader:
-                path_list.append([float(row[0]), float(row[1]), float(row[2])]
-                )
-        actualWaypoint = 0
         # Pause the simulation
-        #client.simPause(True)
+        # client.simPause(True)
         while not (isFinished):
             # Continue the simulation for 10ms
             start_time = time.time()
-            #natsclient.wait(count=1)
+            # natsclient.wait(count=1)
             client.simContinueForTime(0.10)
 
             # Get information about each UAV in the configuration file (caviar_config.py)
@@ -86,7 +76,6 @@ with NATSClient() as natsclient:
                 uav_angular_vel = caviar_tools.airsim_getangularvel(client, uav)
                 airsim_timestamp = caviar_tools.airsim_gettimestamp(client, uav)
 
-                print(uav_pose)
                 # Get frames
                 # rawimg = caviar_tools.airsim_getimages(
                 #     client, caviar_config.drone_ids[0]
@@ -117,37 +106,48 @@ with NATSClient() as natsclient:
                     + b"}}",
                 )
 
-                
                 # Check if the UAV is landed or has collided and finish the episode
                 if caviar_tools.airsim_getcollision(client, uav):
                     client.simPause(False)
                     isFinished = True
                     print(
-                    "Episode "
-                    + str(episode)
-                    + " concluded with "
-                    + str(time.time() - initial_time)
-                    + "s"
-                    )
-                print("teste1111")
-                # Verify actual position
-                if (caviar_tools.has_uav_arrived(client, uav, path_list[actualWaypoint][0], path_list[actualWaypoint][1], path_list[actualWaypoint][2])):
-                    actualWaypoint = actualWaypoint + 1
-                    print("teste1")
-                    # Add here the YOLO for object detection
-
-                    caviar_tools.move_to_point(client,caviar_config.drone_ids[0],path_list[actualWaypoint][0],path_list[actualWaypoint][1],path_list[actualWaypoint][2])
-
-                    if (actualWaypoint == (len(path_list)-1)):
-                        client.simPause(False)
-                        caviar_tools.airsim_land_all(client)
-                        isFinished = True
-                        print(
                         "Episode "
                         + str(episode)
                         + " concluded with "
                         + str(time.time() - initial_time)
                         + "s"
+                    )
+                print("teste1111")
+                # Verify actual position
+                if caviar_tools.has_uav_arrived(
+                    client,
+                    uav,
+                    path_list[actualWaypoint][0],
+                    path_list[actualWaypoint][1],
+                    path_list[actualWaypoint][2],
+                ):
+                    actualWaypoint = actualWaypoint + 1
+                    print("teste1")
+                    # Add here the YOLO for object detection
+
+                    caviar_tools.move_to_point(
+                        client,
+                        caviar_config.drone_ids[0],
+                        path_list[actualWaypoint][0],
+                        path_list[actualWaypoint][1],
+                        path_list[actualWaypoint][2],
+                    )
+
+                    if actualWaypoint == (len(path_list) - 1):
+                        client.simPause(False)
+                        caviar_tools.airsim_land_all(client)
+                        isFinished = True
+                        print(
+                            "Episode "
+                            + str(episode)
+                            + " concluded with "
+                            + str(time.time() - initial_time)
+                            + "s"
                         )
 
             # Get an write information about others objects in the simulation (cars and pedestrians). Each object is described in the configuration file (caviar_config.py)
