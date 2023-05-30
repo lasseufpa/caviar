@@ -33,7 +33,7 @@ with NATSClient() as natsclient:
     natsclient.connect()
 
     def callback(msg):
-        #print(f"Received a message with subject {msg.subject}: {msg}")
+        print(f"Received a message with subject {msg.subject}: {msg}")
 
     natsclient.subscribe(subject="caviar.su.sionna.state", callback=callback)
 
@@ -55,10 +55,16 @@ with NATSClient() as natsclient:
         # Reset the airsim simulation
         caviar_tools.airsim_reset(client)
 
-        # takeoff and start the UAV trajectory
-        caviar_tools.airsim_takeoff_all(client)
+        caviar_tools.airsim_setpose(
+            client, caviar_config.drone_ids[0], -279.13, -186.24, 135, 0, 0, 0, 0
+        )
 
-        caviar_tools.move_to_point(client, caviar_config.drone_ids[0], 0, 0, -22, 10)
+        # # takeoff and start the UAV trajectory
+        # caviar_tools.airsim_takeoff_all(client)
+
+        caviar_tools.move_to_point(
+            client, caviar_config.drone_ids[0], -279.13, -186.24, 90, 10
+        )
 
         path_list = []
 

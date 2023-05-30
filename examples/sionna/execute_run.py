@@ -13,7 +13,7 @@ import mimo_channels
 
 mi.set_variant("cuda_ad_rgb")
 
-render_to_file = True
+render_to_file = False
 save_data = True
 
 ################################# Configure paths ##############################

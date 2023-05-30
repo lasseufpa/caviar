@@ -65,7 +65,7 @@ if __name__ == "__main__":
     try:
         orchestrator_thread.start()
         threeD_thread.start()
-        time.sleep(5)
+        time.sleep(2)
         mobility_thread.start()
         communications_thread.start()
     except Exception as e:
