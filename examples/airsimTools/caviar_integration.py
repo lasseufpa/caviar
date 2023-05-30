@@ -81,12 +81,12 @@ with NATSClient() as natsclient:
         actualWaypoint = 0
 
         # Pause the simulation
-        #client.simPause(True)
+        client.simPause(True)
         while not (isFinished):
             # Continue the simulation for 10ms
             start_time = time.time()
-            #natsclient.wait(count=1)
-            #client.simContinueForTime(0.10)
+            natsclient.wait(count=1)
+            client.simContinueForTime(0.10)
 
             # Get information about each UAV in the configuration file (caviar_config.py)
             for uav in caviar_config.drone_ids:
