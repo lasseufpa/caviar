@@ -13,7 +13,7 @@ import mimo_channels
 
 mi.set_variant("cuda_ad_rgb")
 
-render_to_file = False
+render_to_file = True
 save_data = True
 
 ################################# Configure paths ##############################
@@ -128,7 +128,11 @@ def run(current_step, new_x, new_y, new_z):
     scene.frequency = 40e9  # in Hz; implicitly updates RadioMaterials
 
     scene.synthetic_array = True  # If set to False, ray tracing will be done per antenna element (slower for large arrays)
-
+    cm = scene.coverage_map(max_depth=5,
+                        cm_cell_size=(3., 3.), # Grid size of coverage map cells in m
+                        combining_vec=None,
+                        precoding_vec=None,
+                        num_samples=int(1e2))
     # starting_instant = time.time()
     # Compute propagation paths
     paths = scene.compute_paths(
@@ -162,6 +166,7 @@ def run(current_step, new_x, new_y, new_z):
         scene.render_to_file(
             camera="my_cam",
             paths=paths,
+            coverage_map=cm,
             show_devices=True,
             show_paths=True,
             filename=figures_output_filename,
