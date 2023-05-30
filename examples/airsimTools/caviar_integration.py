@@ -55,15 +55,18 @@ with NATSClient() as natsclient:
         # Reset the airsim simulation
         caviar_tools.airsim_reset(client)
 
+        
+
         caviar_tools.airsim_setpose(
-            client, caviar_config.drone_ids[0], -279.13, -186.24, 135, 0, 0, 0, 0
+            client, caviar_config.drone_ids[0], -270.13, -180.24, 135, 0, 0, 0, 0
         )
 
-        # # takeoff and start the UAV trajectory
-        # caviar_tools.airsim_takeoff_all(client)
-
+        time.sleep(0.5)
+        # takeoff and start the UAV trajectory
+        caviar_tools.airsim_takeoff_all(client)
+        time.sleep(1)
         caviar_tools.move_to_point(
-            client, caviar_config.drone_ids[0], -279.13, -186.24, 90, 10
+            client, caviar_config.drone_ids[0], -270.13, -180.24, 100, 10
         )
 
         path_list = []
@@ -78,12 +81,12 @@ with NATSClient() as natsclient:
         actualWaypoint = 0
 
         # Pause the simulation
-        client.simPause(True)
+        #client.simPause(True)
         while not (isFinished):
             # Continue the simulation for 10ms
             start_time = time.time()
-            natsclient.wait(count=1)
-            client.simContinueForTime(0.10)
+            #natsclient.wait(count=1)
+            #client.simContinueForTime(0.10)
 
             # Get information about each UAV in the configuration file (caviar_config.py)
             for uav in caviar_config.drone_ids:
@@ -124,6 +127,7 @@ with NATSClient() as natsclient:
                     + str(uav_pose[2]).encode()
                     + b"}}",
                 )
+                
 
                 # Check if the UAV is landed or has collided and finish the episode
                 if caviar_tools.airsim_getcollision(client, uav):
@@ -146,14 +150,15 @@ with NATSClient() as natsclient:
                 ):
                     actualWaypoint = actualWaypoint + 1
                     # Add here the YOLO for object detection
-
+                    print(actualWaypoint)
                     caviar_tools.move_to_point(
                         client,
-                        caviar_config.drone_ids[0],
+                        uav,
                         path_list[actualWaypoint][0],
                         path_list[actualWaypoint][1],
                         path_list[actualWaypoint][2],
                     )
+                    print(actualWaypoint)
 
                     if actualWaypoint == (len(path_list) - 1):
                         client.simPause(False)

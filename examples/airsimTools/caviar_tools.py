@@ -21,8 +21,6 @@ def airsim_takeoff(client, uav_id):
     client.enableApiControl(True, uav_id)
     client.armDisarm(True, uav_id)
     client.takeoffAsync(vehicle_name=uav_id).join()
-    airsim_moveToInitialPosition(client)
-
 
 def airsim_takeoff_all(client):
     for uav in caviar_config.drone_ids:
@@ -108,7 +106,7 @@ def move_to_point(client, uav, x, y, z, speed=5):
 
 def has_uav_arrived(client, uav, x, y, z):
     uav_pose = airsim_getpose(client, uav)
-    if (math.isclose(uav_pose[0], x, abs_tol = 0.5) and math.isclose(uav_pose[1], y, abs_tol = 0.5) and math.isclose(uav_pose[2], z, abs_tol = 0.5)):
+    if (math.isclose(uav_pose[0], x, abs_tol = 0.5) and math.isclose(uav_pose[1], y, abs_tol = 0.5) and math.isclose(uav_pose[2], z, abs_tol = 0.6)):
         return True
     else:
         return False
