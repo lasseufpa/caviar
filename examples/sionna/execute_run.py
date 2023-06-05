@@ -44,8 +44,8 @@ tx_z = 15
 
 ################################# Configure camera parameters #############
 
-cam_x = tx_x
-cam_y = tx_y
+# cam_x = rx_x
+# cam_y = rx_y
 cam_z = 700
 
 ################################# Configure simulation parameters ##############
@@ -108,7 +108,7 @@ def run(current_step, new_x, new_y, new_z):
     tx = Transmitter(
         name="tx",
         position=[tx_x, tx_y, tx_z],
-        look_at=[-94, -53, tx_z],
+        # look_at=[-94, -53, tx_z],
     )
 
     # Add transmitter instance to scene
@@ -119,8 +119,11 @@ def run(current_step, new_x, new_y, new_z):
     rx = Receiver(
         name="rx",
         position=[rx_current_x, rx_current_y, rx_current_z - 10],
-        look_at=[tx_x, tx_y, tx_z],
+        # look_at=[tx_x, tx_y, tx_z],
     )
+
+    tx.look_at(rx)
+    tx.look_at(tx)
 
     # Add receiver instance to scene
     scene.add(rx)
@@ -128,11 +131,11 @@ def run(current_step, new_x, new_y, new_z):
     scene.frequency = 40e9  # in Hz; implicitly updates RadioMaterials
 
     scene.synthetic_array = True  # If set to False, ray tracing will be done per antenna element (slower for large arrays)
-    cm = scene.coverage_map(max_depth=5,
-                        cm_cell_size=(3., 3.), # Grid size of coverage map cells in m
-                        combining_vec=None,
-                        precoding_vec=None,
-                        num_samples=int(1e2))
+    # cm = scene.coverage_map(max_depth=5,
+    #                     cm_cell_size=(3., 3.), # Grid size of coverage map cells in m
+    #                     combining_vec=None,
+    #                     precoding_vec=None,
+    #                     num_samples=int(1e2))
     # starting_instant = time.time()
     # Compute propagation paths
     paths = scene.compute_paths(
@@ -158,15 +161,15 @@ def run(current_step, new_x, new_y, new_z):
         # Create new camera with different configuration
         my_cam = Camera(
             "my_cam",
-            position=[cam_x, cam_y, cam_z],
-            look_at=[tx_x, tx_y, tx_z],
+            position=[rx_current_x, rx_current_y, cam_z],
+            look_at=[rx_current_x, rx_current_y, rx_current_z],
         )
         scene.add(my_cam)
 
         scene.render_to_file(
             camera="my_cam",
             paths=paths,
-            coverage_map=cm,
+            # coverage_map=cm,
             show_devices=True,
             show_paths=True,
             filename=figures_output_filename,

@@ -58,15 +58,14 @@ with NATSClient() as natsclient:
         
 
         caviar_tools.airsim_setpose(
-            client, caviar_config.drone_ids[0], -280.13, -190.24, 135, 0, 0, 0, 0
+            client, caviar_config.drone_ids[0], -360, -233, 135, 0, 0, 0, 0
         )
-
         time.sleep(0.5)
         # takeoff and start the UAV trajectory
         caviar_tools.airsim_takeoff_all(client)
         time.sleep(1)
         caviar_tools.move_to_point(
-            client, caviar_config.drone_ids[0], -280.13, -190.24, 120, 10
+            client, caviar_config.drone_ids[0], -360, -233, 120, 10
         )
 
         path_list = []

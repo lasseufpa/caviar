@@ -1,4 +1,5 @@
 import subprocess
+import signal
 import threading
 import time
 
@@ -11,7 +12,8 @@ class runNatsServer(threading.Thread):
 
     def run(self):
         print("-----------> runNatsServer")
-        subprocess.run("nats-server", capture_output=True)
+        global nats_simu
+        nats_simu = subprocess.Popen("nats-server")
 
 
 class runAirSim(threading.Thread):
@@ -20,9 +22,9 @@ class runAirSim(threading.Thread):
 
     def run(self):
         print("-----------> runAirSim")
-        subprocess.run(
-            "/home/joaoborges/Downloads/v2_central_parkUE4.27.2ExeLinux/LinuxNoEditor/central_park/Binaries/Linux/central_park-Linux-Shipping",
-            capture_output=True,
+        global airsim_simu
+        airsim_simu = subprocess.Popen(
+            "/home/fhb/Downloads/central_park/central_park/Binaries/Linux/central_park-Linux-Shipping"
         )
 
 
@@ -32,12 +34,11 @@ class runMobility(threading.Thread):
 
     def run(self):
         print("-----------> runMobility")
-        subprocess.run(
+        global mobility_simu
+        mobility_simu = subprocess.Popen(
             [
-                "/home/joaoborges/miniconda3/envs/tf/bin/python",
-                "/home/joaoborges/codes/caviar/examples/airsimTools/caviar_integration.py",
-            ],
-            capture_output=True,
+                "/home/fhb/miniconda3/envs/tf/bin/python",
+                "/home/fhb/git/caviar/examples/airsimTools/caviar_integration.py"]
         )
 
 
@@ -47,12 +48,12 @@ class runSionna(threading.Thread):
 
     def run(self):
         print("-----------> runSionna")
-        subprocess.run(
+        global sionna_simu
+        sionna_simu = subprocess.Popen(
             [
-                "/home/joaoborges/miniconda3/envs/tf/bin/python",
-                "/home/joaoborges/codes/caviar/examples/sionna/followPath.py",
-            ],
-            capture_output=True,
+                "/home/fhb/miniconda3/envs/tf/bin/python",
+                "/home/fhb/git/caviar/examples/sionna/followPath.py"
+            ]
         )
 
 
@@ -63,12 +64,30 @@ if __name__ == "__main__":
     communications_thread = runSionna()
 
     try:
-        orchestrator_thread.start()
+        orch_return = orchestrator_thread.start()
         threeD_thread.start()
         time.sleep(2)
         mobility_thread.start()
         communications_thread.start()
     except Exception as e:
         print(f"Error: {str(e)}")
+    
+    while True:
+        res = input("Press 'w' to close")
+        if res == "w":
+            print("The Program is terminated manually!")
+            time.sleep(5)
+            airsim_simu.send_signal(signal.SIGTERM)
+            time.sleep(1)
+            airsim_simu.send_signal(signal.SIGTERM)
+            time.sleep(1)
+            airsim_simu.send_signal(signal.SIGTERM)
+            time.sleep(2)
+            nats_simu.send_signal(signal.SIGTERM)
+            mobility_simu.send_signal(signal.SIGTERM)
+            sionna_simu.send_signal(signal.SIGTERM)
+            print(f'orch_return: {orch_return}')
+            print("------------------------------------------> END")
+            break
 
-    print("------------------------------------------> END")
+
