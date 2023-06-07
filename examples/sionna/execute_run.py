@@ -104,31 +104,21 @@ def run(current_step, new_x, new_y, new_z):
         polarization="V",
     )
 
-    # Create transmitter
     tx = Transmitter(
-        name="tx",
-        position=[tx_x, tx_y, tx_z],
-        # look_at=[-94, -53, tx_z],
+        name="tx", position=[tx_x, tx_y, tx_z], orientation=[-2.0944, 0.261799, 0]
     )
 
-    # Add transmitter instance to scene
     scene.add(tx)
-
-    # Create a receiver
 
     rx = Receiver(
         name="rx",
         position=[rx_current_x, rx_current_y, rx_current_z - 10],
-        # look_at=[tx_x, tx_y, tx_z],
+        orientation=[-0.523599, 0, 0],
     )
 
-    tx.look_at(rx)
-    tx.look_at(tx)
-
-    # Add receiver instance to scene
     scene.add(rx)
 
-    scene.frequency = 40e9  # in Hz; implicitly updates RadioMaterials
+    scene.frequency = 40e9  # Frequency in Hz
 
     scene.synthetic_array = True  # If set to False, ray tracing will be done per antenna element (slower for large arrays)
     # cm = scene.coverage_map(max_depth=5,
