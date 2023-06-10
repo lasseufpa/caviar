@@ -6,7 +6,7 @@ MIN_TIME =  # Here, we need the minimum time
 NUMBER_OF_WP = 10
 
 # CAVIAR function
-def Bit_rate(H_mag, const = 440.35, bandwidth = 40e6):
+def Bit_rate(H_mag, const = 440.35, bandwidth = 40e9):
     SINR = const * (H_mag**2)
     se = np.log2(1 + SINR)
     R = float(bandwidth * se)

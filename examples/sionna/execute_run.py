@@ -6,6 +6,7 @@ from sionna.rt import load_scene, Transmitter, Receiver, PlanarArray, Paths2CIR,
 from sionna.channel import cir_to_ofdm_channel, subcarrier_frequencies
 from obj_move import translate
 import mimo_channels
+from calc_time import Bit_rate
 
 # from examples.sionna.mimo_channels import getDFTOperatedChannel
 # from examples.sionna.obj_move import translate
@@ -105,7 +106,7 @@ def run(current_step, new_x, new_y, new_z):
     )
 
     tx = Transmitter(
-        name="tx", position=[tx_x, tx_y, tx_z], orientation=[-2.0944, 0.261799, 0]
+        name="tx", position=[tx_x, tx_y, tx_z], orientation=[1.0472, 0.261799, 0]
     )
 
     scene.add(tx)
@@ -205,6 +206,9 @@ def run(current_step, new_x, new_y, new_z):
     rx_starting_position = [rx_starting_x, rx_starting_y, rx_starting_z]
     rx_current_position = [rx_current_x, rx_current_y, rx_current_z]
 
+    # Get bit rate
+    bit_rate = Bit_rate(equivalentChannelMagnitude, bandwidth=40e9)
+
     if save_data:
         np.savez(
             output_filename,
@@ -217,6 +221,7 @@ def run(current_step, new_x, new_y, new_z):
             equivalentChannel=equivalentChannel,
             equivalentChannelMagnitude=equivalentChannelMagnitude,
             best_ray=best_ray,
+            bit_rate=bit_rate,
         )
     else:
         return (
@@ -229,6 +234,7 @@ def run(current_step, new_x, new_y, new_z):
             equivalentChannel,
             equivalentChannelMagnitude,
             best_ray,
+            bit_rate,
         )
 
 
