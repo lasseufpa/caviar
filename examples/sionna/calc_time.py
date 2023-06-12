@@ -2,18 +2,19 @@ import numpy as np
 
 
 MAX_TIME = 180  # 3 minutes to complete the game
-MIN_TIME =  # Here, we need the minimum time
+# MIN_TIME =  # Here, we need the minimum time
 NUMBER_OF_WP = 10
 
 # CAVIAR function
 def Bit_rate(H_mag, const = 440.35, bandwidth = 40e9):
-    SINR = const * (H_mag**2)
+    H_shape = H_mag.shape
+    SINR = const * (H_mag.A1**2)
     se = np.log2(1 + SINR)
-    R = float(bandwidth * se)
+    R = (bandwidth * se).reshape(H_shape[0],H_shape[1])
     return R
 
 
-def get_time_for_wp(H_mag, const):  
+def get_time_for_wp(H_mag, const):
     '''
     Using 10 Pictures rule:
     2.076.727 bytes (4K image) x 10 x 8 = 160.613.816 bits to transmit
@@ -31,23 +32,24 @@ def lost_for_time(time, score):
         return score, True
     else:
         return score
-    
-    
+
+
 def person_score(person):
     if (person):
         return 1
-    
+
+
 def get_person_score(n_people):
     return 600*n_people
-     
-    
+
+
 #def get_time_parked(caviar_stopped):
 #    init = time.time()
 #    # CAVIAR IN LOOP - BEAM SELECT
 #    stopped = time.time()
 #    return stopped - init
 
-def get_wp_score(score=0,time=0,H_mag,const,persons=0):
+def get_wp_score(H_mag, const, score=0,time=0,persons=0):
     wp_time = get_time_for_wp(H_mag,const)
     persons += person_score(True)
     score = get_person_score(persons)
@@ -55,5 +57,7 @@ def get_wp_score(score=0,time=0,H_mag,const,persons=0):
     if(lost):
         return score, lost
     return wp_time, score, lost, persons
-if __name__=='__main_':
+
+
+# if __name__=='__main_':
     

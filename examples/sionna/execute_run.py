@@ -39,9 +39,9 @@ rx_starting_z = 139
 
 ################################# Configure Tx parameters #############
 # Ground
-tx_x = -108
-tx_y = -33
-tx_z = 15
+tx_x = -170
+tx_y = 121
+tx_z = 48.3 # 2 meters above roof
 
 ################################# Configure camera parameters #############
 
@@ -164,7 +164,7 @@ def run(current_step, new_x, new_y, new_z):
             show_devices=True,
             show_paths=True,
             filename=figures_output_filename,
-            resolution=[650, 500],
+            resolution=[325, 250],
         )
 
     # Default parameters in the PUSCHConfig
