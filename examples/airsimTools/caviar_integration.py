@@ -33,7 +33,8 @@ with NATSClient() as natsclient:
     natsclient.connect()
 
     def callback(msg):
-        print(f"Received a message with subject {msg.subject}: {msg}")
+        #print(f"Received a message with subject {msg.subject}: {msg}")
+        print(" ")
 
     natsclient.subscribe(subject="caviar.su.sionna.state", callback=callback)
 
@@ -61,6 +62,9 @@ with NATSClient() as natsclient:
             client, caviar_config.drone_ids[0], -360, -233, 135, 0, 0, 0, 0
         )
         time.sleep(0.5)
+
+        initial_timestamp = caviar_tools.airsim_gettimestamp(client, caviar_config.drone_ids[0])
+
         # takeoff and start the UAV trajectory
         caviar_tools.airsim_takeoff_all(client)
         time.sleep(1)
@@ -149,7 +153,12 @@ with NATSClient() as natsclient:
                 ):
                     actualWaypoint = actualWaypoint + 1
                     # Add here the YOLO for object detection
-                    print(actualWaypoint)
+
+                    print("Compute best beam")
+                    print("get transmission delay for 10 images")
+
+                    print("wait")
+
                     caviar_tools.move_to_point(
                         client,
                         uav,
@@ -177,3 +186,4 @@ with NATSClient() as natsclient:
                 object_orien = caviar_tools.unreal_getorientation(client, obj)
             end_time = time.time()
             print(f"Step duration: {end_time-start_time}")
+            print(f"Airsim Step duration: {(airsim_timestamp-initial_timestamp)*1e-9}")
