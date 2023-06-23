@@ -2,6 +2,7 @@ import subprocess
 import signal
 import threading
 import time
+import psutil
 
 record_path = "/home/fhb/Documents/caviar_records"
 
@@ -94,14 +95,18 @@ if __name__ == "__main__":
         if res == "w":
             print("The Program is terminated manually!")
             time.sleep(5)
-            airsim_simu.send_signal(signal.SIGTERM)
-            time.sleep(1)
-            airsim_simu.send_signal(signal.SIGTERM)
-            time.sleep(1)
+            for child in psutil.Process(airsim_simu.pid).children(recursive=True):
+                child.kill()
             airsim_simu.send_signal(signal.SIGTERM)
             time.sleep(2)
+            for child in psutil.Process(nats_simu.pid).children(recursive=True):
+                child.kill()
             nats_simu.send_signal(signal.SIGTERM)
+            for child in psutil.Process(mobility_simu.pid).children(recursive=True):
+                child.kill()
             mobility_simu.send_signal(signal.SIGTERM)
+            for child in psutil.Process(sionna_simu.pid).children(recursive=True):
+                child.kill()
             sionna_simu.send_signal(signal.SIGTERM)
             print(f'orch_return: {orch_return}')
             print("------------------------------------------> END")
