@@ -19,7 +19,7 @@ class runNatsServer(threading.Thread):
         nats_simu = subprocess.Popen(["psrecord",
                                       "nats-server",
                                       "--log",
-                                      record_path + "/" + experiment_id+"nats.txt",
+                                      record_path + "/" + experiment_id+"_nats.txt",
                                       "--include-children"])
 
 
@@ -34,7 +34,7 @@ class runAirSim(threading.Thread):
             ["psrecord",
              "/home/fhb/Downloads/central_park/central_park/Binaries/Linux/central_park-Linux-Shipping",
              "--log",
-             record_path + "/" + experiment_id+"airsim.txt",
+             record_path + "/" + experiment_id+"_airsim.txt",
              "--include-children"]
         )
 
@@ -51,7 +51,7 @@ class runMobility(threading.Thread):
                 "/home/fhb/miniconda3/envs/tf/bin/python " +
                 "/home/fhb/git/caviar/examples/airsimTools/caviar_integration.py",
                 "--log",
-                record_path + "/" + experiment_id+"mobility.txt",
+                record_path + "/" + experiment_id+"_mobility.txt",
                 "--include-children"]
         )
 
@@ -68,7 +68,7 @@ class runSionna(threading.Thread):
                 "/home/fhb/miniconda3/envs/tf/bin/python "+
                 "/home/fhb/git/caviar/examples/sionna/followPath.py",
                 "--log",
-                record_path + "/" + experiment_id+"sionna.txt",
+                record_path + "/" + experiment_id+"_sionna.txt",
                 "--include-children"
             ]
         )
