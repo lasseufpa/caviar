@@ -7,6 +7,8 @@ from sionna.channel import cir_to_ofdm_channel, subcarrier_frequencies
 from obj_move import translate
 import mimo_channels
 from calc_time import Bit_rate
+from realtime_plot import plot_throughput
+import matplotlib.pyplot as plt
 
 # from examples.sionna.mimo_channels import getDFTOperatedChannel
 # from examples.sionna.obj_move import translate
@@ -14,7 +16,7 @@ from calc_time import Bit_rate
 
 mi.set_variant("cuda_ad_rgb")
 
-render_to_file = True
+render_to_file = False
 save_data = True
 
 ################################# Configure paths ##############################
@@ -210,10 +212,14 @@ def run(current_step, new_x, new_y, new_z):
     # Get bit rate
     bit_rate = Bit_rate(equivalentChannelMagnitude, bandwidth=40e9)
     bit_rate_Gbps = bit_rate / 1e9
-    best_ray_rx = best_ray[0]
-    best_ray_tx = best_ray[1]
+    best_ray_rx = best_ray[0][0]
+    best_ray_tx = best_ray[0][1]
     best_bit_rate_Gbps = bit_rate_Gbps[best_ray_rx, best_ray_tx]
     random_bit_rate_Gbps = bit_rate_Gbps[rng.integers(0, 4), rng.integers(0, 64)]
+
+    plot_throughput(current_step, best_bit_rate_Gbps, random_bit_rate_Gbps)
+    plt.legend(["Optimal", "Random"], loc="upper right")
+    plt.show()
 
     if save_data:
         np.savez(
