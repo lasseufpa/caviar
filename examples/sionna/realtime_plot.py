@@ -15,7 +15,8 @@ plt.title("Throughputs (Gbps)")
 # CC BY-SA 4.0
 def plot_throughput(timestamp, throughput1, throughput2):
     plt.scatter(timestamp, throughput1, color="blue")
-    plt.scatter(timestamp, throughput2, color="red")
+    plt.scatter(timestamp, throughput2, color="red", marker=".")
+    plt.legend(["Optimal", "Random"], loc="upper left")
     plt.pause(0.05)
 
 

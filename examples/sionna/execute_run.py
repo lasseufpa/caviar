@@ -217,9 +217,7 @@ def run(current_step, new_x, new_y, new_z):
     best_bit_rate_Gbps = bit_rate_Gbps[best_ray_rx, best_ray_tx]
     random_bit_rate_Gbps = bit_rate_Gbps[rng.integers(0, 4), rng.integers(0, 64)]
 
-    plot_throughput(current_step, best_bit_rate_Gbps, random_bit_rate_Gbps)
-    plt.legend(["Optimal", "Random"], loc="upper right")
-    plt.show()
+    plot_throughput(int(current_step) * 1e9, best_bit_rate_Gbps, random_bit_rate_Gbps)
 
     if save_data:
         np.savez(

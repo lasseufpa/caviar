@@ -185,5 +185,5 @@ with NATSClient() as natsclient:
                 object_pose = caviar_tools.unreal_getpose(client, obj)
                 object_orien = caviar_tools.unreal_getorientation(client, obj)
             end_time = time.time()
-            print(f"Step duration: {end_time-start_time}")
-            print(f"Airsim Step duration: {(airsim_timestamp-initial_timestamp)*1e-9}")
+            print(f"CAVIAR in-loop step duration (seconds): {end_time-start_time}")
+            print(f"Simulation duration (seconds): {(airsim_timestamp-initial_timestamp)*1e-9}")
