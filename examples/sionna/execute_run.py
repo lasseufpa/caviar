@@ -8,7 +8,7 @@ from obj_move import translate
 import mimo_channels
 from calc_time import Bit_rate
 from realtime_plot import plot_throughput
-import matplotlib.pyplot as plt
+from joblib import load
 
 # from examples.sionna.mimo_channels import getDFTOperatedChannel
 # from examples.sionna.obj_move import translate
@@ -216,8 +216,12 @@ def run(current_step, new_x, new_y, new_z):
     best_ray_tx = best_ray[0][1]
     best_bit_rate_Gbps = bit_rate_Gbps[best_ray_rx, best_ray_tx]
     random_bit_rate_Gbps = bit_rate_Gbps[rng.integers(0, 4), rng.integers(0, 64)]
+    clf = load('trained_tree_200_est.joblib')
+    enc = load('encoder.joblib')
+    pred_beam_index = enc.inverse_transform(clf.predict(np.array([rx_current_position])))[0][1:-1].split()
+    predicted_bit_rate_Gbps = bit_rate_Gbps[int(pred_beam_index[0]), int(pred_beam_index[1])]
 
-    plot_throughput(int(current_step) * 1e9, best_bit_rate_Gbps, random_bit_rate_Gbps)
+    plot_throughput(int(current_step) * 1e9, best_bit_rate_Gbps, predicted_bit_rate_Gbps, random_bit_rate_Gbps)
 
     if save_data:
         np.savez(
