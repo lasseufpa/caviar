@@ -57,6 +57,7 @@ number_of_steps = 1
 nTx = 64
 nRx = 4
 
+rng = np.random.default_rng(1)
 
 def getRunMIMOdata(
     mimoChannel,
@@ -208,6 +209,11 @@ def run(current_step, new_x, new_y, new_z):
 
     # Get bit rate
     bit_rate = Bit_rate(equivalentChannelMagnitude, bandwidth=40e9)
+    bit_rate_Gbps = bit_rate / 1e9
+    best_ray_rx = best_ray[0]
+    best_ray_tx = best_ray[1]
+    best_bit_rate_Gbps = bit_rate_Gbps[best_ray_rx, best_ray_tx]
+    random_bit_rate_Gbps = bit_rate_Gbps[rng.integers(0, 4), rng.integers(0, 64)]
 
     if save_data:
         np.savez(
@@ -222,6 +228,8 @@ def run(current_step, new_x, new_y, new_z):
             equivalentChannelMagnitude=equivalentChannelMagnitude,
             best_ray=best_ray,
             bit_rate=bit_rate,
+            best_bit_rate_Gbps=best_bit_rate_Gbps,
+            random_bit_rate_Gbps=random_bit_rate_Gbps
         )
     else:
         return (
@@ -235,6 +243,8 @@ def run(current_step, new_x, new_y, new_z):
             equivalentChannelMagnitude,
             best_ray,
             bit_rate,
+            best_bit_rate_Gbps,
+            random_bit_rate_Gbps
         )
 
 
