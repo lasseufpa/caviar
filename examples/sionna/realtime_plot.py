@@ -26,7 +26,7 @@ def plot_throughput(timestamp, throughput1, throughput2, throughput3, mean1, mea
     mean_line1.set_ydata(mean1)
     mean_line2.set_ydata(mean2)
     mean_line3.set_ydata(mean3)
-    plt.legend([f"Optimal | mean: {round(mean1, 2)}", f"Predicted | mean: {round(mean2, 2)}", f"Random | mean: {round(mean3, 2)}"], loc="upper left")
+    plt.legend([f"Optimal   | mean: {round(mean1, 2)}", f"Predicted | mean: {round(mean2, 2)}", f"Random   | mean: {round(mean3, 2)}"], loc="upper left")
     plt.pause(0.05)
 
 
