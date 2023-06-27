@@ -60,6 +60,9 @@ nTx = 64
 nRx = 4
 
 rng = np.random.default_rng(1)
+all_best_bit_rate_Gbps = []
+all_random_bit_rate_Gbps = []
+all_predicted_bit_rate_Gbps = []
 
 def getRunMIMOdata(
     mimoChannel,
@@ -221,7 +224,17 @@ def run(current_step, new_x, new_y, new_z):
     pred_beam_index = enc.inverse_transform(clf.predict(np.array([rx_current_position])))[0][1:-1].split()
     predicted_bit_rate_Gbps = bit_rate_Gbps[int(pred_beam_index[0]), int(pred_beam_index[1])]
 
-    plot_throughput(int(current_step) * 1e9, best_bit_rate_Gbps, predicted_bit_rate_Gbps, random_bit_rate_Gbps)
+    all_best_bit_rate_Gbps.append(best_bit_rate_Gbps)
+    all_random_bit_rate_Gbps.append(random_bit_rate_Gbps)
+    all_predicted_bit_rate_Gbps.append(predicted_bit_rate_Gbps)
+
+    plot_throughput(int(current_step) * 1e9,
+                    best_bit_rate_Gbps,
+                    predicted_bit_rate_Gbps,
+                    random_bit_rate_Gbps,
+                    np.mean(all_best_bit_rate_Gbps),
+                    np.mean(all_random_bit_rate_Gbps),
+                    np.mean(all_predicted_bit_rate_Gbps))
 
     if save_data:
         np.savez(
