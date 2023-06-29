@@ -273,9 +273,17 @@ def airsim_save_images(client, record_path="./"):
         )
 
 def airsim_save_external_images(client, record_path="./", cam = "0"):
+    if not os.path.exists(record_path):
+            os.mkdir(record_path)
+
+    multimodal_output_folder = os.path.join(record_path, "multimodal")
+    
+    if not os.path.exists(multimodal_output_folder):
+            os.mkdir(multimodal_output_folder)
+    
     for cam_type in caviar_config.cam_types:
         png_image = client.simGetImage(cam, cam_type, vehicle_name=caviar_config.drone_ids[0], external=True)
-        cam_type_path = os.path.join(record_path, str(cam_type))
+        cam_type_path = os.path.join(multimodal_output_folder, str(cam_type))
         if not os.path.exists(cam_type_path):
             os.mkdir(cam_type_path)
         record_file = os.path.join(cam_type_path, caviar_config.drone_ids[0] + "_" + str(time.time()) + ".png")
