@@ -272,11 +272,21 @@ def airsim_save_images(client, record_path="./"):
             png_image,
         )
 
+def airsim_save_external_images(client, record_path="./", cam = "0"):
+    for cam_type in caviar_config.cam_types:
+        png_image = client.simGetImage(cam, cam_type, vehicle_name=caviar_config.drone_ids[0], external=True)
+        cam_type_path = os.path.join(record_path, str(cam_type))
+        if not os.path.exists(cam_type_path):
+            os.mkdir(cam_type_path)
+        record_file = os.path.join(cam_type_path, caviar_config.drone_ids[0] + "_" + str(time.time()) + ".png")
+        airsim.write_file(
+            os.path.normpath(record_file),
+            png_image,
+        )
 
 def airsim_getimages(client, uav_id):
     image = client.simGetImage("0", airsim.ImageType.Scene, vehicle_name=uav_id)
     return image
-
 
 def linecount(eps):
     if len(eps) < 2:

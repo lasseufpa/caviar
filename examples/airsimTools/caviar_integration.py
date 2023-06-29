@@ -84,12 +84,12 @@ with NATSClient() as natsclient:
         actualWaypoint = 0
 
         # Pause the simulation
-        #client.simPause(True)
+        client.simPause(True)
         while not (isFinished):
-            # Continue the simulation for 10ms
+            # Continue the simulation for 100ms
             start_time = time.time()
-            #natsclient.wait(count=1)
-            #client.simContinueForTime(0.10)
+            natsclient.wait(count=1)
+            client.simContinueForTime(0.10)
 
             # Get information about each UAV in the configuration file (caviar_config.py)
             for uav in caviar_config.drone_ids:
@@ -180,6 +180,8 @@ with NATSClient() as natsclient:
                             + "s"
                         )
 
+            multimodal_output_folder = os.path.join(os.getcwd(), "runs", "multimodal")
+            caviar_tools.airsim_save_external_images(client, multimodal_output_folder, "FixedCamera1")
             # Get an write information about others objects in the simulation (cars and pedestrians). Each object is described in the configuration file (caviar_config.py)
             for obj in caviar_config.ue_objects:
                 object_pose = caviar_tools.unreal_getpose(client, obj)

@@ -1,3 +1,4 @@
+import airsim
 # If isOnline == true, the beamselection will be performed with the AirSim simulation.
 isOnline = True
 
@@ -10,6 +11,7 @@ record_file = "./record1.csv"
 
 # Array with the UAV's IDs that are in the Airsim settings file (for the online simulations)
 drone_ids = ["uav1"]
+cam_types = [airsim.ImageType.Scene, airsim.ImageType.DepthVis, airsim.ImageType.Infrared]
 
 initial_pose_offset = [14,-28,8.4]
 
