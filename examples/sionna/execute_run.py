@@ -16,7 +16,8 @@ from joblib import load
 
 mi.set_variant("cuda_ad_rgb")
 
-render_to_file = False
+render_to_file = True
+plot_data = True
 save_data = True
 
 ################################# Configure paths ##############################
@@ -41,9 +42,9 @@ rx_starting_z = 139
 
 ################################# Configure Tx parameters #############
 # Ground
-tx_x = -170
-tx_y = 121
-tx_z = 48.3 # 2 meters above roof
+tx_x = -154
+tx_y = 64
+tx_z = 120 # 5m above roof
 
 ################################# Configure camera parameters #############
 
@@ -63,6 +64,7 @@ rng = np.random.default_rng(1)
 all_best_bit_rate_Gbps = []
 all_random_bit_rate_Gbps = []
 all_predicted_bit_rate_Gbps = []
+
 
 def getRunMIMOdata(
     mimoChannel,
@@ -112,7 +114,7 @@ def run(current_step, new_x, new_y, new_z):
     )
 
     tx = Transmitter(
-        name="tx", position=[tx_x, tx_y, tx_z], orientation=[1.0472, 0.261799, 0]
+        name="tx", position=[tx_x, tx_y, tx_z], orientation=[-2.0944, 0.785398, 0]
     )
 
     scene.add(tx)
@@ -219,22 +221,29 @@ def run(current_step, new_x, new_y, new_z):
     best_ray_tx = best_ray[0][1]
     best_bit_rate_Gbps = bit_rate_Gbps[best_ray_rx, best_ray_tx]
     random_bit_rate_Gbps = bit_rate_Gbps[rng.integers(0, 4), rng.integers(0, 64)]
-    clf = load('trained_tree_200_est.joblib')
-    enc = load('encoder.joblib')
-    pred_beam_index = enc.inverse_transform(clf.predict(np.array([rx_current_position])))[0][1:-1].split()
-    predicted_bit_rate_Gbps = bit_rate_Gbps[int(pred_beam_index[0]), int(pred_beam_index[1])]
+    clf = load("trained_tree_200_est.joblib")
+    enc = load("encoder.joblib")
+    pred_beam_index = enc.inverse_transform(
+        clf.predict(np.array([rx_current_position]))
+    )[0][1:-1].split(',')
+    predicted_bit_rate_Gbps = bit_rate_Gbps[
+        int(pred_beam_index[0]), int(pred_beam_index[1])
+    ]
 
     all_best_bit_rate_Gbps.append(best_bit_rate_Gbps)
     all_random_bit_rate_Gbps.append(random_bit_rate_Gbps)
     all_predicted_bit_rate_Gbps.append(predicted_bit_rate_Gbps)
 
-    plot_throughput(int(current_step) * 1e9,
-                    best_bit_rate_Gbps,
-                    predicted_bit_rate_Gbps,
-                    random_bit_rate_Gbps,
-                    np.mean(all_best_bit_rate_Gbps),
-                    np.mean(all_random_bit_rate_Gbps),
-                    np.mean(all_predicted_bit_rate_Gbps))
+    if plot_data:
+        plot_throughput(
+            int(current_step) * 1e9,
+            best_bit_rate_Gbps,
+            predicted_bit_rate_Gbps,
+            random_bit_rate_Gbps,
+            np.mean(all_best_bit_rate_Gbps),
+            np.mean(all_random_bit_rate_Gbps),
+            np.mean(all_predicted_bit_rate_Gbps),
+        )
 
     if save_data:
         np.savez(
@@ -250,7 +259,7 @@ def run(current_step, new_x, new_y, new_z):
             best_ray=best_ray,
             bit_rate=bit_rate,
             best_bit_rate_Gbps=best_bit_rate_Gbps,
-            random_bit_rate_Gbps=random_bit_rate_Gbps
+            random_bit_rate_Gbps=random_bit_rate_Gbps,
         )
     else:
         return (
@@ -265,7 +274,7 @@ def run(current_step, new_x, new_y, new_z):
             best_ray,
             bit_rate,
             best_bit_rate_Gbps,
-            random_bit_rate_Gbps
+            random_bit_rate_Gbps,
         )
 
 
