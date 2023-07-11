@@ -6,6 +6,7 @@ import cv2
 import csv
 from pynats import NATSClient
 
+inloop = True
 
 with NATSClient() as natsclient:
     # Number of trajectories to be executed
@@ -88,7 +89,10 @@ with NATSClient() as natsclient:
         while not (isFinished):
             # Continue the simulation for 100ms
             start_time = time.time()
-            natsclient.wait(count=1)
+            
+            if inloop:
+                natsclient.wait(count=1)
+            
             client.simContinueForTime(0.10)
 
             # Get information about each UAV in the configuration file (caviar_config.py)
