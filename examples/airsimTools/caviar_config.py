@@ -11,9 +11,10 @@ record_file = "./record1.csv"
 
 # Array with the UAV's IDs that are in the Airsim settings file (for the online simulations)
 drone_ids = ["uav1"]
-cam_types = [airsim.ImageType.Scene, airsim.ImageType.DepthVis, airsim.ImageType.Infrared]
+cam_types = [airsim.ImageType.Scene, airsim.ImageType.DepthVis, airsim.ImageType.Segmentation]
 panoramic = True
 cam_poses = [airsim.Pose(airsim.Vector3r(-205,-162,40), airsim.to_quaternion(-30,0,45)), airsim.Pose(airsim.Vector3r(-205,-162,40), airsim.to_quaternion(-30,0,180))]
+
 initial_pose_offset = [14,-28,8.4]
 
 # Array with the IDs of others mobile objects in the simulation, that are not controled by AirSim (for the online simulations)
