@@ -5,8 +5,28 @@ import os
 import cv2
 import csv
 from pynats import NATSClient
+import json
+import numpy as np
+import airsim
+
+from ultralytics import YOLO
+model = YOLO("yolov8n.pt")
 
 inloop = True
+
+current_throughput = 0
+
+def addNoise(image, throughput):
+    gaussian_noise = np.zeros(image.shape, np.uint8)
+    if throughput < 600 and throughput > 250:
+        cv2.randn(gaussian_noise, 0, 45)
+    elif throughput <= 250 and throughput > 50:
+        cv2.randn(gaussian_noise, 0, 180)
+    elif throughput <= 50 and throughput >= 0:
+        cv2.randn(gaussian_noise, 0, 270)
+    # Add noise to image
+    image = cv2.add(image, gaussian_noise)
+    return image
 
 with NATSClient() as natsclient:
     # Number of trajectories to be executed
@@ -37,7 +57,13 @@ with NATSClient() as natsclient:
         #print(f"Received a message with subject {msg.subject}: {msg}")
         print(" ")
 
+    def updateThroughput(msg):
+        payload = json.loads(msg.payload.decode())
+        current_throughput = payload['throughput']
+        print(f'----------------------------> CURRENT THROUGHPUT: {current_throughput}')
+
     natsclient.subscribe(subject="caviar.su.sionna.state", callback=callback)
+    natsclient.subscribe(subject="communications.throughput", callback=updateThroughput)
 
     for episode in range(n_trajectories):
         print("Episode: " + str(episode))
@@ -106,15 +132,18 @@ with NATSClient() as natsclient:
                 airsim_timestamp = caviar_tools.airsim_gettimestamp(client, uav)
 
                 # Get frames
-                # rawimg = caviar_tools.airsim_getimages(
-                #     client, caviar_config.drone_ids[0]
-                # )
-                # img = cv2.imdecode(airsim.string_to_uint8_array(rawimg), cv2.IMREAD_COLOR)
-                # height, width, depth = img.shape
+                rawimg = caviar_tools.airsim_getimages(
+                    client, caviar_config.drone_ids[0]
+                )
+                img = cv2.imdecode(airsim.string_to_uint8_array(rawimg), cv2.IMREAD_COLOR)
+                height, width, depth = img.shape
                 # img_size_bits = height * width * depth * 8 # Considering that each channel from a RGB image is represented by 8 bits color depth (0, 255)
                 # img_size_bytes = img_size_bits/1024
                 # cv2.imshow("window_name", img)
                 # print('img_size_bytes: ', img_size_bytes)
+
+                img = addNoise(img, current_throughput)
+                results = model.predict(source=img, save=True, save_txt=True)  # save predictions as labels
 
                 natsclient.publish(
                     subject="caviar.ue.mobility.positions",

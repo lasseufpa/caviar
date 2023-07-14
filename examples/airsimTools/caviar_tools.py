@@ -309,7 +309,7 @@ def airsim_save_external_images(client, record_path="./", cam = "0"):
             )
 
 def airsim_getimages(client, uav_id):
-    image = client.simGetImage("0", airsim.ImageType.Scene, vehicle_name=uav_id)
+    image = client.simGetImage("bottom_center", airsim.ImageType.Scene, vehicle_name=uav_id)
     return image
 
 def linecount(eps):

@@ -23,8 +23,8 @@ class runAirSim(threading.Thread):
     def run(self):
         print("-----------> runAirSim")
         global airsim_simu
-        airsim_simu = subprocess.Popen(
-            "/home/fhb/Downloads/central_park/central_park/Binaries/Linux/central_park-Linux-Shipping"
+        airsim_simu = subprocess.Popen([
+            "/home/fhb/Downloads/central_park/central_park/Binaries/Linux/central_park-Linux-Shipping", "-WINDOWED", "-ResX=640", "-ResY=480"]
         )
 
 
@@ -68,6 +68,7 @@ if __name__ == "__main__":
         threeD_thread.start()
         time.sleep(2)
         mobility_thread.start()
+        time.sleep(2)
         communications_thread.start()
     except Exception as e:
         print(f"Error: {str(e)}")

@@ -275,6 +275,7 @@ def run(current_step, new_x, new_y, new_z):
             bit_rate,
             best_bit_rate_Gbps,
             random_bit_rate_Gbps,
+            predicted_bit_rate_Gbps,
         )
 
 
