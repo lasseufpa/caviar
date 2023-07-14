@@ -1,18 +1,21 @@
-from nvitop import Device
-
+from nvitop import Device, GpuProcess, NA, colored
+import time
 devices = Device.all()  # or `Device.cuda.all()` to use CUDA ordinal instead
-for device in devices:
-    processes = device.processes()  # type: Dict[int, GpuProcess]
-    sorted_pids = sorted(processes.keys())
+out_file = open("/home/fhb/Documents/caviar_records/gpu_full.txt", "w")
+out_file.write("pid" + ";" + "command" + ";" + "gpu_memory" + ";" + "gpu_sm_utilization" + "\n")
 
-    print(device)
-    print(f'  - Fan speed:       {device.fan_speed()}%')
-    print(f'  - Temperature:     {device.temperature()}C')
-    print(f'  - GPU utilization: {device.gpu_utilization()}%')
-    print(f'  - Total memory:    {device.memory_total_human()}')
-    print(f'  - Used memory:     {device.memory_used_human()}')
-    print(f'  - Free memory:     {device.memory_free_human()}')
-    print(f'  - Processes ({len(processes)}): {sorted_pids}')
-    for pid in sorted_pids:
-        print(f'    - {processes[pid]}')
-    print('-' * 120)
+while True:
+    for device in devices:
+        processes = device.processes()  # type: Dict[int, GpuProcess]
+        processes = GpuProcess.take_snapshots(processes.values(), failsafe=True)
+        processes.sort(key=lambda process: (process.username, process.pid))
+
+        for snapshot in processes:
+                if "/usr/" in str(snapshot.command):
+                     pass
+                else:
+                    print(snapshot)
+                    out_file.write(str(snapshot.pid) + ";" + str(snapshot.command) + ";" + str(snapshot.gpu_memory_human) + ";" + str(snapshot.gpu_sm_utilization) + "\n")
+    #time.sleep(0.1)
+
+out_file.close()
