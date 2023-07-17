@@ -2,20 +2,17 @@ import os
 import time
 import numpy as np
 import mitsuba as mi
-from sionna.rt import load_scene, Transmitter, Receiver, PlanarArray, Paths2CIR, Camera
-from sionna.channel import cir_to_ofdm_channel, subcarrier_frequencies
+from sionna.rt import load_scene, Transmitter, Receiver, PlanarArray, Camera
+from sionna.channel import cir_to_ofdm_channel
 from obj_move import translate
 import mimo_channels
 from calc_time import Bit_rate
 from realtime_plot import plot_throughput
 from joblib import load
 
-# from examples.sionna.mimo_channels import getDFTOperatedChannel
-# from examples.sionna.obj_move import translate
-
-
 mi.set_variant("cuda_ad_rgb")
 
+save_paths_to_file = True
 render_to_file = True
 plot_data = True
 save_data = True
@@ -91,9 +88,8 @@ def run(current_step, new_x, new_y, new_z):
     rx_current_x = rx_starting_x + new_x
     rx_current_y = rx_starting_y + new_y
     rx_current_z = rx_starting_z + new_z
-    scene = load_scene(mitsuba_file)  # Sionna scene
-    ########################### COPIED FROM SIONNA EXAMPLE #####################
-    # Configure antenna array for all transmitters
+    scene = load_scene(mitsuba_file)
+
     scene.tx_array = PlanarArray(
         num_rows=int(np.sqrt(nTx)),
         num_cols=int(np.sqrt(nTx)),
@@ -103,7 +99,6 @@ def run(current_step, new_x, new_y, new_z):
         polarization="V",
     )
 
-    # Configure antenna array for all receivers
     scene.rx_array = PlanarArray(
         num_rows=int(np.sqrt(nRx)),
         num_cols=int(np.sqrt(nRx)),
@@ -127,9 +122,9 @@ def run(current_step, new_x, new_y, new_z):
 
     scene.add(rx)
 
-    scene.frequency = 40e9  # Frequency in Hz
+    scene.frequency = 40e9  # Carrier frequency (Hz)
 
-    scene.synthetic_array = True  # If set to False, ray tracing will be done per antenna element (slower for large arrays)
+    scene.synthetic_array = True
     # cm = scene.coverage_map(max_depth=5,
     #                     cm_cell_size=(3., 3.), # Grid size of coverage map cells in m
     #                     combining_vec=None,
@@ -139,73 +134,34 @@ def run(current_step, new_x, new_y, new_z):
     # Compute propagation paths
     paths = scene.compute_paths(
         max_depth=5,
-        method="stochastic",  # For small scenes the method can be also set to "exhaustive"
-        num_samples=1e6,  # Number of rays shot into random directions, too few rays can lead to missing paths
-        seed=1,
-    )  # By fixing the seed, reproducible results can be ensured
+        method="fibonacci",
+        num_samples=1e6,
+        reflection=True,
+        diffraction=True,
+        scattering=True
+    )
     # ending_instant = time.time()
     # print(f"RT duration: {ending_instant-starting_instant}")
-
-    output_filename = os.path.join(current_dir, "runs", f"run_{str(current_step)}")
-    figures_output_filename = os.path.join(
-        current_dir, "runs", "figures", f"run_{str(current_step)}.png"
+    
+    #-------------------------------------------------------------------------------------------------------------------------------
+ 
+    path_coefficients, path_delays = paths.cir(los=False) # Get only NLOS paths
+ 
+    number_of_paths = path_coefficients.numpy().shape[5]
+ 
+    # Get the channel frequency response
+    h_matrix = cir_to_ofdm_channel(
+        [0.0], path_coefficients, path_delays, normalize=True
     )
-    if not os.path.exists(output_dir):
-        os.mkdir(output_dir)
-
-    if render_to_file:
-        # Checks if figures output folder exists
-        if not os.path.exists(os.path.dirname(figures_output_filename)):
-            os.mkdir(os.path.dirname(figures_output_filename))
-        # Create new camera with different configuration
-        my_cam = Camera(
-            "my_cam",
-            position=[rx_current_x, rx_current_y, cam_z],
-            look_at=[rx_current_x, rx_current_y, rx_current_z],
-        )
-        scene.add(my_cam)
-
-        scene.render_to_file(
-            camera="my_cam",
-            paths=paths,
-            # coverage_map=cm,
-            show_devices=True,
-            show_paths=True,
-            filename=figures_output_filename,
-            resolution=[325, 250],
-        )
-
-    # Default parameters in the PUSCHConfig
-    subcarrier_spacing = 15e3
-    fft_size = 48
-
-    # Configure a Paths2CIR instance
-    p2c = Paths2CIR(
-        sampling_frequency=subcarrier_spacing,  # Set to 15e3 Hz
-        num_time_steps=14,  # Number of OFDM symbols
-        scene=scene,
-    )
-
-    # Transform paths into channel impulse responses
-    path_coefficients, path_delays = p2c(paths.as_tuple())
-
-    # Compute frequencies of subcarriers and center around carrier frequency
-    frequencies = subcarrier_frequencies(fft_size, subcarrier_spacing)
-
-    # Compute the frequency response of the channel at frequencies.
-    h_freq = cir_to_ofdm_channel(
-        frequencies, path_coefficients, path_delays, normalize=True
-    )  # Non-normalized includes path-loss
-
-    ########################### COPIED FROM SIONNA EXAMPLE #####################
-
+    
+    #-------------------------------------------------------------------------------------------------------------------------------
     (
         mimoChannel,
         equivalentChannel,
         equivalentChannelMagnitude,
         best_ray,
     ) = getRunMIMOdata(
-        mimoChannel=h_freq.numpy().squeeze()[:, :, 0, 0],
+        mimoChannel=h_matrix.numpy().squeeze()[:, :],
         number_Tx_antennas=nTx,
         number_Rx_antennas=nRx,
     )
@@ -221,8 +177,8 @@ def run(current_step, new_x, new_y, new_z):
     best_ray_tx = best_ray[0][1]
     best_bit_rate_Gbps = bit_rate_Gbps[best_ray_rx, best_ray_tx]
     random_bit_rate_Gbps = bit_rate_Gbps[rng.integers(0, 4), rng.integers(0, 64)]
-    clf = load("trained_tree_200_est.joblib")
-    enc = load("encoder.joblib")
+    clf = load("trained_model.joblib")
+    enc = load("trained_encoder.joblib")
     pred_beam_index = enc.inverse_transform(
         clf.predict(np.array([rx_current_position]))
     )[0][1:-1].split(',')
@@ -234,49 +190,78 @@ def run(current_step, new_x, new_y, new_z):
     all_random_bit_rate_Gbps.append(random_bit_rate_Gbps)
     all_predicted_bit_rate_Gbps.append(predicted_bit_rate_Gbps)
 
-    if plot_data:
-        plot_throughput(
-            int(current_step) * 1e9,
-            best_bit_rate_Gbps,
-            predicted_bit_rate_Gbps,
-            random_bit_rate_Gbps,
-            np.mean(all_best_bit_rate_Gbps),
-            np.mean(all_random_bit_rate_Gbps),
-            np.mean(all_predicted_bit_rate_Gbps),
-        )
+    output_filename = os.path.join(current_dir, "runs", f"run_{str(current_step)}")
+    figures_output_filename = os.path.join(
+        current_dir, "runs", "figures", f"run_{str(current_step)}.png"
+    )    
 
-    if save_data:
-        np.savez(
-            output_filename,
-            path_coefficients=path_coefficients,
-            path_delays=path_delays,
-            rx_airsim_position=rx_airsim_position,
-            rx_starting_position=rx_starting_position,
-            rx_current_position=rx_current_position,
-            mimoChannel=mimoChannel,
-            equivalentChannel=equivalentChannel,
-            equivalentChannelMagnitude=equivalentChannelMagnitude,
-            best_ray=best_ray,
-            bit_rate=bit_rate,
-            best_bit_rate_Gbps=best_bit_rate_Gbps,
-            random_bit_rate_Gbps=random_bit_rate_Gbps,
-        )
+    if number_of_paths > 0:
+        print(f"{number_of_paths} obtained during this run")
+        if not os.path.exists(output_dir):
+            os.mkdir(output_dir)
+
+        if render_to_file:
+            # Checks if figures output folder exists
+            if not os.path.exists(os.path.dirname(figures_output_filename)):
+                os.mkdir(os.path.dirname(figures_output_filename))
+            # Create new camera with different configuration
+            topview_cam = Camera(
+                "topview_cam",
+                position=[rx_current_x, rx_current_y, cam_z],
+                look_at=[rx_current_x, rx_current_y, rx_current_z],
+            )
+            scene.add(topview_cam)
+
+            scene.render_to_file(
+                camera="topview_cam",
+                paths=paths,
+                # coverage_map=cm,
+                show_devices=True,
+                show_paths=True,
+                filename=figures_output_filename,
+                resolution=[325, 250],
+            )
+
+        if save_paths_to_file:
+            paths_visualization_output = os.path.join(current_dir, "runs", "paths", f"run_{str(current_step)}.OBJ")
+            # Checks if figures output folder exists
+            if not os.path.exists(os.path.dirname(paths_visualization_output)):
+                os.mkdir(os.path.dirname(paths_visualization_output))
+            paths.export(paths_visualization_output)
+
+        if plot_data:
+            plot_throughput(
+                int(current_step) * 1e9,
+                best_bit_rate_Gbps,
+                predicted_bit_rate_Gbps,
+                random_bit_rate_Gbps,
+                np.mean(all_best_bit_rate_Gbps),
+                np.mean(all_predicted_bit_rate_Gbps),
+                np.mean(all_random_bit_rate_Gbps),
+            )
+
+        if save_data:
+            np.savez(
+                output_filename,
+                path_coefficients=path_coefficients,
+                path_delays=path_delays,
+                rx_airsim_position=rx_airsim_position,
+                rx_starting_position=rx_starting_position,
+                rx_current_position=rx_current_position,
+                mimoChannel=mimoChannel,
+                equivalentChannel=equivalentChannel,
+                equivalentChannelMagnitude=equivalentChannelMagnitude,
+                best_ray=best_ray,
+                bit_rate=bit_rate,
+                best_bit_rate_Gbps=best_bit_rate_Gbps,
+                random_bit_rate_Gbps=random_bit_rate_Gbps,
+            )
     else:
-        return (
-            path_coefficients,
-            path_delays,
-            rx_airsim_position,
-            rx_starting_position,
-            rx_current_position,
-            mimoChannel,
-            equivalentChannel,
-            equivalentChannelMagnitude,
-            best_ray,
-            bit_rate,
-            best_bit_rate_Gbps,
-            random_bit_rate_Gbps,
-            predicted_bit_rate_Gbps,
-        )
+        print("No paths obtained during this run")
+        
+    del paths  # deallocation of memory
+
+    return predicted_bit_rate_Gbps
 
 
 if __name__ == "__main__":

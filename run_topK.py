@@ -26,14 +26,14 @@ import numpy as np
 import os
 
 current_dir = os.getcwd()
-output_filename = os.path.join(current_dir, "output_with_imgs.npz")
+output_filename = os.path.join(current_dir, "allruns.npz")
 caviar_output = np.load(output_filename, allow_pickle=True)
 
 rx_current_position = caviar_output["rx_current_position"]
 best_ray = caviar_output["best_ray"]
 equivalentChannelMagnitudes = caviar_output["equivalentChannelMagnitude"]
 
-k = 10
+k = 100
 n_rx = 4
 n_tx = 64
 possible_beam_pairs = [str([r, t]) for r in range(n_rx) for t in range(n_tx)]
@@ -57,17 +57,25 @@ top5 = np.array(enc.transform(topk_pairs_per_scene[:, -5:].flatten())).reshape(
 top10 = np.array(enc.transform(topk_pairs_per_scene[:, -10:].flatten())).reshape(
     topk_pairs_per_scene.shape[0], 10
 )
+top50 = np.array(enc.transform(topk_pairs_per_scene[:, -50:].flatten())).reshape(
+    topk_pairs_per_scene.shape[0], 50
+)
+top100 = np.array(enc.transform(topk_pairs_per_scene[:, -100:].flatten())).reshape(
+    topk_pairs_per_scene.shape[0], 100
+)
 number_of_classes = enc.classes_.shape[0]
 
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 
-rx_current_position, encoded_best_ray, top3, top5, top10 = shuffle(
+rx_current_position, encoded_best_ray, top3, top5, top10, top50, top100 = shuffle(
     rx_current_position,
     encoded_best_ray,
     top3,
     top5,
     top10,
+    top50,
+    top100,
     random_state=1,
 )
 
@@ -82,12 +90,18 @@ rx_current_position, encoded_best_ray, top3, top5, top10 = shuffle(
     top5_test,
     top10_train,
     top10_test,
+    top50_train,
+    top50_test,
+    top100_train,
+    top100_test,
 ) = train_test_split(
     rx_current_position,
     encoded_best_ray,
     top3,
     top5,
     top10,
+    top50,
+    top100,
     test_size=0.3,
     random_state=1,
     shuffle=False,
@@ -97,10 +111,10 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
 
-# clf = DecisionTreeClassifier(random_state=0)
-clf = RandomForestClassifier(
-    n_estimators=300
-)  # 76.21% top-1 accuracy (test set) | 98.647% top-1 accuracy (train set)
+clf = DecisionTreeClassifier(random_state=0)
+# clf = RandomForestClassifier(
+#     n_estimators=200
+# )  # 76.21% top-1 accuracy (test set) | 98.647% top-1 accuracy (train set)
 # clf = MLPClassifier(random_state=1, hidden_layer_sizes=(64), max_iter=300)  # 45.55%
 
 clf.fit(X_train, y_train)
@@ -116,21 +130,51 @@ is_top1 = []
 is_top3 = []
 is_top5 = []
 is_top10 = []
+is_top50 = []
+is_top100 = []
 for idx, pred in enumerate(y_pred):
     is_top1.append(pred == y_test[idx])
     is_top3.append(pred in top3_test[idx])
     is_top5.append(pred in top5_test[idx])
     is_top10.append(pred in top10_test[idx])
+    is_top50.append(pred in top50_test[idx])
+    is_top100.append(pred in top100_test[idx])
 
 print(f"Top-1 accuracy: {(is_top1.count(True)/len(y_pred))*100} %")
 print(f"Top-3 accuracy: {(is_top3.count(True)/len(y_pred))*100} %")
 print(f"Top-5 accuracy: {(is_top5.count(True)/len(y_pred))*100} %")
 print(f"Top-10 accuracy: {(is_top10.count(True)/len(y_pred))*100} %")
+print(f"Top-50 accuracy: {(is_top50.count(True)/len(y_pred))*100} %")
+print(f"Top-100 accuracy: {(is_top100.count(True)/len(y_pred))*100} %")
 
 from joblib import dump
 
-dump(clf, "trained_tree_200_est.joblib")
-dump(enc, "encoder.joblib")
+dump(clf, "trained_model.joblib")
+dump(enc, "trained_encoder.joblib")
+
+print(f'clf.get_depth(): {clf.get_depth()}')
+
+# NLOS: 214 elements
+
+# Default Decision Tree
+# Top-1 accuracy: 69.61325966850829 %
+# Top-3 accuracy: 74.58563535911603 %
+# Top-5 accuracy: 75.13812154696133 %
+# Top-10 accuracy: 78.45303867403315 %
+# clf.get_depth(): 15
+
+# NLOS: 639 elements
+
+# Default Decision Tree
+# Top-1 accuracy: 68.22916666666666 %
+# Top-3 accuracy: 82.29166666666666 %
+# Top-5 accuracy: 84.375 %
+# Top-10 accuracy: 86.45833333333334 %
+# Top-50 accuracy: 89.58333333333334 %
+# Top-100 accuracy: 92.70833333333334 %
+# clf.get_depth(): 23
+# -----------------------------------------------------
+
 
 # LOS: 427 elements | NLOS: 282 elements
 

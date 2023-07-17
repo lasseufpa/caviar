@@ -30,20 +30,11 @@ for i in range(len(onlynpz)):
     equivalentChannelMagnitude.append(caviar_output["equivalentChannelMagnitude"])
     best_ray.append(caviar_output["best_ray"])
     bit_rate.append(caviar_output["bit_rate"])
-    # -------------------------------------------------------------------------------------
-    # if len(caviar_output["best_ray"]) < 2:
-    #     rx_airsim_position.append(caviar_output["rx_airsim_position"])
-    #     rx_starting_position.append(caviar_output["rx_starting_position"])
-    #     rx_current_position.append(caviar_output["rx_current_position"])
-    #     mimoChannel.append(caviar_output["mimoChannel"])
-    #     equivalentChannel.append(caviar_output["equivalentChannel"])
-    #     equivalentChannelMagnitude.append(caviar_output["equivalentChannelMagnitude"])
-    #     best_ray.append(caviar_output["best_ray"])
-    #     bit_rate.append(caviar_output["bit_rate"])
-    #     # best_bit_rate_Gbps.append(caviar_output["best_bit_rate_Gbps"])
-    #     # random_bit_rate_Gbps.append(caviar_output["random_bit_rate_Gbps"])
+    best_bit_rate_Gbps.append(caviar_output["best_bit_rate_Gbps"])
+    random_bit_rate_Gbps.append(caviar_output["random_bit_rate_Gbps"])
 
-output_filename = os.path.join(current_dir, "output_with_imgs.npz")
+output_filename = os.path.join(current_dir, "allruns.npz")
+# output_filename = os.path.join(current_dir, "output_with_imgs.npz")
 rx_airsim_position = np.array(rx_airsim_position)
 rx_starting_position = np.array(rx_starting_position)
 rx_current_position = np.array(rx_current_position)
@@ -52,8 +43,8 @@ equivalentChannel = np.array(equivalentChannel)
 equivalentChannelMagnitude = np.array(equivalentChannelMagnitude)
 best_ray = np.array(best_ray)
 bit_rate = np.array(bit_rate)
-# best_bit_rate_Gbps = np.array(best_bit_rate_Gbps)
-# random_bit_rate_Gbps = np.array(random_bit_rate_Gbps)
+best_bit_rate_Gbps = np.array(best_bit_rate_Gbps)
+random_bit_rate_Gbps = np.array(random_bit_rate_Gbps)
 
 np.savez(
     output_filename,
@@ -65,6 +56,6 @@ np.savez(
     equivalentChannelMagnitude=equivalentChannelMagnitude,
     best_ray=best_ray,
     bit_rate=bit_rate,
-    # best_bit_rate_Gbps=best_bit_rate_Gbps,
-    # random_bit_rate_Gbps=random_bit_rate_Gbps
+    best_bit_rate_Gbps=best_bit_rate_Gbps,
+    random_bit_rate_Gbps=random_bit_rate_Gbps
 )

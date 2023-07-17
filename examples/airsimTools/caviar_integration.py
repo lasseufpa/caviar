@@ -9,8 +9,10 @@ import json
 import numpy as np
 import airsim
 
-from ultralytics import YOLO
-model = YOLO("yolov8n.pt")
+# REMOVE AFTER EXPERIMENT
+# from ultralytics import YOLO
+# model = YOLO("yolov8n.pt")
+#########################
 
 inloop = True
 
@@ -19,11 +21,11 @@ current_throughput = 0
 def addNoise(image, throughput):
     gaussian_noise = np.zeros(image.shape, np.uint8)
     if throughput < 600 and throughput > 250:
-        cv2.randn(gaussian_noise, 0, 45)
+        2 * cv2.randn(gaussian_noise, 0, 45)
     elif throughput <= 250 and throughput > 50:
-        cv2.randn(gaussian_noise, 0, 180)
+        5 * cv2.randn(gaussian_noise, 0, 180)
     elif throughput <= 50 and throughput >= 0:
-        cv2.randn(gaussian_noise, 0, 270)
+        10 * cv2.randn(gaussian_noise, 0, 270)
     # Add noise to image
     image = cv2.add(image, gaussian_noise)
     return image
@@ -42,7 +44,7 @@ with NATSClient() as natsclient:
         "trajectories",
     )
 
-    # Creat a folder to write the UE4 simulation result
+    # Create a folder to write the UE4 simulation result
     try:
         os.mkdir("./episodes")
     except OSError as error:
@@ -60,7 +62,7 @@ with NATSClient() as natsclient:
     def updateThroughput(msg):
         payload = json.loads(msg.payload.decode())
         current_throughput = payload['throughput']
-        print(f'----------------------------> CURRENT THROUGHPUT: {current_throughput}')
+        print(f'----------------------------> CURRENT THROUGHPUT: {current_throughput} bps')
 
     natsclient.subscribe(subject="caviar.su.sionna.state", callback=callback)
     natsclient.subscribe(subject="communications.throughput", callback=updateThroughput)
@@ -143,7 +145,10 @@ with NATSClient() as natsclient:
                 # print('img_size_bytes: ', img_size_bytes)
 
                 img = addNoise(img, current_throughput)
-                results = model.predict(source=img, save=True, save_txt=True)  # save predictions as labels
+                
+                # REMOVE AFTER EXPERIMENT
+                # results = model.predict(source=img, save=True, save_txt=True)  # save predictions as labels
+                #########################
 
                 natsclient.publish(
                     subject="caviar.ue.mobility.positions",
