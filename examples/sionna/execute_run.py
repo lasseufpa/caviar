@@ -196,7 +196,7 @@ def run(current_step, new_x, new_y, new_z):
     )    
 
     if number_of_paths > 0:
-        print(f"{number_of_paths} obtained during this run")
+        print(f"{number_of_paths} paths obtained during this run")
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
 

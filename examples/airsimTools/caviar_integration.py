@@ -62,7 +62,7 @@ with NATSClient() as natsclient:
     def updateThroughput(msg):
         payload = json.loads(msg.payload.decode())
         current_throughput = payload['throughput']
-        print(f'----------------------------> CURRENT THROUGHPUT: {current_throughput} bps')
+        print(f'----------------------------> CURRENT THROUGHPUT: {current_throughput} Gbps')
 
     natsclient.subscribe(subject="caviar.su.sionna.state", callback=callback)
     natsclient.subscribe(subject="communications.throughput", callback=updateThroughput)
