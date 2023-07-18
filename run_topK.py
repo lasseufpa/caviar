@@ -57,8 +57,14 @@ top5 = np.array(enc.transform(topk_pairs_per_scene[:, -5:].flatten())).reshape(
 top10 = np.array(enc.transform(topk_pairs_per_scene[:, -10:].flatten())).reshape(
     topk_pairs_per_scene.shape[0], 10
 )
+top25 = np.array(enc.transform(topk_pairs_per_scene[:, -25:].flatten())).reshape(
+    topk_pairs_per_scene.shape[0], 25
+)
 top50 = np.array(enc.transform(topk_pairs_per_scene[:, -50:].flatten())).reshape(
     topk_pairs_per_scene.shape[0], 50
+)
+top75 = np.array(enc.transform(topk_pairs_per_scene[:, -75:].flatten())).reshape(
+    topk_pairs_per_scene.shape[0], 75
 )
 top100 = np.array(enc.transform(topk_pairs_per_scene[:, -100:].flatten())).reshape(
     topk_pairs_per_scene.shape[0], 100
@@ -68,13 +74,15 @@ number_of_classes = enc.classes_.shape[0]
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 
-rx_current_position, encoded_best_ray, top3, top5, top10, top50, top100 = shuffle(
+rx_current_position, encoded_best_ray, top3, top5, top10, top25, top50, top75, top100 = shuffle(
     rx_current_position,
     encoded_best_ray,
     top3,
     top5,
     top10,
+    top25,
     top50,
+    top75,
     top100,
     random_state=1,
 )
@@ -90,8 +98,12 @@ rx_current_position, encoded_best_ray, top3, top5, top10, top50, top100 = shuffl
     top5_test,
     top10_train,
     top10_test,
+    top25_train,
+    top25_test,
     top50_train,
     top50_test,
+    top75_train,
+    top75_test,
     top100_train,
     top100_test,
 ) = train_test_split(
@@ -100,7 +112,9 @@ rx_current_position, encoded_best_ray, top3, top5, top10, top50, top100 = shuffl
     top3,
     top5,
     top10,
+    top25,
     top50,
+    top75,
     top100,
     test_size=0.3,
     random_state=1,
@@ -130,21 +144,36 @@ is_top1 = []
 is_top3 = []
 is_top5 = []
 is_top10 = []
+is_top25 = []
 is_top50 = []
+is_top75 = []
 is_top100 = []
 for idx, pred in enumerate(y_pred):
     is_top1.append(pred == y_test[idx])
     is_top3.append(pred in top3_test[idx])
     is_top5.append(pred in top5_test[idx])
     is_top10.append(pred in top10_test[idx])
+    is_top25.append(pred in top25_test[idx])
     is_top50.append(pred in top50_test[idx])
+    is_top75.append(pred in top75_test[idx])
     is_top100.append(pred in top100_test[idx])
+
+top1_acc = (is_top1.count(True)/len(y_pred))*100
+top3_acc = (is_top3.count(True)/len(y_pred))*100
+top5_acc = (is_top5.count(True)/len(y_pred))*100
+top10_acc = (is_top10.count(True)/len(y_pred))*100
+top25_acc = (is_top25.count(True)/len(y_pred))*100
+top50_acc = (is_top50.count(True)/len(y_pred))*100
+top75_acc = (is_top75.count(True)/len(y_pred))*100
+top100_acc = (is_top100.count(True)/len(y_pred))*100
 
 print(f"Top-1 accuracy: {(is_top1.count(True)/len(y_pred))*100} %")
 print(f"Top-3 accuracy: {(is_top3.count(True)/len(y_pred))*100} %")
 print(f"Top-5 accuracy: {(is_top5.count(True)/len(y_pred))*100} %")
 print(f"Top-10 accuracy: {(is_top10.count(True)/len(y_pred))*100} %")
+print(f"Top-25 accuracy: {(is_top25.count(True)/len(y_pred))*100} %")
 print(f"Top-50 accuracy: {(is_top50.count(True)/len(y_pred))*100} %")
+print(f"Top-75 accuracy: {(is_top75.count(True)/len(y_pred))*100} %")
 print(f"Top-100 accuracy: {(is_top100.count(True)/len(y_pred))*100} %")
 
 from joblib import dump
@@ -153,6 +182,46 @@ dump(clf, "trained_model.joblib")
 dump(enc, "trained_encoder.joblib")
 
 print(f'clf.get_depth(): {clf.get_depth()}')
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+sns.set_theme()
+
+plt.plot([1, 3, 5, 10, 25, 50, 75, 100], [top1_acc,top3_acc,top5_acc,top10_acc, top25_acc, top50_acc,top75_acc,top100_acc])
+plt.grid(True)
+plt.xticks([1, 25, 50, 75, 100])
+
+plt.yticks(np.arange(round(top1_acc, 2), 100, 0.5))
+plt.xlim(1, 100)
+plt.ylim(top1_acc, 100)
+plt.xlabel("K values")
+plt.ylabel("Accuracy (%)")
+plt.savefig("a.png")
+################################## Sionna v0.15
+# NLOS: 1495 elements
+
+# Top-1 accuracy: 93.76391982182628 %
+# Top-3 accuracy: 98.66369710467706 %
+# Top-5 accuracy: 98.88641425389754 %
+# Top-10 accuracy: 98.88641425389754 %
+# Top-50 accuracy: 99.33184855233853 %
+# Top-75 accuracy: 99.33184855233853 %
+# Top-100 accuracy: 99.55456570155901 %
+# clf.get_depth(): 17
+
+
+# NLOS: 816 elements
+
+# Top-1 accuracy: 89.79591836734694 %
+# Top-3 accuracy: 97.14285714285714 %
+# Top-5 accuracy: 98.36734693877551 %
+# Top-10 accuracy: 99.18367346938776 %
+# Top-50 accuracy: 99.59183673469387 %
+# Top-100 accuracy: 100.0 %
+# clf.get_depth(): 20
+
+################################## Sionna v0.14
 
 # NLOS: 214 elements
 
