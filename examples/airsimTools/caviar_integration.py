@@ -64,7 +64,7 @@ with NATSClient() as natsclient:
         current_throughput = payload['throughput']
         print(f'----------------------------> CURRENT THROUGHPUT: {current_throughput} Gbps')
 
-    natsclient.subscribe(subject="caviar.su.sionna.state", callback=callback)
+    natsclient.subscribe(subject="communications.state", callback=callback)
     natsclient.subscribe(subject="communications.throughput", callback=updateThroughput)
 
     for episode in range(n_trajectories):
@@ -151,7 +151,7 @@ with NATSClient() as natsclient:
                 #########################
 
                 natsclient.publish(
-                    subject="caviar.ue.mobility.positions",
+                    subject="3D.mobility.positions",
                     payload=b'{"UE_type":"UAV","UE_Id":'
                     + b'"'
                     + str(uav).encode()

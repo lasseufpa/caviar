@@ -14,7 +14,7 @@ class CaviarEnv(gym.Env):
         with NATSClient() as natsclient:
             self.natsclient = natsclient
             self.natsclient.subscribe(
-                subject="caviar.comm.rxpositionandbestray",
+                subject="communications.rxpositionandbestray",
                 callback=self._receiveCommInfo,
             )
             print("Waiting")

@@ -38,7 +38,7 @@ with NATSClient() as natsclient:
     def callback(msg):
         print(f"Received a message with subject {msg.subject}: {msg}")
 
-    natsclient.subscribe(subject="caviar.su.sionna.state", callback=callback)
+    natsclient.subscribe(subject="communications.state", callback=callback)
 
     print("Episode: " + str("fake_uav"))
 
@@ -59,7 +59,7 @@ with NATSClient() as natsclient:
         print("Sending request …")
 
         natsclient.publish(
-            subject="caviar.ue.mobility.positions",
+            subject="3D.mobility.positions",
             payload=b'{"UE_type":"UAV","UE_Id":'
             + b'"'
             + str("uav1").encode()
