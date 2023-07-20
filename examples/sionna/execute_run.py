@@ -41,7 +41,7 @@ rx_starting_z = 139
 # Ground
 tx_x = -154
 tx_y = 64
-tx_z = 120 # 5m above roof
+tx_z = 120  # 5m above roof
 
 ################################# Configure camera parameters #############
 
@@ -138,23 +138,23 @@ def run(current_step, new_x, new_y, new_z):
         num_samples=1e6,
         reflection=True,
         diffraction=True,
-        scattering=True
+        scattering=True,
     )
     # ending_instant = time.time()
     # print(f"RT duration: {ending_instant-starting_instant}")
-    
-    #-------------------------------------------------------------------------------------------------------------------------------
- 
-    path_coefficients, path_delays = paths.cir(los=False) # Get only NLOS paths
- 
+
+    # -------------------------------------------------------------------------------------------------------------------------------
+
+    path_coefficients, path_delays = paths.cir(los=False)  # Get only NLOS paths
+
     number_of_paths = path_coefficients.numpy().shape[5]
- 
+
     # Get the channel frequency response
     h_matrix = cir_to_ofdm_channel(
         [0.0], path_coefficients, path_delays, normalize=True
     )
-    
-    #-------------------------------------------------------------------------------------------------------------------------------
+
+    # -------------------------------------------------------------------------------------------------------------------------------
     (
         mimoChannel,
         equivalentChannel,
@@ -181,7 +181,7 @@ def run(current_step, new_x, new_y, new_z):
     enc = load("trained_encoder.joblib")
     pred_beam_index = enc.inverse_transform(
         clf.predict(np.array([rx_current_position]))
-    )[0][1:-1].split(',')
+    )[0][1:-1].split(",")
     predicted_bit_rate_Gbps = bit_rate_Gbps[
         int(pred_beam_index[0]), int(pred_beam_index[1])
     ]
@@ -193,7 +193,7 @@ def run(current_step, new_x, new_y, new_z):
     output_filename = os.path.join(current_dir, "runs", f"run_{str(current_step)}")
     figures_output_filename = os.path.join(
         current_dir, "runs", "figures", f"run_{str(current_step)}.png"
-    )    
+    )
 
     if number_of_paths > 0:
         print(f"{number_of_paths} paths obtained during this run")
@@ -223,7 +223,9 @@ def run(current_step, new_x, new_y, new_z):
             )
 
         if save_paths_to_file:
-            paths_visualization_output = os.path.join(current_dir, "runs", "paths", f"run_{str(current_step)}.OBJ")
+            paths_visualization_output = os.path.join(
+                current_dir, "runs", "paths", f"run_{str(current_step)}.OBJ"
+            )
             # Checks if figures output folder exists
             if not os.path.exists(os.path.dirname(paths_visualization_output)):
                 os.mkdir(os.path.dirname(paths_visualization_output))
@@ -258,7 +260,7 @@ def run(current_step, new_x, new_y, new_z):
             )
     else:
         print("No paths obtained during this run")
-        
+
     del paths  # deallocation of memory
 
     return predicted_bit_rate_Gbps
