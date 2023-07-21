@@ -16,11 +16,11 @@ with NATSClient() as client:
     def callback(msg):
         print(f"Received a message with subject {msg.subject}: {msg}")
 
-    client.subscribe(subject="caviar.ue.mobility.positions", callback=callback)
+    client.subscribe(subject="3D.mobility.positions", callback=callback)
 
     for i in range(1):
         client.publish(
-            subject="caviar.ue.mobility.positions",
+            subject="3D.mobility.positions",
             payload=b"{'UE_type':'UAV','UE_Id':'UAV1','position': {'x':"
             + str(x1 + i).encode()
             + b",'y':"
@@ -31,7 +31,7 @@ with NATSClient() as client:
         )
 
         client.publish(
-            subject="caviar.ue.mobility.positions",
+            subject="3D.mobility.positions",
             payload=b"{'UE_type':'UAV','UE_Id':'UAV2','position': {'x':"
             + str(x2 + i).encode()
             + b",'y':"

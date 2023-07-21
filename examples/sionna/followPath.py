@@ -46,13 +46,13 @@ with NATSClient() as natsclient:
         if type(predicted_bit_rate_Gbps) == type(None):
             predicted_bit_rate_Gbps = 0
 
-        natsclient.publish(subject="caviar.su.sionna.state", payload=b"Ready")
+        natsclient.publish(subject="communications.state", payload=b"Ready")
         natsclient.publish(subject="communications.throughput", payload=b'{"throughput":'+ b'"'+ str(predicted_bit_rate_Gbps).encode()+ b'"'+ b'}')
         natsclient.wait(count=total_ues)
 
     natsclient.subscribe(
-        subject="caviar.ue.mobility.positions", callback=executeOneStep
+        subject="3D.mobility.positions", callback=executeOneStep
     )
 
-    natsclient.publish(subject="caviar.su.sionna.state", payload=b"Ready")
+    natsclient.publish(subject="communications.state", payload=b"Ready")
     natsclient.wait(count=total_ues)

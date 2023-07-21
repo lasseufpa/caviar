@@ -22,6 +22,7 @@ def airsim_takeoff(client, uav_id):
     client.armDisarm(True, uav_id)
     client.takeoffAsync(vehicle_name=uav_id).join()
 
+
 def airsim_takeoff_all(client):
     for uav in caviar_config.drone_ids:
         airsim_takeoff(client, uav)
@@ -104,9 +105,14 @@ def move_to_point(client, uav, x, y, z, speed=5):
         vehicle_name=uav,
     )
 
+
 def has_uav_arrived(client, uav, x, y, z):
     uav_pose = airsim_getpose(client, uav)
-    if (math.isclose(uav_pose[0], x, abs_tol = 0.5) and math.isclose(uav_pose[1], y, abs_tol = 0.5) and math.isclose(uav_pose[2], z, abs_tol = 0.6)):
+    if (
+        math.isclose(uav_pose[0], x, abs_tol=0.5)
+        and math.isclose(uav_pose[1], y, abs_tol=0.5)
+        and math.isclose(uav_pose[2], z, abs_tol=0.6)
+    ):
         return True
     else:
         return False
@@ -272,45 +278,70 @@ def airsim_save_images(client, record_path="./"):
             png_image,
         )
 
-def airsim_save_external_images(client, record_path="./", cam = "0"):
+
+def airsim_save_external_images(client, record_path="./", cam="0"):
     if not os.path.exists(record_path):
-            os.mkdir(record_path)
+        os.mkdir(record_path)
 
     multimodal_output_folder = os.path.join(record_path, "multimodal")
-    
+
     if not os.path.exists(multimodal_output_folder):
-            os.mkdir(multimodal_output_folder)
-    
+        os.mkdir(multimodal_output_folder)
+
     if caviar_config.panoramic:
         image_side = 0
         for pose in caviar_config.cam_poses:
             image_side = image_side + 1
             for cam_type in caviar_config.cam_types:
-                client.simSetCameraPose(cam, pose, vehicle_name=caviar_config.drone_ids[0], external=True)
-                png_image = client.simGetImage(cam, cam_type, vehicle_name=caviar_config.drone_ids[0], external=True)
+                client.simSetCameraPose(
+                    cam, pose, vehicle_name=caviar_config.drone_ids[0], external=True
+                )
+                png_image = client.simGetImage(
+                    cam,
+                    cam_type,
+                    vehicle_name=caviar_config.drone_ids[0],
+                    external=True,
+                )
                 cam_type_path = os.path.join(multimodal_output_folder, str(cam_type))
                 if not os.path.exists(cam_type_path):
                     os.mkdir(cam_type_path)
-                record_file = os.path.join(cam_type_path, caviar_config.drone_ids[0] + "_" + str(image_side) + "_" +str(time.time()) + ".png")
+                record_file = os.path.join(
+                    cam_type_path,
+                    caviar_config.drone_ids[0]
+                    + "_"
+                    + str(image_side)
+                    + "_"
+                    + str(time.time())
+                    + ".png",
+                )
                 airsim.write_file(
                     os.path.normpath(record_file),
                     png_image,
                 )
     else:
         for cam_type in caviar_config.cam_types:
-            png_image = client.simGetImage(cam, cam_type, vehicle_name=caviar_config.drone_ids[0], external=True)
+            png_image = client.simGetImage(
+                cam, cam_type, vehicle_name=caviar_config.drone_ids[0], external=True
+            )
             cam_type_path = os.path.join(multimodal_output_folder, str(cam_type))
             if not os.path.exists(cam_type_path):
                 os.mkdir(cam_type_path)
-            record_file = os.path.join(cam_type_path, caviar_config.drone_ids[0] + "_" + str(time.time()) + ".png")
+            record_file = os.path.join(
+                cam_type_path,
+                caviar_config.drone_ids[0] + "_" + str(time.time()) + ".png",
+            )
             airsim.write_file(
                 os.path.normpath(record_file),
                 png_image,
             )
 
+
 def airsim_getimages(client, uav_id):
-    image = client.simGetImage("bottom_center", airsim.ImageType.Scene, vehicle_name=uav_id)
+    image = client.simGetImage(
+        "bottom_center", airsim.ImageType.Scene, vehicle_name=uav_id
+    )
     return image
+
 
 def linecount(eps):
     if len(eps) < 2:
@@ -327,22 +358,26 @@ def linecount(eps):
         episode_file.close()
     return count
 
+
 def addPedestriansOnPath(client, path):
     path_list = []
 
     with open(path) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=",")
         csv_reader.__next__()
-        for row in csv_reader:
+        for column in csv_reader:
             path_list.append(
-                airsim.Vector3r(float(row[0]), float(row[1]), float(135.81))
+                airsim.Vector3r(float(column[0]), float(column[1]), float(135.81))
             )
-    if(len(path_list)-2 != len(caviar_config.pedestrians)):
+    if len(path_list) - 2 != len(caviar_config.pedestrians):
         print("The number of pedestrian objects and waypoints should be equal")
     else:
-        #client.enableApiControl(True, uav)
+        # client.enableApiControl(True, uav)
         for i in range(len(caviar_config.pedestrians)):
-            #print(f'caviar_config.pedestrians[i]: {caviar_config.pedestrians[i]} | path_list[i+1]: {path_list[i+1]} | type(path_list[i+1]): {type(path_list[i+1])}')
-            client.simSetObjectPose(caviar_config.pedestrians[i],airsim.Pose(path_list[i+1], airsim.to_quaternion(0,0,0)), True)
-            #print(unreal_getpose(client, caviar_config.pedestrians[i]))
-
+            # print(f'caviar_config.pedestrians[i]: {caviar_config.pedestrians[i]} | path_list[i+1]: {path_list[i+1]} | type(path_list[i+1]): {type(path_list[i+1])}')
+            client.simSetObjectPose(
+                caviar_config.pedestrians[i],
+                airsim.Pose(path_list[i + 1], airsim.to_quaternion(0, 0, 0)),
+                True,
+            )
+            # print(unreal_getpose(client, caviar_config.pedestrians[i]))
