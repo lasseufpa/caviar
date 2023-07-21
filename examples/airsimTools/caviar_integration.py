@@ -15,6 +15,7 @@ import airsim
 #########################
 
 inloop = True
+sionna_free = True
 
 current_throughput = 0
 
@@ -56,8 +57,8 @@ with NATSClient() as natsclient:
     natsclient.connect()
 
     def callback(msg):
-        #print(f"Received a message with subject {msg.subject}: {msg}")
-        print(" ")
+        sionna_free = True
+        
 
     def updateThroughput(msg):
         payload = json.loads(msg.payload.decode())
@@ -119,9 +120,12 @@ with NATSClient() as natsclient:
             start_time = time.time()
             
             if inloop:
-                natsclient.wait(count=1)
+                if sionna_free:
+                    client.simContinueForTime(0.10)
+                    sionna_free = False
+            natsclient.wait(count=1)
             
-            client.simContinueForTime(0.10)
+            #client.simContinueForTime(0.10)
 
             # Get information about each UAV in the configuration file (caviar_config.py)
             for uav in caviar_config.drone_ids:
