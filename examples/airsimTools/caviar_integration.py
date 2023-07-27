@@ -15,11 +15,26 @@ model = YOLO("yolov8n.pt")
 #########################
 
 inloop = True
+
 sionna_finished_runnning = True
 
 current_throughput = 0
 
 save_multimodal = False
+
+rescued_targets = 0
+
+def get_time_for_rescue(throughput):
+    '''
+    The rescue will finish after transmiting 10 pictures:
+    2.076.727 bytes (4K image) x 10 x 8 = 160.613.816 bits to transmit.
+    This function calculates the time for transmit them all and finish 
+    the rescue.
+    '''
+    tx_max = 2076727 * 10 * 8 * 6 # For 6 images (100ms of 60FPS)
+    time_to_tx = (tx_max / (throughput))
+    return time_to_tx
+
 
 def addNoise(image, throughput):
     gaussian_noise = np.zeros(image.shape, np.uint8)
@@ -163,6 +178,12 @@ with NATSClient() as natsclient:
                 try:
                     print(f'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Detected class: {results[0].boxes.data[0,5]}')
                     print(f'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Human detected probability: {results[0].boxes.data[0,4]}')
+                    target_is_detected = results[0].boxes.data[0,5] == 0
+                    if target_is_detected:
+                        print(f"@@@@@@@ get_time_for_rescue(current_throughput): {get_time_for_rescue(current_throughput*1e9)}")
+                        time.sleep(get_time_for_rescue(current_throughput*1e9))
+                        rescued_targets = rescued_targets + 1
+                        client.simDestroyObject(caviar_config.pedestrians[actualWaypoint])
                 except:
                     print("NO DETECTION")
                 #########################
@@ -245,3 +266,6 @@ with NATSClient() as natsclient:
             end_time = time.time()
             print(f"CAVIAR in-loop step duration (seconds): {end_time-start_time}")
             print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Simulation duration (seconds): {(airsim_timestamp-initial_timestamp)*1e-9}")
+
+        print(f"Total mission time: {(airsim_timestamp-initial_timestamp)*1e-9}")
+        print(f"Rescued targets: {rescued_targets}")
