@@ -37,19 +37,22 @@ def get_time_for_rescue(throughput):
 
 
 def addNoise(image, throughput):
+    # How to remove pixels from image? 
     gaussian_noise = np.zeros(image.shape, np.uint8)
-    if throughput < 600 and throughput > 250:
+
+    if throughput < 60 and throughput > 25:
         print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Noise level LOW: {throughput}")
-        2 * cv2.randn(gaussian_noise, 0, 45)
-    elif throughput <= 250 and throughput > 50:
+        cv2.randn(gaussian_noise, 0, 45)
+    elif throughput <= 25 and throughput > 5:
         print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Noise level MEDIUM: {throughput}")
-        5 * cv2.randn(gaussian_noise, 0, 180)
-    elif throughput <= 50 and throughput >= 0:
+        cv2.randn(gaussian_noise, 0, 180)
+    elif throughput <= 5 and throughput >= 0:
         print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Noise level HIGH: {throughput}")
-        10 * cv2.randn(gaussian_noise, 0, 270)
+        cv2.randn(gaussian_noise, 0, 270)
     else:
         print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> No Noise level: {throughput}")
-        image = cv2.add(image, gaussian_noise)
+
+    image = cv2.add(image, gaussian_noise)
     return image
 
 with NATSClient() as natsclient:
@@ -65,7 +68,6 @@ with NATSClient() as natsclient:
         "waypoints",
         "trajectories",
     )
-
     # Create a folder to write the UE4 simulation result
     try:
         os.mkdir("./episodes")
@@ -146,9 +148,11 @@ with NATSClient() as natsclient:
                 if sionna_finished_runnning:
                     client.simContinueForTime(0.10)
                     sionna_finished_runnning = False
+            else:
+                client.simContinueForTime(0.10)
+                # client.simPause(False)
             natsclient.wait(count=1)
             
-            #client.simContinueForTime(0.10)
 
             # Get information about each UAV in the configuration file (caviar_config.py)
             for uav in caviar_config.drone_ids:
@@ -180,10 +184,10 @@ with NATSClient() as natsclient:
                     print(f'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Human detected probability: {results[0].boxes.data[0,4]}')
                     target_is_detected = results[0].boxes.data[0,5] == 0
                     if target_is_detected:
+                        client.simDestroyObject(caviar_config.pedestrians[actualWaypoint-1])
                         print(f"@@@@@@@ get_time_for_rescue(current_throughput): {get_time_for_rescue(current_throughput*1e9)}")
                         time.sleep(get_time_for_rescue(current_throughput*1e9))
                         rescued_targets = rescued_targets + 1
-                        client.simDestroyObject(caviar_config.pedestrians[actualWaypoint])
                 except:
                     print("NO DETECTION")
                 #########################
