@@ -12,7 +12,7 @@ from joblib import load
 
 mi.set_variant("cuda_ad_rgb")
 
-save_paths_to_file = True
+save_paths_to_file = False
 render_to_file = True
 plot_data = True
 save_data = True
@@ -176,7 +176,8 @@ def run(current_step, new_x, new_y, new_z):
 
     # Get bit rate
     bit_rate = Bit_rate(equivalentChannelMagnitude, bandwidth=40e9)
-    bit_rate_Gbps = bit_rate / 1e9
+    bit_rate_Gbps = bit_rate / 1e9 # Converts to Gbps
+    bit_rate_Gbps = bit_rate_Gbps / 10 # Divides the throughput between 10 drone in a hypothetical swarm
     best_ray_rx = best_ray[0][0]
     best_ray_tx = best_ray[0][1]
     best_bit_rate_Gbps = bit_rate_Gbps[best_ray_rx, best_ray_tx]
@@ -200,7 +201,7 @@ def run(current_step, new_x, new_y, new_z):
     )
 
     if number_of_paths > 0:
-        print(f"{number_of_paths} paths obtained during this run")
+        print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> {number_of_paths} paths obtained during this run")
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
 
@@ -263,7 +264,7 @@ def run(current_step, new_x, new_y, new_z):
                 random_bit_rate_Gbps=random_bit_rate_Gbps,
             )
     else:
-        print("No paths obtained during this run")
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> No paths obtained during this run")
 
     del paths  # deallocation of memory
 

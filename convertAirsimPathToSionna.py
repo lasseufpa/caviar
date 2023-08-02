@@ -8,6 +8,12 @@ def convertPositionFromAirSimToSionna(x, y, z):
     offset = {"x": 23.34, "y": -3.42, "z": 137.23}
     return [offset["x"] + x, offset["y"] - y, offset["z"] - z]
 
+def convertPositionFromSionnaToAirSim(x, y, z):
+    # Sionna coordinates for AirSim PlayerStart position (AirSim's origin point)
+    # Central Park offset
+    offset = {"x": 23.34, "y": -3.42, "z": 137.23}
+    return [ x - offset["x"], - y - offset["y"], - z - offset["y"]]
+
 
 def readPaths(path):
     path_list = []
@@ -17,7 +23,7 @@ def readPaths(path):
         csv_reader.__next__()
         for column in csv_reader:
             path_list.append(
-                convertPositionFromAirSimToSionna(
+                convertPositionFromSionnaToAirSim(
                     float(column[0]), float(column[1]), float(column[2])
                 )
             )
@@ -46,4 +52,18 @@ for path_id in range(num_paths):
 # [-16.66, 124.63000000000001, 77.22999999999999]
 # [-46.66, 70.08, 77.22999999999999]
 # [143.34, -34.42, 77.22999999999999]
+
+###### SAR run
+## Sionna coordinates
+# -241,278,130
+# -176, 245, 110
+# -90,-192,65
+# -52,-182,64
+# -13,149,70
+## AirSim coordinates 
+# -264.34, -274.58, -126.58
+# -136.68, -192.0, -126.58
+# -113.34, 195.42, -61.58
+# -75.34, 185.42, -60.58
+# -36.34, -145.58, -66.58
 print("END")
