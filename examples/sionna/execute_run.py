@@ -16,7 +16,7 @@ save_paths_to_file = True
 render_to_file = True
 plot_data = True
 save_data = True
-
+rx_number = 2
 ################################# Configure paths ##############################
 
 current_dir = os.getcwd()
@@ -68,17 +68,20 @@ def getRunMIMOdata(
     number_Tx_antennas,
     number_Rx_antennas,
 ):
-    equivalentChannel = mimo_channels.getDFTOperatedChannel(
-        mimoChannel, number_Tx_antennas, number_Rx_antennas
-    )
+    for rx_index in range(rx_number):
+        current_rx_mimoChannel = mimoChannel[rx_index] 
 
-    equivalentChannelMagnitude = np.abs(equivalentChannel)
+        equivalentChannel = mimo_channels.getDFTOperatedChannel(
+            current_rx_mimoChannel, number_Tx_antennas, number_Rx_antennas
+        )   
 
-    best_ray = np.argwhere(
-        equivalentChannelMagnitude == np.max(equivalentChannelMagnitude)
-    )
+        equivalentChannelMagnitude = np.abs(equivalentChannel)
 
-    return mimoChannel, equivalentChannel, equivalentChannelMagnitude, best_ray
+        best_ray = np.argwhere(
+            equivalentChannelMagnitude == np.max(equivalentChannelMagnitude)
+        )
+
+    return current_rx_mimoChannel, equivalentChannel, equivalentChannelMagnitude, best_ray
 
 
 def run(current_step, new_x, new_y, new_z):
@@ -114,13 +117,14 @@ def run(current_step, new_x, new_y, new_z):
 
     scene.add(tx)
 
-    rx = Receiver(
-        name="rx",
-        position=[rx_current_x, rx_current_y, rx_current_z - 10],
-        orientation=[-0.523599, 0, 0],
-    )
+    for rx_index in range(rx_number):
+        rx = Receiver(
+            name="rx" + str(rx_index),
+            position=[rx_current_x, rx_current_y, rx_current_z - 10 + rx_index],
+            orientation=[-0.523599, 0, 0],
+        )
 
-    scene.add(rx)
+        scene.add(rx)
 
     scene.frequency = 40e9  # Carrier frequency (Hz)
 
