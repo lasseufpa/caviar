@@ -177,7 +177,7 @@ def run(current_step, new_x, new_y, new_z):
     # Get bit rate
     bit_rate = Bit_rate(equivalentChannelMagnitude, bandwidth=40e9)
     bit_rate_Gbps = bit_rate / 1e9 # Converts to Gbps
-    bit_rate_Gbps = bit_rate_Gbps / 10 # Divides the throughput between 10 drone in a hypothetical swarm
+    bit_rate_Gbps = bit_rate_Gbps / 10 # Divides the throughput between 10 drones in a hypothetical swarm
     best_ray_rx = best_ray[0][0]
     best_ray_tx = best_ray[0][1]
     best_bit_rate_Gbps = bit_rate_Gbps[best_ray_rx, best_ray_tx]
@@ -268,7 +268,7 @@ def run(current_step, new_x, new_y, new_z):
 
     del paths  # deallocation of memory
 
-    return predicted_bit_rate_Gbps
+    return best_bit_rate_Gbps
 
 
 if __name__ == "__main__":

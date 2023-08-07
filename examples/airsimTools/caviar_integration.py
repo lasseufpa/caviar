@@ -24,14 +24,19 @@ save_multimodal = False
 
 rescued_targets = 0
 
+simu_time_of_rescue = []
+throughputs_during_rescue = []
+times_waited_during_rescue = []
+
 def get_time_for_rescue(throughput):
     '''
-    The rescue will finish after transmiting 10 pictures:
-    2.076.727 bytes (4K image) x 10 x 8 = 160.613.816 bits to transmit.
     This function calculates the time for transmit them all and finish 
     the rescue.
+
+    The rescue will finish after transmiting 100 pictures of 4 MB, representing
+    a 4K image
     '''
-    tx_max = 2076727 * 10 * 8 * 6 # For 6 images (100ms of 60FPS)
+    tx_max = 32000000 * 100
     time_to_tx = (tx_max / (throughput))
     return time_to_tx
 
@@ -42,13 +47,13 @@ def addNoise(image, throughput):
 
     if throughput < 60 and throughput > 25:
         print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Noise level LOW: {throughput}")
-        cv2.randn(gaussian_noise, 0, 45)
+        cv2.randn(gaussian_noise, 0, 270)  # PSNR: 17.2753 dB
     elif throughput <= 25 and throughput > 5:
         print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Noise level MEDIUM: {throughput}")
-        cv2.randn(gaussian_noise, 0, 180)
+        cv2.randn(gaussian_noise, 0, 90) # PSNR: 20.0811 dB
     elif throughput <= 5 and throughput >= 0:
         print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Noise level HIGH: {throughput}")
-        cv2.randn(gaussian_noise, 0, 270)
+        cv2.randn(gaussian_noise, 0, 45) # PSNR: 23.8298 dB
     else:
         print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> No Noise level: {throughput}")
 
@@ -114,7 +119,7 @@ with NATSClient() as natsclient:
         
 
         caviar_tools.airsim_setpose(
-            client, caviar_config.drone_ids[0], -360, -233, 130, 0, 0, 0, 0
+            client, caviar_config.drone_ids[0], -320.34, -198.58, 130, 0, 0, 0, 0
         )
         time.sleep(0.5)
 
@@ -124,7 +129,7 @@ with NATSClient() as natsclient:
         caviar_tools.airsim_takeoff_all(client)
         time.sleep(1)
         caviar_tools.move_to_point(
-            client, caviar_config.drone_ids[0], -360, -233, 128, 10
+            client, caviar_config.drone_ids[0], -320.34, -198.58, 128, 10
         )
 
         path_list = []
@@ -184,10 +189,14 @@ with NATSClient() as natsclient:
                     print(f'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Human detected probability: {results[0].boxes.data[0,4]}')
                     target_is_detected = results[0].boxes.data[0,5] == 0
                     if target_is_detected:
+                        rescue_time = get_time_for_rescue(current_throughput*1e9)
+                        throughputs_during_rescue.append(current_throughput)
+                        times_waited_during_rescue.append(rescue_time)
                         client.simDestroyObject(caviar_config.pedestrians[actualWaypoint-1])
-                        print(f"@@@@@@@ get_time_for_rescue(current_throughput): {get_time_for_rescue(current_throughput*1e9)}")
-                        time.sleep(get_time_for_rescue(current_throughput*1e9))
+                        print(f"@@@@@@@ get_time_for_rescue(current_throughput): {rescue_time}")
+                        time.sleep(rescue_time)
                         rescued_targets = rescued_targets + 1
+                        simu_time_of_rescue.append((airsim_timestamp-initial_timestamp)*1e-9)
                 except:
                     print("NO DETECTION")
                 #########################
@@ -273,3 +282,11 @@ with NATSClient() as natsclient:
 
         print(f"Total mission time: {(airsim_timestamp-initial_timestamp)*1e-9}")
         print(f"Rescued targets: {rescued_targets}")
+        np.savez(
+            "mission_log.npz",
+            total_mission_time=(airsim_timestamp-initial_timestamp)*1e-9,
+            rescued_targets=rescued_targets,
+            simu_time_of_rescue=simu_time_of_rescue,
+            throughputs_during_rescue=throughputs_during_rescue,
+            times_waited_during_rescue=times_waited_during_rescue
+        )
