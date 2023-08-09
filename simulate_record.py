@@ -64,7 +64,7 @@ class runMobility(threading.Thread):
         mobility_simu = subprocess.Popen(
             [   "psrecord",
                 "/home/fhb/miniconda3/envs/tf/bin/python " +
-                "/home/fhb/git/caviar/examples/airsimTools/caviar_integration.py",
+                "/home/fhb/git/caviar/examples/airsimTools/caviar_benchmark.py",
                 "--log",
                 record_path + "/" + experiment_id+"_mobility.txt",
                 "--duration",
