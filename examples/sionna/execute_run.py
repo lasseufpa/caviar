@@ -16,7 +16,7 @@ save_paths_to_file = False
 render_to_file = True
 plot_data = True
 save_data = True
-rx_number = 2
+rx_number = 1
 ################################# Configure paths ##############################
 
 current_dir = os.getcwd()
@@ -68,15 +68,26 @@ def getRunMIMOdata(
     number_Tx_antennas,
     number_Rx_antennas,
 ):
-    for rx_index in range(rx_number):
-        current_rx_mimoChannel = mimoChannel[rx_index] 
+    if rx_number > 1:
+        for rx_index in range(rx_number):
+            current_rx_mimoChannel = mimoChannel[rx_index] 
+
+            equivalentChannel = mimo_channels.getDFTOperatedChannel(
+                current_rx_mimoChannel, number_Tx_antennas, number_Rx_antennas
+            )   
+
+            equivalentChannelMagnitude = np.abs(equivalentChannel)
+
+            best_ray = np.argwhere(
+                equivalentChannelMagnitude == np.max(equivalentChannelMagnitude)
+            )
+    else:
+        current_rx_mimoChannel = mimoChannel
 
         equivalentChannel = mimo_channels.getDFTOperatedChannel(
             current_rx_mimoChannel, number_Tx_antennas, number_Rx_antennas
         )   
-
         equivalentChannelMagnitude = np.abs(equivalentChannel)
-
         best_ray = np.argwhere(
             equivalentChannelMagnitude == np.max(equivalentChannelMagnitude)
         )
@@ -269,6 +280,7 @@ def run(current_step, new_x, new_y, new_z):
     del paths  # deallocation of memory
 
     return best_bit_rate_Gbps
+    # return random_bit_rate_Gbps
 
 
 if __name__ == "__main__":
