@@ -199,7 +199,21 @@ plt.xlabel("K values")
 plt.ylabel("Accuracy (%)")
 plt.savefig("a.png")
 ################################## Sionna v0.15
-# NLOS: 1495 elements
+# NLOS: 1947 elements (alias v2) (Added around 450 runs close to the ground for better performance on SAR)
+
+# Top-1 accuracy: 87.86324786324786 %
+# Top-3 accuracy: 97.09401709401709 %
+# Top-5 accuracy: 97.77777777777777 %
+# Top-10 accuracy: 98.29059829059828 %
+# Top-25 accuracy: 98.97435897435898 %
+# Top-50 accuracy: 98.97435897435898 %
+# Top-75 accuracy: 99.31623931623932 %
+# Top-100 accuracy: 99.48717948717949 %
+# clf.get_depth(): 25
+
+# --------------------------------------------------
+
+# NLOS: 1495 elements (alias v1)
 
 # Top-1 accuracy: 93.76391982182628 %
 # Top-3 accuracy: 98.66369710467706 %

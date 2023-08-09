@@ -16,7 +16,7 @@ save_paths_to_file = False
 render_to_file = True
 plot_data = True
 save_data = True
-rx_number = 2
+rx_number = 1
 ################################# Configure paths ##############################
 
 current_dir = os.getcwd()
@@ -68,15 +68,26 @@ def getRunMIMOdata(
     number_Tx_antennas,
     number_Rx_antennas,
 ):
-    for rx_index in range(rx_number):
-        current_rx_mimoChannel = mimoChannel[rx_index] 
+    if rx_number > 1:
+        for rx_index in range(rx_number):
+            current_rx_mimoChannel = mimoChannel[rx_index] 
+
+            equivalentChannel = mimo_channels.getDFTOperatedChannel(
+                current_rx_mimoChannel, number_Tx_antennas, number_Rx_antennas
+            )   
+
+            equivalentChannelMagnitude = np.abs(equivalentChannel)
+
+            best_ray = np.argwhere(
+                equivalentChannelMagnitude == np.max(equivalentChannelMagnitude)
+            )
+    else:
+        current_rx_mimoChannel = mimoChannel
 
         equivalentChannel = mimo_channels.getDFTOperatedChannel(
             current_rx_mimoChannel, number_Tx_antennas, number_Rx_antennas
         )   
-
         equivalentChannelMagnitude = np.abs(equivalentChannel)
-
         best_ray = np.argwhere(
             equivalentChannelMagnitude == np.max(equivalentChannelMagnitude)
         )
@@ -177,7 +188,7 @@ def run(current_step, new_x, new_y, new_z):
     # Get bit rate
     bit_rate = Bit_rate(equivalentChannelMagnitude, bandwidth=40e9)
     bit_rate_Gbps = bit_rate / 1e9 # Converts to Gbps
-    bit_rate_Gbps = bit_rate_Gbps / 10 # Divides the throughput between 10 drone in a hypothetical swarm
+    bit_rate_Gbps = bit_rate_Gbps / 10 # Divides the throughput between 10 drones in a hypothetical swarm
     best_ray_rx = best_ray[0][0]
     best_ray_tx = best_ray[0][1]
     best_bit_rate_Gbps = bit_rate_Gbps[best_ray_rx, best_ray_tx]
@@ -268,7 +279,8 @@ def run(current_step, new_x, new_y, new_z):
 
     del paths  # deallocation of memory
 
-    return predicted_bit_rate_Gbps
+    return best_bit_rate_Gbps
+    # return random_bit_rate_Gbps
 
 
 if __name__ == "__main__":

@@ -383,4 +383,6 @@ def addPedestriansOnPath(client, path):
                 airsim.Pose(path_list[i + 1], airsim.to_quaternion(0, 0, 0)),
                 True,
             )
+            client.simSetObjectScale(caviar_config.pedestrians[i], airsim.Vector3r(2, 2, 2))
+            # airsim.MultirotorClient.simSetObjectScale
             # print(unreal_getpose(client, caviar_config.pedestrians[i]))

@@ -31,39 +31,23 @@ def readPaths(path):
     return path_list
 
 
-current_dir = os.getcwd()
-trajectories_files = os.path.join(
-    current_dir,
-    "examples",
-    "airsimTools",
-    "waypoints",
-    "trajectories",
-)
-num_paths = 10
-converted_paths = []
-for path_id in range(num_paths):
-    converted_paths.append(
-        readPaths(os.path.join(trajectories_files, "path" + str(path_id) + ".csv"))
-    )
-# [-153.66, 128.93, 77.22999999999999]
-# [-134.66, 118.48, 77.22999999999999]
-# [-113.66, 106.92999999999999, 77.22999999999999]
-# [-46.66, 70.08, 77.22999999999999]
-# [-16.66, 124.63000000000001, 77.22999999999999]
-# [-46.66, 70.08, 77.22999999999999]
-# [143.34, -34.42, 77.22999999999999]
+# current_dir = os.getcwd()
+# trajectories_files = os.path.join(
+#     current_dir,
+#     "examples",
+#     "airsimTools",
+#     "waypoints",
+#     "trajectories",
+# )
+# num_paths = 10
+# converted_paths = []
+# for path_id in range(num_paths):
+#     converted_paths.append(
+#         readPaths(os.path.join(trajectories_files, "path" + str(path_id) + ".csv"))
+#     )
 
-###### SAR run
-## Sionna coordinates
-# -241,278,130
-# -176, 245, 110
-# -90,-192,65
-# -52,-182,64
-# -13,149,70
-## AirSim coordinates 
-# -264.34, -274.58, -126.58
-# -136.68, -192.0, -126.58
-# -113.34, 195.42, -61.58
-# -75.34, 185.42, -60.58
-# -36.34, -145.58, -66.58
-print("END")
+test_list = [[-297,202],[-247,176],[-197,156],[-124,110]]
+
+for coordinate in test_list:
+    r = convertPositionFromSionnaToAirSim(coordinate[0],coordinate[1],0)
+    print(r)
