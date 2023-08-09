@@ -9,6 +9,12 @@ import json
 import numpy as np
 import airsim
 
+def convertPositionFromAirSimToSionna(x, y, z):
+    # Sionna coordinates for AirSim PlayerStart position (AirSim's origin point)
+    # Central Park offset
+    offset = {"x": 23.34, "y": -3.42, "z": 137.23}
+    return [offset["x"] + x, offset["y"] - y, offset["z"] - z]
+
 ## REMOVE AFTER EXPERIMENT
 from ultralytics import YOLO
 model = YOLO("yolov8n.pt")
@@ -25,6 +31,7 @@ save_multimodal = False
 rescued_targets = 0
 
 simu_time_of_rescue = []
+simu_pose_of_rescue = []
 throughputs_during_rescue = []
 times_waited_during_rescue = []
 
@@ -33,27 +40,30 @@ def get_time_for_rescue(throughput):
     This function calculates the time for transmit them all and finish 
     the rescue.
 
-    The rescue will finish after transmiting 100 pictures of 4 MB, representing
-    a 4K image
+    The rescue will finish after transmiting 100 pictures of 4 MB (3.2e7 bits), representing
+    a 4K image and a point cloud file made with LiDAR with 2 GB (16e9 bits)
     '''
-    tx_max = 32000000 * 100
+    tx_max = (3.2e7 * 100)  + (16e9)
     time_to_tx = (tx_max / (throughput))
     return time_to_tx
 
 
-def addNoise(image, throughput):
-    # How to remove pixels from image? 
+def addNoise(image, throughput): 
     gaussian_noise = np.zeros(image.shape, np.uint8)
 
-    if throughput < 60 and throughput > 25:
+    if throughput < 80 and throughput > 60:
+        # PSNR: ~23.585 dB
         print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Noise level LOW: {throughput}")
-        cv2.randn(gaussian_noise, 0, 270)  # PSNR: 17.2753 dB
-    elif throughput <= 25 and throughput > 5:
+        cv2.randn(gaussian_noise, 0, 45)   
+    elif throughput <= 60 and throughput > 20:
+        # PSNR: ~19.1642 dB
         print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Noise level MEDIUM: {throughput}")
-        cv2.randn(gaussian_noise, 0, 90) # PSNR: 20.0811 dB
-    elif throughput <= 5 and throughput >= 0:
+        cv2.randn(gaussian_noise, 0, 90)
+    elif throughput <= 20 and throughput >= 0:
+        # PSNR: ~8.1041 dB
         print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Noise level HIGH: {throughput}")
-        cv2.randn(gaussian_noise, 0, 45) # PSNR: 23.8298 dB
+        cv2.randn(2*gaussian_noise, 0, 270)
+        gaussian_noise-100
     else:
         print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> No Noise level: {throughput}")
 
@@ -197,6 +207,7 @@ with NATSClient() as natsclient:
                         time.sleep(rescue_time)
                         rescued_targets = rescued_targets + 1
                         simu_time_of_rescue.append((airsim_timestamp-initial_timestamp)*1e-9)
+                        simu_pose_of_rescue.append(convertPositionFromAirSimToSionna(uav_pose[0],uav_pose[1],uav_pose[2]))
                 except:
                     print("NO DETECTION")
                 #########################
@@ -257,7 +268,7 @@ with NATSClient() as natsclient:
                     )
                     print(actualWaypoint)
 
-                    if actualWaypoint == (len(path_list) - 8):
+                    if actualWaypoint == (len(path_list) - 7):
                         client.simPause(False)
                         caviar_tools.airsim_land_all(client)
                         isFinished = True
@@ -287,6 +298,7 @@ with NATSClient() as natsclient:
             total_mission_time=(airsim_timestamp-initial_timestamp)*1e-9,
             rescued_targets=rescued_targets,
             simu_time_of_rescue=simu_time_of_rescue,
+            simu_pose_of_rescue=simu_pose_of_rescue,
             throughputs_during_rescue=throughputs_during_rescue,
             times_waited_during_rescue=times_waited_during_rescue
         )
