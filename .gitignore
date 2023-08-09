@@ -145,3 +145,10 @@ examples/airsimTools/waypoints/trajectories
 *.png
 
 *.OBJ
+
+*.txt
+
+*.jpg
+
+*.pt
+
