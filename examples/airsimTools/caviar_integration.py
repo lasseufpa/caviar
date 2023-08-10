@@ -51,15 +51,15 @@ def get_time_for_rescue(throughput):
 def addNoise(image, throughput): 
     gaussian_noise = np.zeros(image.shape, np.uint8)
 
-    if throughput < 80 and throughput > 60:
+    if throughput < 1.2 and throughput > 0.9:
         # PSNR: ~23.585 dB
         print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Noise level LOW: {throughput}")
         cv2.randn(gaussian_noise, 0, 45)   
-    elif throughput <= 60 and throughput > 20:
+    elif throughput <= 0.9 and throughput > 0.4:
         # PSNR: ~19.1642 dB
         print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Noise level MEDIUM: {throughput}")
         cv2.randn(gaussian_noise, 0, 90)
-    elif throughput <= 20 and throughput >= 0:
+    elif throughput <= 0.4 and throughput >= 0:
         # PSNR: ~8.1041 dB
         print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Noise level HIGH: {throughput}")
         cv2.randn(2*gaussian_noise, 0, 270)
