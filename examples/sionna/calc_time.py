@@ -6,9 +6,11 @@ MAX_TIME = 180  # 3 minutes to complete the game
 NUMBER_OF_WP = 10
 
 # CAVIAR function
-def Bit_rate(H_mag, const = 440.35, bandwidth = 40e9):
+def Bit_rate(H_mag, bandwidth = 40e6):
     H_shape = H_mag.shape
-    SINR = const * (H_mag.A1**2)
+    No_dBm = -140 #dBm/Hz
+    noise_power_linear = np.float_power(10, (No_dBm/10)) * bandwidth # linear scale
+    SINR = (H_mag.A1**2)/noise_power_linear
     se = np.log2(1 + SINR)
     R = (bandwidth * se).reshape(H_shape[0],H_shape[1])
     return R
