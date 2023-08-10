@@ -8,6 +8,9 @@ record_path = "/home/fhb/Documents/caviar_records"
 
 experiment_id = "full"
 
+duration = 120
+interval = 0.2
+
 class runNatsServer(threading.Thread):
     def __init__(
         self,
@@ -21,6 +24,10 @@ class runNatsServer(threading.Thread):
                                       "nats-server",
                                       "--log",
                                       record_path + "/" + experiment_id+"_nats.txt",
+                                      "--duration",
+                                      str(duration),
+                                      "--interval",
+                                      str(interval),
                                       "--include-children"])
 
 
@@ -33,9 +40,16 @@ class runAirSim(threading.Thread):
         global airsim_simu
         airsim_simu = subprocess.Popen(
             ["psrecord",
-             "/home/fhb/Downloads/central_park/central_park/Binaries/Linux/central_park-Linux-Shipping",
+             "/home/fhb/Downloads/central_park/central_park/Binaries/Linux/central_park-Linux-Shipping "+
+             "-WINDOWED "+
+             "-ResX=640 "+
+             "-ResY=480",
              "--log",
              record_path + "/" + experiment_id+"_airsim.txt",
+             "--duration",
+             str(duration),
+             "--interval",
+             str(interval),
              "--include-children"]
         )
 
@@ -50,9 +64,13 @@ class runMobility(threading.Thread):
         mobility_simu = subprocess.Popen(
             [   "psrecord",
                 "/home/fhb/miniconda3/envs/tf/bin/python " +
-                "/home/fhb/git/caviar/examples/airsimTools/caviar_integration.py",
+                "/home/fhb/git/caviar/examples/airsimTools/caviar_benchmark.py",
                 "--log",
                 record_path + "/" + experiment_id+"_mobility.txt",
+                "--duration",
+                str(duration),
+                "--interval",
+                str(interval),
                 "--include-children"]
         )
 
@@ -70,6 +88,10 @@ class runSionna(threading.Thread):
                 "/home/fhb/git/caviar/examples/sionna/followPath.py",
                 "--log",
                 record_path + "/" + experiment_id+"_sionna.txt",
+                "--duration",
+                str(duration),
+                "--interval",
+                str(interval),
                 "--include-children"
             ]
         )
@@ -86,13 +108,18 @@ if __name__ == "__main__":
         threeD_thread.start()
         time.sleep(2)
         mobility_thread.start()
+        time.sleep(2)
         communications_thread.start()
+        time.sleep(2)
     except Exception as e:
         print(f"Error: {str(e)}")
     
     while True:
-        res = input("Press 'w' to close")
-        if res == "w":
+        res = "A" #input("Press 'w' to close")
+        print("#############################")
+        print(f"#################: {mobility_simu.communicate()}")
+        print("#############################")
+        if res == "w" or (mobility_simu.communicate()[0] is None):
             print("The Program is terminated manually!")
             time.sleep(5)
             for child in psutil.Process(airsim_simu.pid).children(recursive=True):
@@ -102,9 +129,9 @@ if __name__ == "__main__":
             for child in psutil.Process(nats_simu.pid).children(recursive=True):
                 child.kill()
             nats_simu.send_signal(signal.SIGTERM)
-            for child in psutil.Process(mobility_simu.pid).children(recursive=True):
-                child.kill()
-            mobility_simu.send_signal(signal.SIGTERM)
+            # for child in psutil.Process(mobility_simu.pid).children(recursive=True):
+            #     child.kill()
+            # mobility_simu.send_signal(signal.SIGTERM)
             for child in psutil.Process(sionna_simu.pid).children(recursive=True):
                 child.kill()
             sionna_simu.send_signal(signal.SIGTERM)
