@@ -6,7 +6,7 @@ from sionna.rt import load_scene, Transmitter, Receiver, PlanarArray, Camera
 from sionna.channel import cir_to_ofdm_channel
 from obj_move import translate
 import mimo_channels
-from calc_time import Bit_rate
+from calc_time import getBitRate
 from realtime_plot import plot_throughput
 from joblib import load
 
@@ -186,7 +186,7 @@ def run(current_step, new_x, new_y, new_z):
     rx_current_position = [rx_current_x, rx_current_y, rx_current_z]
 
     # Get bit rate
-    bit_rate = Bit_rate(equivalentChannelMagnitude, bandwidth=40e6)
+    bit_rate = getBitRate(equivalentChannelMagnitude, bandwidth=40e6)
     bit_rate_Gbps = bit_rate / 1e9 # Converts to Gbps
     # bit_rate_Gbps = bit_rate_Gbps / 10 # Divides the throughput between 10 drones in a hypothetical swarm
     best_ray_rx = best_ray[0][0]
