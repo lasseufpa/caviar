@@ -35,6 +35,8 @@ simu_pose_of_rescue = []
 throughputs_during_rescue = []
 times_waited_during_rescue = []
 
+person_to_be_rescued = False
+
 def get_time_for_rescue(throughput):
     '''
     This function calculates the time for transmit them all and finish 
@@ -204,10 +206,11 @@ with NATSClient() as natsclient:
                         times_waited_during_rescue.append(rescue_time)
                         client.simDestroyObject(caviar_config.pedestrians[actualWaypoint-1])
                         print(f"@@@@@@@ get_time_for_rescue(current_throughput): {rescue_time}")
-                        time.sleep(rescue_time)
+                        #time.sleep(rescue_time)
                         rescued_targets = rescued_targets + 1
                         simu_time_of_rescue.append((airsim_timestamp-initial_timestamp)*1e-9)
                         simu_pose_of_rescue.append(convertPositionFromAirSimToSionna(uav_pose[0],uav_pose[1],uav_pose[2]))
+                        person_to_be_rescued = True
                 except:
                     print("NO DETECTION")
                 #########################
@@ -254,10 +257,11 @@ with NATSClient() as natsclient:
                     actualWaypoint = actualWaypoint + 1
                     # Add here the YOLO for object detection
 
-                    print("Compute best beam")
-                    print("get transmission delay for 10 images")
-
-                    print("wait")
+                    if person_to_be_rescued:
+                        print("Rescue")
+                        time.sleep(rescue_time)
+                    
+                    person_to_be_rescued = False
 
                     caviar_tools.move_to_point(
                         client,
