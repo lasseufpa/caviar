@@ -11,7 +11,7 @@ def dBW2Watts(dBW):
     return np.float_power(10, (dBW / 10))
 
 
-def Watts2dBW(Watts)
+def Watts2dBW(Watts):
     return 10*np.log10(Watts)
 
 
