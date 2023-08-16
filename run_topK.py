@@ -26,7 +26,7 @@ import numpy as np
 import os
 
 current_dir = os.getcwd()
-output_filename = os.path.join(current_dir, "allruns.npz")
+output_filename = os.path.join(current_dir, "allruns_v3.npz")
 caviar_output = np.load(output_filename, allow_pickle=True)
 
 rx_current_position = caviar_output["rx_current_position"]
@@ -198,7 +198,20 @@ plt.ylim(top1_acc, 100)
 plt.xlabel("K values")
 plt.ylabel("Accuracy (%)")
 plt.savefig("a.png")
-################################## Sionna v0.15
+################################## Sionna v0.15.1
+# NLOS: 1313 elements (alias v3)
+
+# Top-1 accuracy: 84.26395939086294 %
+# Top-3 accuracy: 95.43147208121827 %
+# Top-5 accuracy: 97.96954314720813 %
+# Top-10 accuracy: 98.47715736040608 %
+# Top-25 accuracy: 98.73096446700508 %
+# Top-50 accuracy: 98.73096446700508 %
+# Top-75 accuracy: 98.98477157360406 %
+# Top-100 accuracy: 99.23857868020305 %
+# clf.get_depth(): 19
+
+################################## Sionna v0.15.0
 # NLOS: 1947 elements (alias v2) (Added around 450 runs close to the ground for better performance on SAR)
 
 # Top-1 accuracy: 87.86324786324786 %
@@ -235,7 +248,7 @@ plt.savefig("a.png")
 # Top-100 accuracy: 100.0 %
 # clf.get_depth(): 20
 
-################################## Sionna v0.14
+################################## Sionna v0.14.0
 
 # NLOS: 214 elements
 

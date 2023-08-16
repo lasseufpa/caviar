@@ -19,7 +19,7 @@ def get_time_for_rescue(throughput):
 if __name__ == "__main__":
     # throughputs = np.arange(0, 100, 0.1)
     # throughputs = np.arange(15, 100, 0.1)
-    throughputs = np.arange(0.2, 1.6, 0.1)
+    throughputs = np.arange(0.5, 2, 0.1)
     rescue_times = []
     for throughput in throughputs:
         throughput_bps = throughput * 1e9
