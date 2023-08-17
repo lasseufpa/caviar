@@ -259,6 +259,7 @@ with NATSClient() as natsclient:
 
                     if person_to_be_rescued:
                         print("Rescue")
+                        client.simContinueForTime(rescue_time)
                         time.sleep(rescue_time)
                     
                     person_to_be_rescued = False
