@@ -19,15 +19,15 @@ def get_time_for_rescue(throughput):
 if __name__ == "__main__":
     # throughputs = np.arange(0, 100, 0.1)
     # throughputs = np.arange(15, 100, 0.1)
-    throughputs = np.arange(0.5, 2, 0.1)
+    throughputs = np.arange(5, 200, 0.1)
     rescue_times = []
     for throughput in throughputs:
-        throughput_bps = throughput * 1e9
+        throughput_bps = throughput * 1e6
         rescue_times.append(get_time_for_rescue(throughput_bps))
 
     sns.set_theme()
     plt.plot(throughputs, rescue_times)
     plt.grid(True)
-    plt.xlabel("Throughputs (Gbps)")
+    plt.xlabel("Throughputs (Mbps)")
     plt.ylabel("Rescue times (seconds)")
-    plt.savefig("time_to_finish_rescues.png")
+    plt.savefig("time_to_finish_rescues_mbps.png")
