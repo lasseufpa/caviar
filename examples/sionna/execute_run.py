@@ -253,11 +253,9 @@ def run(current_step, new_x, new_y, new_z):
                 best_bit_rate_Gbps * int(1e3),
                 predicted_bit_rate_Gbps * int(1e3),
                 random_bit_rate_Gbps * int(1e3),
-                fixed_bit_rate_Gbps * int(1e3),
                 np.mean(all_best_bit_rate_Gbps * int(1e3)),
                 np.mean(all_predicted_bit_rate_Gbps * int(1e3)),
-                np.mean(all_random_bit_rate_Gbps * int(1e3)),
-                np.mean(all_fixed_bit_rate_Gbps * int(1e3)),
+                np.mean(all_random_bit_rate_Gbps * int(1e3))
             )
 
         if save_data:
