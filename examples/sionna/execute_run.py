@@ -203,13 +203,13 @@ def run(current_step, new_x, new_y, new_z):
         int(pred_beam_index[0]), int(pred_beam_index[1])
     ]
 
-    all_best_bit_rate_Gbps.append(best_bit_rate_Gbps)
-    all_random_bit_rate_Gbps.append(random_bit_rate_Gbps)
-    all_predicted_bit_rate_Gbps.append(predicted_bit_rate_Gbps)
+    all_best_bit_rate_Gbps.append(best_bit_rate_Gbps * int(1e3))
+    all_random_bit_rate_Gbps.append(random_bit_rate_Gbps * int(1e3))
+    all_predicted_bit_rate_Gbps.append(predicted_bit_rate_Gbps * int(1e3))
 
     output_filename = os.path.join(current_dir, "runs", f"run_{str(current_step)}")
     figures_output_filename = os.path.join(
-        current_dir, "runs", "figures", f"run_{str(current_step)}.png"
+        current_dir, "runs", "figures", f"run_0.png"
     )
 
     if number_of_paths > 0:
@@ -217,7 +217,7 @@ def run(current_step, new_x, new_y, new_z):
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
 
-        if render_to_file:
+        if save_sionna_3d_scenes_as_png:
             # Checks if figures output folder exists
             if not os.path.exists(os.path.dirname(figures_output_filename)):
                 os.mkdir(os.path.dirname(figures_output_filename))
@@ -239,7 +239,7 @@ def run(current_step, new_x, new_y, new_z):
                 resolution=[325, 250],
             )
 
-        if save_paths_to_file:
+        if save_rt_paths_as_txt:
             paths_visualization_output = os.path.join(
                 current_dir, "runs", "paths", f"run_{str(current_step)}.OBJ"
             )
@@ -248,18 +248,18 @@ def run(current_step, new_x, new_y, new_z):
                 os.mkdir(os.path.dirname(paths_visualization_output))
             paths.export(paths_visualization_output)
 
-        if plot_data:
+        if plot_realtime_throughput:
             plot_throughput(
                 int(current_step) * 1e9,
                 best_bit_rate_Gbps * int(1e3),
                 predicted_bit_rate_Gbps * int(1e3),
                 random_bit_rate_Gbps * int(1e3),
-                np.mean(all_best_bit_rate_Gbps * int(1e3)),
-                np.mean(all_predicted_bit_rate_Gbps * int(1e3)),
-                np.mean(all_random_bit_rate_Gbps * int(1e3))
+                np.mean(all_best_bit_rate_Gbps[-10:]),
+                np.mean(all_predicted_bit_rate_Gbps[-10:]),
+                np.mean(all_random_bit_rate_Gbps[-10:])
             )
 
-        if save_data:
+        if save_all_data_as_npz:
             np.savez(
                 output_filename,
                 path_coefficients=path_coefficients,

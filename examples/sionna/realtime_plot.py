@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 plt.figure()
-plt.title("Throughputs (Gbps)")
+plt.title("Throughputs (Mbps)")
 global mean_line1
 global mean_line2
 global mean_line3
