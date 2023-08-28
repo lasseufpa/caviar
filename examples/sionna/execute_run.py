@@ -12,10 +12,11 @@ from joblib import load
 
 mi.set_variant("cuda_ad_rgb")
 
-save_paths_to_file = False
-render_to_file = True
-plot_data = True
-save_data = True
+save_rt_paths_as_txt = False
+save_sionna_3d_scenes_as_png = True
+plot_realtime_throughput = True
+save_all_data_as_npz = True
+
 rx_number = 1
 ################################# Configure paths ##############################
 
