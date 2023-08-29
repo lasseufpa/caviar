@@ -8,6 +8,7 @@ from pynats import NATSClient
 import json
 import numpy as np
 import airsim
+from PIL import Image as pil_img
 
 def convertPositionFromAirSimToSionna(x, y, z):
     # Sionna coordinates for AirSim PlayerStart position (AirSim's origin point)
@@ -37,40 +38,75 @@ times_waited_during_rescue = []
 
 person_to_be_rescued = False
 
+rng = np.random.default_rng(1)
+width = 1
+height = 1
+bit_depth = 32
+pixel_size_bytes = (width * height * bit_depth) / 8
+# number_of_pixels_in_tcp_packet = 65536 / pixel_size_bytes
+# packet_size_bytes = pixel_size_bytes
+# packet_size_bytes = 65536  # Max size of a TCP packet = 64 KiB = 65536 bytes
+
+def dropPacketsFromImage(image, packet_drop_rate, output_folder="/home/joaoborges/Downloads/fromBytes.png", packet_size_bytes=pixel_size_bytes, rng=rng):
+    image_bytes = bytearray(image.tobytes())
+    image_size_bytes = len(image_bytes)
+
+    if image_size_bytes % packet_size_bytes != 0:
+        raise Exception("not divisible")
+
+    total_number_of_packets = image_size_bytes // int(packet_size_bytes)
+    packets_to_drop = int(packet_drop_rate * total_number_of_packets)
+    image_packets = np.array(image_bytes).reshape((total_number_of_packets,-1))
+    # Gets different packages indexes to drop
+    dropped_package_indexes = rng.choice(
+        total_number_of_packets, packets_to_drop, replace=False
+    )
+
+    # Zeroes the bytes of the dropped packages
+    image_packets[dropped_package_indexes] = 0
+
+    reconstructed_image_packets = np.array(image_packets)
+    reconstructed_image_packets = np.concatenate(reconstructed_image_packets).astype("b")
+
+    image_bytes_saveable = pil_img.frombytes(
+        mode="RGB", size=image.size, data=reconstructed_image_packets, decoder_name="raw"
+    )
+
+    image_bytes_saveable.save(output_folder)
+
+
 def get_time_for_rescue(throughput):
     '''
     This function calculates the time for transmit them all and finish 
     the rescue.
 
     The rescue will finish after transmiting 100 pictures of 4 MB (3.2e7 bits), representing
-    a 4K image and a point cloud file made with LiDAR with 2 GB (16e9 bits)
+    a 4K image
     '''
-    tx_max = (3.2e7 * 100)  + (16e9)
+    tx_max = (3.2e7 * 100)
     time_to_tx = (tx_max / (throughput))
     return time_to_tx
 
 
-def addNoise(image, throughput): 
-    gaussian_noise = np.zeros(image.shape, np.uint8)
-
-    if throughput < 1.2 and throughput > 0.9:
-        # PSNR: ~23.585 dB
-        print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Noise level LOW: {throughput}")
-        cv2.randn(gaussian_noise, 0, 45)   
-    elif throughput <= 0.9 and throughput > 0.4:
-        # PSNR: ~19.1642 dB
-        print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Noise level MEDIUM: {throughput}")
-        cv2.randn(gaussian_noise, 0, 90)
-    elif throughput <= 0.4 and throughput >= 0:
-        # PSNR: ~8.1041 dB
-        print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Noise level HIGH: {throughput}")
-        cv2.randn(2*gaussian_noise, 0, 270)
-        gaussian_noise-100
+def addNoise(image, throughput):
+    if throughput < 0.12 and throughput > 0.08:
+        # PSNR: ~26.3629 dB
+        print(f">>>>>>>>>>>>>>>>>>>>> Noise level LOW: {throughput}")
+        dropPacketsFromImage(image, packet_drop_rate=0.01)   
+    elif throughput <= 0.08 and throughput > 0.04:
+        # PSNR: ~12.3902 dB
+        print(f">>>>>>>>>>>>>>>>>>>>> Noise level MEDIUM: {throughput}")
+        dropPacketsFromImage(image, packet_drop_rate=0.25)
+    elif throughput <= 0.04 and throughput >= 0:
+        # PSNR: ~9.376 dB
+        print(f">>>>>>>>>>>>>>>>>>>>> Noise level HIGH: {throughput}")
+        dropPacketsFromImage(image, packet_drop_rate=0.5)
     else:
-        print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> No Noise level: {throughput}")
+        print(f">>>>>>>>>>>>>>>>>>>>> No Noise level: {throughput}")
 
-    image = cv2.add(image, gaussian_noise)
-    return image
+    degraded_image = cv2.imread("/home/joaoborges/Downloads/fromBytes.png")
+
+    return degraded_image
 
 with NATSClient() as natsclient:
     # Number of trajectories to be executed
@@ -131,7 +167,7 @@ with NATSClient() as natsclient:
         
 
         caviar_tools.airsim_setpose(
-            client, caviar_config.drone_ids[0], -320.34, -198.58, 130, 0, 0, 0, 0
+            client, caviar_config.drone_ids[0], -320.34, -198.58, 128, 0, 0, 0, 0
         )
         time.sleep(0.5)
 
@@ -163,10 +199,10 @@ with NATSClient() as natsclient:
             
             if inloop:
                 if sionna_finished_runnning:
-                    client.simContinueForTime(0.10)
+                    client.simContinueForTime(1)
                     sionna_finished_runnning = False
             else:
-                client.simContinueForTime(0.10)
+                client.simContinueForTime(1)
                 # client.simPause(False)
             natsclient.wait(count=1)
             
@@ -186,14 +222,13 @@ with NATSClient() as natsclient:
                     client, caviar_config.drone_ids[0]
                 )
                 img = cv2.imdecode(airsim.string_to_uint8_array(rawimg), cv2.IMREAD_COLOR)
-                height, width, depth = img.shape
-                # img_size_bits = height * width * depth * 8 # Considering that each channel from a RGB image is represented by 8 bits color depth (0, 255)
-                # img_size_bytes = img_size_bits/1024
-                # cv2.imshow("window_name", img)
-                # print('img_size_bytes: ', img_size_bytes)
+                # cv2.imwrite("/home/joaoborges/Downloads/fromBytes.png", img)
+                # img = pil_img.open("/home/joaoborges/Downloads/fromBytes.png")
+                img = pil_img.fromarray(img)
+                height, width = img.size
 
                 img = addNoise(img, current_throughput)
-                
+
                 ## REMOVE AFTER EXPERIMENT
                 results = model.predict(source=img, classes=0, save=True, save_txt=True)  # save predictions as labels
                 try:
