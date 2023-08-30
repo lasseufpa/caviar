@@ -65,18 +65,19 @@ dropPacketsFromImage(image, 0.25)
 def applyFilter(
     image,
     packet_drop_rate,
-    output_folder="/home/joao/Downloads/fromBytes.png",
+    output_folder="/home/joaoborges/Downloads/fromBytes.png",
     rng=rng,
 ):
     height = image.shape[0]
     width = image.shape[1]
-    total_number_of_pixels = height * width * 4
+    n_channels = image.shape[2]
+    total_number_of_pixels = height * width * n_channels
     packets_to_drop = int(total_number_of_pixels * packet_drop_rate)
     dropped_package_indexes = rng.choice(
         total_number_of_pixels, packets_to_drop, replace=False
     )
     random_drop_kernel = np.ones(total_number_of_pixels)
     random_drop_kernel[dropped_package_indexes] = 0
-    random_drop_kernel = random_drop_kernel.reshape((height, width, 4))
+    random_drop_kernel = random_drop_kernel.reshape((height, width, n_channels))
     degraded_image = np.multiply(image, random_drop_kernel).astype("uint8")
     cv2.imwrite(output_folder, degraded_image)
