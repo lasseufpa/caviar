@@ -351,7 +351,7 @@ with NATSClient() as natsclient:
         print(f"Total mission time: {(airsim_timestamp-initial_timestamp)*1e-9}")
         print(f"Rescued targets: {rescued_targets}")
         np.savez(
-            "random2_mission_log.npz",
+            "mission_log.npz",
             total_mission_time=(airsim_timestamp - initial_timestamp) * 1e-9,
             rescued_targets=rescued_targets,
             simu_time_of_rescue=simu_time_of_rescue,
