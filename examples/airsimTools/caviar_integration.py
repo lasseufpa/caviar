@@ -25,8 +25,8 @@ model = YOLO("yolov8n.pt")
 #########################
 
 inloop = True
-simulation_time_step = 1
-rescue_steps = 0  # in case of a rescue, must wait for how many steps
+simulation_time_step = 0.5
+rescue_steps = 0  # in case of a rescue, must wait for how many steps (keep at zero. Value is updated during execution)
 
 sionna_finished_runnning = True
 
@@ -75,21 +75,21 @@ def get_time_for_rescue(throughput):
     The rescue will finish after transmiting 100 pictures of 4 MB (3.2e7 bits), representing
     a 4K image
     """
-    tx_max = 3.2e7 * 100
+    tx_max = 3.2e7 * 10
     time_to_tx = tx_max / (throughput)
     return time_to_tx
 
 
 def addNoise(image, throughput):
-    if throughput < 0.12 and throughput > 0.08:
+    if throughput < 0.9 and throughput > 0.06:
         # PSNR: ~26.3629 dB
         print(f">>>>>>>>>>>>>>>>>>>>> Noise level LOW: {throughput}")
         applyFilter(image, packet_drop_rate=0.01)
-    elif throughput <= 0.08 and throughput > 0.04:
+    elif throughput <= 0.06 and throughput > 0.03:
         # PSNR: ~12.3902 dB
         print(f">>>>>>>>>>>>>>>>>>>>> Noise level MEDIUM: {throughput}")
         applyFilter(image, packet_drop_rate=0.25)
-    elif throughput <= 0.04 and throughput >= 0:
+    elif throughput <= 0.03 and throughput >= 0:
         # PSNR: ~9.376 dB
         print(f">>>>>>>>>>>>>>>>>>>>> Noise level HIGH: {throughput}")
         applyFilter(image, packet_drop_rate=0.5)
@@ -217,10 +217,6 @@ with NATSClient() as natsclient:
                 img = cv2.imdecode(
                     airsim.string_to_uint8_array(rawimg), cv2.IMREAD_COLOR
                 )
-                # cv2.imwrite("/home/joaoborges/Downloads/fromBytes.png", img)
-                # img = pil_img.open("/home/joaoborges/Downloads/fromBytes.png")
-                img = pil_img.fromarray(img)
-                height, width = img.size
 
                 img = addNoise(img, current_throughput)
 
@@ -355,7 +351,7 @@ with NATSClient() as natsclient:
         print(f"Total mission time: {(airsim_timestamp-initial_timestamp)*1e-9}")
         print(f"Rescued targets: {rescued_targets}")
         np.savez(
-            "mission_log.npz",
+            "random2_mission_log.npz",
             total_mission_time=(airsim_timestamp - initial_timestamp) * 1e-9,
             rescued_targets=rescued_targets,
             simu_time_of_rescue=simu_time_of_rescue,

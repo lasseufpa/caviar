@@ -13,9 +13,9 @@ from joblib import load
 mi.set_variant("cuda_ad_rgb")
 
 save_rt_paths_as_txt = False
-save_sionna_3d_scenes_as_png = True
-plot_realtime_throughput = True
-save_all_data_as_npz = True
+save_sionna_3d_scenes_as_png = False
+plot_realtime_throughput = False
+save_all_data_as_npz = False
 
 rx_number = 1
 ################################# Configure paths ##############################
@@ -250,7 +250,7 @@ def run(current_step, new_x, new_y, new_z):
 
         if plot_realtime_throughput:
             plot_throughput(
-                int(current_step) * 1e9,
+                float(current_step),
                 best_bit_rate_Gbps * int(1e3),
                 predicted_bit_rate_Gbps * int(1e3),
                 random_bit_rate_Gbps * int(1e3),
@@ -280,8 +280,8 @@ def run(current_step, new_x, new_y, new_z):
 
     del paths  # deallocation of memory
 
+    # return best_bit_rate_Gbps
     return random_bit_rate_Gbps
-    # return random_bit_rate_Gbps
 
 
 if __name__ == "__main__":
