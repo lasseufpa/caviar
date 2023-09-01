@@ -72,8 +72,8 @@ def get_time_for_rescue(throughput):
     This function calculates the time for transmit them all and finish
     the rescue.
 
-    The rescue will finish after transmiting 100 pictures of 4 MB (3.2e7 bits), representing
-    a 4K image
+    The rescue will finish after transmiting 10 pictures of 4 MB (3.2e7 bits), 
+    with 4 MB representing the size of a 4K image
     """
     tx_max = 3.2e7 * 10
     time_to_tx = tx_max / (throughput)
