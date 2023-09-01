@@ -28,7 +28,7 @@ inloop = True
 simulation_time_step = 0.5
 rescue_steps = 0  # in case of a rescue, must wait for how many steps (keep at zero. Value is updated during execution)
 
-sionna_finished_runnning = True
+sionna_finished_running = True
 
 current_throughput = 0
 
@@ -126,8 +126,8 @@ with NATSClient() as natsclient:
     natsclient.connect()
 
     def callback(msg):
-        global sionna_finished_runnning
-        sionna_finished_runnning = True
+        global sionna_finished_running
+        sionna_finished_running = True
 
     def updateThroughput(msg):
         global current_throughput
@@ -192,13 +192,13 @@ with NATSClient() as natsclient:
             start_time = time.time()
 
             if inloop:
-                if sionna_finished_runnning:
+                if sionna_finished_running:
                     client.simContinueForTime(simulation_time_step)
-                    sionna_finished_runnning = False
+                    sionna_finished_running = False
             else:
                 client.simContinueForTime(simulation_time_step)
                 # client.simPause(False)
-            natsclient.wait(count=1)
+            natsclient.wait(count=2)
 
             # Get information about each UAV in the configuration file (caviar_config.py)
             for uav in caviar_config.drone_ids:

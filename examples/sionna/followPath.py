@@ -55,4 +55,5 @@ with NATSClient() as natsclient:
     )
 
     natsclient.publish(subject="communications.state", payload=b"Ready")
+    natsclient.publish(subject="communications.throughput", payload=b'{"throughput":"0"}')
     natsclient.wait(count=total_ues)
