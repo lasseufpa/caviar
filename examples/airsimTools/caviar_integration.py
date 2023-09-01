@@ -8,7 +8,6 @@ from pynats import NATSClient
 import json
 import numpy as np
 import airsim
-from PIL import Image as pil_img
 
 
 def convertPositionFromAirSimToSionna(x, y, z):
@@ -27,6 +26,7 @@ model = YOLO("yolov8n.pt")
 inloop = True
 simulation_time_step = 0.5
 rescue_steps = 0  # in case of a rescue, must wait for how many steps (keep at zero. Value is updated during execution)
+reached_waypoint = False
 
 sionna_finished_running = True
 
@@ -287,14 +287,15 @@ with NATSClient() as natsclient:
                         + str(time.time() - initial_time)
                         + "s"
                     )
-                # Verify actual position
-                if caviar_tools.has_uav_arrived(
+                # Check if is reaching or already reached a waypoint
+                if (caviar_tools.has_uav_arrived(
                     client,
                     uav,
                     path_list[actualWaypoint][0],
                     path_list[actualWaypoint][1],
                     path_list[actualWaypoint][2],
-                ):
+                ) or reached_waypoint):
+                    reached_waypoint = True
                     if rescue_steps == 0:
                         # Must start rescue
                         if person_to_be_rescued:
@@ -314,6 +315,9 @@ with NATSClient() as natsclient:
                                 path_list[actualWaypoint][1],
                                 path_list[actualWaypoint][2],
                             )
+
+                            reached_waypoint = False
+
                             print(actualWaypoint)
 
                             if actualWaypoint == (len(path_list) - 7):
