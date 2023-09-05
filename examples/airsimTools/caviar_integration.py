@@ -41,6 +41,7 @@ simu_pose_of_rescue = []
 throughputs_during_rescue = []
 times_waited_during_rescue = []
 
+is_rescue_mission = True 
 person_to_be_rescued = False
 
 rng = np.random.default_rng(1)
@@ -148,6 +149,17 @@ with NATSClient() as natsclient:
 
         isFinished = False
 
+        # Read paths
+        path_list = []
+
+        with open(
+            os.path.join(trajectories_files, "path" + str(episode) + ".csv")
+        ) as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=",")
+            csv_reader.__next__()
+            for row in csv_reader:
+                path_list.append([float(row[0]), float(row[1]), float(row[2])])
+
         # Delay between episodes to avoid crashs
         time.sleep(1)
 
@@ -159,7 +171,7 @@ with NATSClient() as natsclient:
         caviar_tools.airsim_reset(client)
 
         caviar_tools.airsim_setpose(
-            client, caviar_config.drone_ids[0], -320.34, -206.58, 128, 0, 0, 0, 0
+            client, caviar_config.drone_ids[0], float(path_list[0][0]), float(path_list[0][1]), float(path_list[0][2]), 0, 0, 0, 0
         )
         time.sleep(0.5)
 
@@ -171,18 +183,9 @@ with NATSClient() as natsclient:
         caviar_tools.airsim_takeoff_all(client)
         time.sleep(1)
         caviar_tools.move_to_point(
-            client, caviar_config.drone_ids[0], -320.34, -206.58, 128, 10
+            client, caviar_config.drone_ids[0], float(path_list[0][0]), float(path_list[0][1]), float(path_list[0][2]), 10
         )
 
-        path_list = []
-
-        with open(
-            os.path.join(trajectories_files, "path" + str(episode) + ".csv")
-        ) as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=",")
-            csv_reader.__next__()
-            for row in csv_reader:
-                path_list.append([float(row[0]), float(row[1]), float(row[2])])
         actualWaypoint = 0
 
         # Pause the simulation
@@ -252,7 +255,8 @@ with NATSClient() as natsclient:
                                 uav_pose[0], uav_pose[1], uav_pose[2]
                             )
                         )
-                        person_to_be_rescued = True
+                        if is_rescue_mission:
+                            person_to_be_rescued = True
                 except:
                     print("NO DETECTION")
                 #########################
