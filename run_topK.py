@@ -25,8 +25,15 @@ def getTopK(topK, dataset):
 import numpy as np
 import os
 
+training = False
+
 current_dir = os.getcwd()
-output_filename = os.path.join(current_dir, "allruns_v3.npz")
+
+if training:
+    output_filename = os.path.join(current_dir, "allruns_v4.npz")
+else:
+    output_filename = os.path.join(current_dir, "test_set.npz")
+
 caviar_output = np.load(output_filename, allow_pickle=True)
 
 rx_current_position = caviar_output["rx_current_position"]
@@ -42,10 +49,17 @@ topk_pairs_per_scene = getTopK(k, equivalentChannelMagnitudes)
 
 best_ray_true = [str([ray[0][0], ray[0][1]]) for ray in best_ray]
 
-from sklearn.preprocessing import LabelEncoder
+if training:
+    from sklearn.preprocessing import LabelEncoder
+    enc = LabelEncoder()
+    enc.fit(possible_beam_pairs)
 
-enc = LabelEncoder()
-enc.fit(possible_beam_pairs)
+    from joblib import dump
+    dump(enc, "trained_encoder_v5.joblib")
+else:
+    from joblib import load
+    enc = load("trained_encoder_v5.joblib")
+
 encoded_best_ray = enc.transform(best_ray_true)
 
 top3 = np.array(enc.transform(topk_pairs_per_scene[:, -3:].flatten())).reshape(
@@ -74,64 +88,86 @@ number_of_classes = enc.classes_.shape[0]
 from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 
-rx_current_position, encoded_best_ray, top3, top5, top10, top25, top50, top75, top100 = shuffle(
-    rx_current_position,
-    encoded_best_ray,
-    top3,
-    top5,
-    top10,
-    top25,
-    top50,
-    top75,
-    top100,
-    random_state=1,
-)
+if training:
+    rx_current_position, encoded_best_ray, top3, top5, top10, top25, top50, top75, top100 = shuffle(
+        rx_current_position,
+        encoded_best_ray,
+        top3,
+        top5,
+        top10,
+        top25,
+        top50,
+        top75,
+        top100,
+        random_state=1,
+    )
 
-(
-    X_train,
-    X_test,
-    y_train,
-    y_test,
-    top3_train,
-    top3_test,
-    top5_train,
-    top5_test,
-    top10_train,
-    top10_test,
-    top25_train,
-    top25_test,
-    top50_train,
-    top50_test,
-    top75_train,
-    top75_test,
-    top100_train,
-    top100_test,
-) = train_test_split(
-    rx_current_position,
-    encoded_best_ray,
-    top3,
-    top5,
-    top10,
-    top25,
-    top50,
-    top75,
-    top100,
-    test_size=0.3,
-    random_state=1,
-    shuffle=False,
-)
+    (
+        X_train,
+        X_test,
+        y_train,
+        y_test,
+        top3_train,
+        top3_test,
+        top5_train,
+        top5_test,
+        top10_train,
+        top10_test,
+        top25_train,
+        top25_test,
+        top50_train,
+        top50_test,
+        top75_train,
+        top75_test,
+        top100_train,
+        top100_test,
+    ) = train_test_split(
+        rx_current_position,
+        encoded_best_ray,
+        top3,
+        top5,
+        top10,
+        top25,
+        top50,
+        top75,
+        top100,
+        test_size=0.3,
+        random_state=1,
+        shuffle=False,
+    )
+else:
+    X_test, y_test, top3_test, top5_test, top10_test, top25_test, top50_test, top75_test, top100_test = shuffle(
+        rx_current_position,
+        encoded_best_ray,
+        top3,
+        top5,
+        top10,
+        top25,
+        top50,
+        top75,
+        top100,
+        random_state=1,
+    )
 
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.neural_network import MLPClassifier
 
-clf = DecisionTreeClassifier(random_state=0)
-# clf = RandomForestClassifier(
-#     n_estimators=200
-# )  # 76.21% top-1 accuracy (test set) | 98.647% top-1 accuracy (train set)
-# clf = MLPClassifier(random_state=1, hidden_layer_sizes=(64), max_iter=300)  # 45.55%
+if training:
+    from sklearn.tree import DecisionTreeClassifier
+    from sklearn.ensemble import RandomForestClassifier
+    from sklearn.neural_network import MLPClassifier
 
-clf.fit(X_train, y_train)
+    clf = DecisionTreeClassifier(random_state=0, max_depth=15)
+    # clf = RandomForestClassifier(
+    #     n_estimators=200
+    # )  # 76.21% top-1 accuracy (test set) | 98.647% top-1 accuracy (train set)
+    # clf = MLPClassifier(random_state=1, hidden_layer_sizes=(64), max_iter=300)  # 45.55%
+
+    clf.fit(X_train, y_train)
+
+    dump(clf, "trained_model_v5.joblib")
+else:
+    clf = load("trained_model_v5.joblib")
+
+
 y_pred = clf.predict(X_test)
 
 from sklearn.metrics import classification_report, accuracy_score
@@ -176,11 +212,6 @@ print(f"Top-50 accuracy: {(is_top50.count(True)/len(y_pred))*100} %")
 print(f"Top-75 accuracy: {(is_top75.count(True)/len(y_pred))*100} %")
 print(f"Top-100 accuracy: {(is_top100.count(True)/len(y_pred))*100} %")
 
-from joblib import dump
-
-dump(clf, "trained_model.joblib")
-dump(enc, "trained_encoder.joblib")
-
 print(f'clf.get_depth(): {clf.get_depth()}')
 
 import matplotlib.pyplot as plt
@@ -198,6 +229,64 @@ plt.ylim(top1_acc, 100)
 plt.xlabel("K values")
 plt.ylabel("Accuracy (%)")
 plt.savefig("a.png")
+
+################################## Sionna v0.15.1
+# NLOS: 1964 elements (alias v4)
+
+# train/test allruns_v4
+# Accuracy: 69.83050847457626 %
+# Top-1 accuracy: 69.83050847457626 %
+# Top-3 accuracy: 79.3220338983051 %
+# Top-5 accuracy: 82.20338983050848 %
+# Top-10 accuracy: 84.40677966101696 %
+# Top-25 accuracy: 86.10169491525423 %
+# Top-50 accuracy: 89.32203389830508 %
+# Top-75 accuracy: 90.67796610169492 %
+# Top-100 accuracy: 92.03389830508475 %
+# clf.get_depth(): 15
+
+
+# test test_set (SAR path)
+# Accuracy: 3.6458333333333335 %
+# Top-1 accuracy: 3.6458333333333335 %
+# Top-3 accuracy: 12.5 %
+# Top-5 accuracy: 18.229166666666664 %
+# Top-10 accuracy: 24.479166666666664 %
+# Top-25 accuracy: 35.41666666666667 %
+# Top-50 accuracy: 42.1875 %
+# Top-75 accuracy: 48.4375 %
+# Top-100 accuracy: 54.6875 %
+# clf.get_depth(): 15
+
+################################## Sionna v0.15.1
+# NLOS: 1964 elements (alias v4)
+
+# train/test allruns_v4
+
+# Accuracy: 86.77966101694915 %
+# Top-1 accuracy: 86.77966101694915 %
+# Top-3 accuracy: 95.9322033898305 %
+# Top-5 accuracy: 96.94915254237289 %
+# Top-10 accuracy: 97.96610169491525 %
+# Top-25 accuracy: 98.47457627118644 %
+# Top-50 accuracy: 98.64406779661017 %
+# Top-75 accuracy: 98.8135593220339 %
+# Top-100 accuracy: 98.98305084745763 %
+# clf.get_depth(): 25
+
+
+# test test_set (SAR path)
+# Accuracy: 2.604166666666667 %
+# Top-1 accuracy: 2.604166666666667 %
+# Top-3 accuracy: 10.416666666666668 %
+# Top-5 accuracy: 15.625 %
+# Top-10 accuracy: 21.354166666666664 %
+# Top-25 accuracy: 30.729166666666668 %
+# Top-50 accuracy: 40.10416666666667 %
+# Top-75 accuracy: 55.729166666666664 %
+# Top-100 accuracy: 69.27083333333334 %
+# clf.get_depth(): 25
+
 ################################## Sionna v0.15.1
 # NLOS: 1313 elements (alias v3)
 
