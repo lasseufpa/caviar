@@ -3,7 +3,7 @@ import os
 
 current_dir = os.getcwd()
 
-mission_log_names = ["oracle", "random"]
+mission_log_names = ["no-rescue", "oracle", "oracle2", "random", "random2"]
 
 for name in mission_log_names:
     output_filename = os.path.join(current_dir, f"{name}_mission_log.npz")
@@ -22,3 +22,7 @@ for name in mission_log_names:
     print(f'simu_time_of_rescue: {simu_time_of_rescue} seconds')
     print(f'throughputs_during_rescue: {throughputs_during_rescue} Gbps')
     print(f'times_waited_during_rescue: {times_waited_during_rescue} seconds\n')
+    
+    # sample_rate = 500ms
+    # random2 took 1382.662841796875s clocktime
+    # no-rescue took 376.13818311691284s clocktime

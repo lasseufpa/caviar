@@ -46,8 +46,21 @@ def readPaths(path):
 #         readPaths(os.path.join(trajectories_files, "path" + str(path_id) + ".csv"))
 #     )
 
-test_list = [[-297,202],[-247,176],[-197,156],[-124,110]]
+test_list = [
+[-360,-233.0,128],
+[-333,-218.15,128],
+[-223,-157.65,128],
+[-70,-73.5,128],
+[-40,-128.05,128],
+[-70,-73.5,128],
+[-19,-45.45,128],
+[23,-22.35,128],
+[120,31.0,128],
+[150,-23.55,128],
+[120,31.0,128],
+[300,130.0,128],
+]
 
 for coordinate in test_list:
-    r = convertPositionFromSionnaToAirSim(coordinate[0],coordinate[1],0)
+    r = convertPositionFromAirSimToSionna(coordinate[0],coordinate[1],0)
     print(r)
