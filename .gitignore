@@ -134,7 +134,6 @@ caviar
 # Ignore outputs
 runs
 
-examples/airsimTools/waypoints/trajectories
 
 *.npz
 

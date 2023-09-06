@@ -9,6 +9,8 @@ import json
 import numpy as np
 import airsim
 
+rng = np.random.default_rng(1)
+
 
 def convertPositionFromAirSimToSionna(x, y, z):
     # Sionna coordinates for AirSim PlayerStart position (AirSim's origin point)
@@ -24,27 +26,23 @@ model = YOLO("yolov8n.pt")
 #########################
 
 inloop = True
+is_rescue_mission = True
 simulation_time_step = 0.5
-rescue_steps = 0  # in case of a rescue, must wait for how many steps (keep at zero. Value is updated during execution)
-reached_waypoint = False
-
-sionna_finished_running = True
-
-current_throughput = 0
-
 save_multimodal = False
 
+########## INITIALIZATION OF VARIABLES (DO NOT CHANGE THE VALUES) ########
+rescue_steps = 0  # in case of a rescue, indicates for how many steps the UAV must wait (keep at zero. Value is updated during execution)
+reached_waypoint = False
+sionna_finished_running = True
+current_throughput = 0
 rescued_targets = 0
+person_to_be_rescued = False
+###########################################################
 
 simu_time_of_rescue = []
 simu_pose_of_rescue = []
 throughputs_during_rescue = []
 times_waited_during_rescue = []
-
-is_rescue_mission = True 
-person_to_be_rescued = False
-
-rng = np.random.default_rng(1)
 
 
 def applyFilter(
@@ -141,6 +139,7 @@ with NATSClient() as natsclient:
     natsclient.subscribe(subject="communications.state", callback=callback)
     natsclient.subscribe(subject="communications.throughput", callback=updateThroughput)
 
+    # for episode in range(4, n_trajectories):
     for episode in range(n_trajectories):
         print("Episode: " + str(episode))
 
@@ -239,9 +238,13 @@ with NATSClient() as natsclient:
                         rescue_time = get_time_for_rescue(current_throughput * 1e9)
                         throughputs_during_rescue.append(current_throughput)
                         times_waited_during_rescue.append(rescue_time)
-                        client.simDestroyObject(
+                        rescue_state = client.simDestroyObject(
                             caviar_config.pedestrians[actualWaypoint - 1]
                         )
+                        if rescue_state == False:
+                            client.simDestroyObject(
+                                caviar_config.pedestrians[actualWaypoint]
+                            )
                         print(
                             f"@@@@@@@ get_time_for_rescue(current_throughput): {rescue_time}"
                         )
@@ -269,7 +272,7 @@ with NATSClient() as natsclient:
                     + b'"'
                     + b',"timestamp":'
                     + b'"'
-                    + str((airsim_timestamp - initial_timestamp) * 1e-9).encode()
+                    + str((airsim_timestamp) * 1e-9).encode()
                     + b'"'
                     + b',"position": {"x":'
                     + str(uav_pose[0]).encode()
@@ -324,7 +327,7 @@ with NATSClient() as natsclient:
 
                             print(actualWaypoint)
 
-                            if actualWaypoint == (len(path_list) - 7):
+                            if actualWaypoint == (len(path_list) - 5):
                                 client.simPause(False)
                                 caviar_tools.airsim_land_all(client)
                                 isFinished = True

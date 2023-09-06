@@ -3,7 +3,7 @@ import os
 
 current_dir = os.getcwd()
 
-mission_log_names = ["no-rescue", "oracle", "oracle2", "random", "random2"]
+mission_log_names = ["no-rescue", "oracle", "dec-tree", "random", ]
 
 for name in mission_log_names:
     output_filename = os.path.join(current_dir, f"{name}_mission_log.npz")

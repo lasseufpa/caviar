@@ -372,8 +372,8 @@ def addPedestriansOnPath(client, path):
             path_list.append(
                 airsim.Vector3r(float(column[0]), float(column[1]), float(135.81))
             )
-    if len(path_list) - 2 != len(caviar_config.pedestrians):
-        print("The number of pedestrian objects and waypoints should be equal")
+    if len(path_list) - 2 > len(caviar_config.pedestrians):
+        print("The number of pedestrian objects should be lower than of number of waypoints")
     else:
         # client.enableApiControl(True, uav)
         for i in range(len(caviar_config.pedestrians)):

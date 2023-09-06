@@ -26,13 +26,15 @@ import numpy as np
 import os
 
 training = False
+# training = True
+current_version = 7
 
 current_dir = os.getcwd()
 
 if training:
-    output_filename = os.path.join(current_dir, "allruns_v4.npz")
+    output_filename = os.path.join(current_dir, "allruns_v"+str(current_version)+".npz")
 else:
-    output_filename = os.path.join(current_dir, "test_set.npz")
+    output_filename = os.path.join(current_dir, "new_test_set4.npz")
 
 caviar_output = np.load(output_filename, allow_pickle=True)
 
@@ -55,10 +57,10 @@ if training:
     enc.fit(possible_beam_pairs)
 
     from joblib import dump
-    dump(enc, "trained_encoder_v5.joblib")
+    dump(enc, "trained_encoder_v"+str(current_version)+".joblib")
 else:
     from joblib import load
-    enc = load("trained_encoder_v5.joblib")
+    enc = load("trained_encoder_v"+str(current_version)+".joblib")
 
 encoded_best_ray = enc.transform(best_ray_true)
 
@@ -154,8 +156,18 @@ if training:
     from sklearn.tree import DecisionTreeClassifier
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.neural_network import MLPClassifier
-
+    # v7
+    # max_depth=10 52.21% | 3.44% 
+    # max_depth=14 68.40% | 8.04% 
+    # max_depth=15 70.49% | 13.79% (BEST)
+    # max_depth=16 73.36% | 8.04% 
+    # max_depth=17 75.39% | 6.32% 
+    # v6
+    # max_depth=18 73.73% | 11.49% (BEST)
+    # max_depth=19 74.8%  | 3.4% 
+    # max_depth=20 78%    | 4%
     clf = DecisionTreeClassifier(random_state=0, max_depth=15)
+    # clf = DecisionTreeClassifier(random_state=0)
     # clf = RandomForestClassifier(
     #     n_estimators=200
     # )  # 76.21% top-1 accuracy (test set) | 98.647% top-1 accuracy (train set)
@@ -163,9 +175,9 @@ if training:
 
     clf.fit(X_train, y_train)
 
-    dump(clf, "trained_model_v5.joblib")
+    dump(clf, "trained_model_v"+str(current_version)+".joblib")
 else:
-    clf = load("trained_model_v5.joblib")
+    clf = load("trained_model_v"+str(current_version)+".joblib")
 
 
 y_pred = clf.predict(X_test)
@@ -223,7 +235,7 @@ plt.plot([1, 3, 5, 10, 25, 50, 75, 100], [top1_acc,top3_acc,top5_acc,top10_acc, 
 plt.grid(True)
 plt.xticks([1, 25, 50, 75, 100])
 
-plt.yticks(np.arange(round(top1_acc, 2), 100, 0.5))
+# plt.yticks(np.arange(round(top1_acc, 2), 100, 0.5))
 plt.xlim(1, 100)
 plt.ylim(top1_acc, 100)
 plt.xlabel("K values")
@@ -231,7 +243,88 @@ plt.ylabel("Accuracy (%)")
 plt.savefig("a.png")
 
 ################################## Sionna v0.15.1
-# NLOS: 1964 elements (alias v4)
+# NLOS: 1274 elements (alias v7) (removing three outlier beams indexes)
+# Accuracy: 70.49608355091384 %
+# Top-1 accuracy: 70.49608355091384 %
+# Top-3 accuracy: 83.5509138381201 %
+# Top-5 accuracy: 85.37859007832898 %
+# Top-10 accuracy: 86.42297650130548 %
+# Top-25 accuracy: 89.55613577023499 %
+# Top-50 accuracy: 92.16710182767625 %
+# Top-75 accuracy: 95.03916449086162 %
+# Top-100 accuracy: 95.822454308094 %
+# clf.get_depth(): 15
+
+# test new_test_set4 (SAR path)
+# Accuracy: 38.582677165354326 %
+# Top-1 accuracy: 38.582677165354326 %
+# Top-3 accuracy: 55.118110236220474 %
+# Top-5 accuracy: 60.629921259842526 %
+# Top-10 accuracy: 63.77952755905512 %
+# Top-25 accuracy: 68.50393700787401 %
+# Top-50 accuracy: 77.16535433070865 %
+# Top-75 accuracy: 84.25196850393701 %
+# Top-100 accuracy: 85.03937007874016 %
+# clf.get_depth(): 15
+
+################################## Sionna v0.15.1
+# NLOS: 1444 elements (alias v7)
+
+# train/test allruns_v7
+# Accuracy: 70.49608355091384 %
+# Top-1 accuracy: 70.49608355091384 %
+# Top-3 accuracy: 83.5509138381201 %
+# Top-5 accuracy: 85.37859007832898 %
+# Top-10 accuracy: 86.42297650130548 %
+# Top-25 accuracy: 89.55613577023499 %
+# Top-50 accuracy: 92.16710182767625 %
+# Top-75 accuracy: 95.03916449086162 %
+# Top-100 accuracy: 95.822454308094 %
+# clf.get_depth(): 15
+
+
+# test test_set (SAR path)
+# Accuracy: 13.793103448275861 %
+# Top-1 accuracy: 13.793103448275861 %
+# Top-3 accuracy: 23.563218390804597 %
+# Top-5 accuracy: 28.160919540229884 %
+# Top-10 accuracy: 33.33333333333333 %
+# Top-25 accuracy: 40.804597701149426 %
+# Top-50 accuracy: 50.0 %
+# Top-75 accuracy: 62.643678160919535 %
+# Top-100 accuracy: 71.26436781609196 %
+# clf.get_depth(): 15
+
+################################## Sionna v0.15.1
+# NLOS: 1444 elements (alias v6)
+
+# train/test allruns_v6
+# Accuracy: 76.95852534562212 %
+# Top-1 accuracy: 76.95852534562212 %
+# Top-3 accuracy: 92.16589861751152 %
+# Top-5 accuracy: 94.47004608294931 %
+# Top-10 accuracy: 96.31336405529954 %
+# Top-25 accuracy: 96.7741935483871 %
+# Top-50 accuracy: 97.6958525345622 %
+# Top-75 accuracy: 97.6958525345622 %
+# Top-100 accuracy: 97.6958525345622 %
+# clf.get_depth(): 26
+
+
+# test test_set (SAR path)
+# Accuracy: 4.6875 %
+# Top-1 accuracy: 4.6875 %
+# Top-3 accuracy: 11.458333333333332 %
+# Top-5 accuracy: 17.1875 %
+# Top-10 accuracy: 23.4375 %
+# Top-25 accuracy: 35.9375 %
+# Top-50 accuracy: 43.75 %
+# Top-75 accuracy: 60.9375 %
+# Top-100 accuracy: 71.875 %
+# clf.get_depth(): 26
+
+################################## Sionna v0.15.1
+# NLOS: 1964 elements (alias v5)
 
 # train/test allruns_v4
 # Accuracy: 69.83050847457626 %
