@@ -95,7 +95,7 @@ plt.plot(
         top100_acc_train,
     ],
     marker="x",
-    label="Train",
+    label="Test set",
 )
 
 plt.plot(

@@ -71,7 +71,7 @@ def get_time_for_rescue(throughput):
     This function calculates the time for transmit them all and finish
     the rescue.
 
-    The rescue will finish after transmiting 10 pictures of 4 MB (3.2e7 bits), 
+    The rescue will finish after transmiting 10 pictures of 4 MB (3.2e7 bits),
     with 4 MB representing the size of a 4K image
     """
     tx_max = 3.2e7 * 10
@@ -80,7 +80,7 @@ def get_time_for_rescue(throughput):
 
 
 def addNoise(image, throughput):
-    if throughput < 0.9 and throughput > 0.06:
+    if throughput < 0.09 and throughput > 0.06:
         # PSNR: ~26.3629 dB
         print(f">>>>>>>>>>>>>>>>>>>>> Noise level LOW: {throughput}")
         applyFilter(image, packet_drop_rate=0.01)
@@ -170,7 +170,15 @@ with NATSClient() as natsclient:
         caviar_tools.airsim_reset(client)
 
         caviar_tools.airsim_setpose(
-            client, caviar_config.drone_ids[0], float(path_list[0][0]), float(path_list[0][1]), float(path_list[0][2]), 0, 0, 0, 0
+            client,
+            caviar_config.drone_ids[0],
+            float(path_list[0][0]),
+            float(path_list[0][1]),
+            float(path_list[0][2]),
+            0,
+            0,
+            0,
+            0,
         )
         time.sleep(0.5)
 
@@ -182,7 +190,12 @@ with NATSClient() as natsclient:
         caviar_tools.airsim_takeoff_all(client)
         time.sleep(1)
         caviar_tools.move_to_point(
-            client, caviar_config.drone_ids[0], float(path_list[0][0]), float(path_list[0][1]), float(path_list[0][2]), 10
+            client,
+            caviar_config.drone_ids[0],
+            float(path_list[0][0]),
+            float(path_list[0][1]),
+            float(path_list[0][2]),
+            10,
         )
 
         actualWaypoint = 0
@@ -295,13 +308,16 @@ with NATSClient() as natsclient:
                         + "s"
                     )
                 # Check if is reaching or already reached a waypoint
-                if (caviar_tools.has_uav_arrived(
-                    client,
-                    uav,
-                    path_list[actualWaypoint][0],
-                    path_list[actualWaypoint][1],
-                    path_list[actualWaypoint][2],
-                ) or reached_waypoint):
+                if (
+                    caviar_tools.has_uav_arrived(
+                        client,
+                        uav,
+                        path_list[actualWaypoint][0],
+                        path_list[actualWaypoint][1],
+                        path_list[actualWaypoint][2],
+                    )
+                    or reached_waypoint
+                ):
                     reached_waypoint = True
                     if rescue_steps == 0:
                         # Must start rescue
