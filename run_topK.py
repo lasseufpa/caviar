@@ -14,8 +14,12 @@ def getTopK(topK, dataset):
         # appends a list containing the indices of the k highest values in crescent order
         output.append(
             [
-                str([np.argwhere(k == channel_magnitudes_in_scene)[0][0],
-                     np.argwhere(k == channel_magnitudes_in_scene)[0][1]])
+                str(
+                    [
+                        np.argwhere(k == channel_magnitudes_in_scene)[0][0],
+                        np.argwhere(k == channel_magnitudes_in_scene)[0][1],
+                    ]
+                )
                 for k in biggest_channel_magnitudes_in_scene[-topK:]
             ]
         )
@@ -32,7 +36,9 @@ current_version = 7
 current_dir = os.getcwd()
 
 if training:
-    output_filename = os.path.join(current_dir, "allruns_v"+str(current_version)+".npz")
+    output_filename = os.path.join(
+        current_dir, "allruns_v" + str(current_version) + ".npz"
+    )
 else:
     output_filename = os.path.join(current_dir, "new_test_set4.npz")
 
@@ -53,22 +59,43 @@ best_ray_true = [str([ray[0][0], ray[0][1]]) for ray in best_ray]
 
 if training:
     from sklearn.preprocessing import LabelEncoder
+
     enc = LabelEncoder()
     enc.fit(possible_beam_pairs)
 
     from joblib import dump
-    dump(enc, "trained_encoder_v"+str(current_version)+".joblib")
+
+    dump(enc, "trained_encoder_v" + str(current_version) + ".joblib")
 else:
     from joblib import load
-    enc = load("trained_encoder_v"+str(current_version)+".joblib")
+
+    enc = load("trained_encoder_v" + str(current_version) + ".joblib")
 
 encoded_best_ray = enc.transform(best_ray_true)
 
+top2 = np.array(enc.transform(topk_pairs_per_scene[:, -2:].flatten())).reshape(
+    topk_pairs_per_scene.shape[0], 2
+)
 top3 = np.array(enc.transform(topk_pairs_per_scene[:, -3:].flatten())).reshape(
     topk_pairs_per_scene.shape[0], 3
 )
+top4 = np.array(enc.transform(topk_pairs_per_scene[:, -4:].flatten())).reshape(
+    topk_pairs_per_scene.shape[0], 4
+)
 top5 = np.array(enc.transform(topk_pairs_per_scene[:, -5:].flatten())).reshape(
     topk_pairs_per_scene.shape[0], 5
+)
+top6 = np.array(enc.transform(topk_pairs_per_scene[:, -6:].flatten())).reshape(
+    topk_pairs_per_scene.shape[0], 6
+)
+top7 = np.array(enc.transform(topk_pairs_per_scene[:, -7:].flatten())).reshape(
+    topk_pairs_per_scene.shape[0], 7
+)
+top8 = np.array(enc.transform(topk_pairs_per_scene[:, -8:].flatten())).reshape(
+    topk_pairs_per_scene.shape[0], 8
+)
+top9 = np.array(enc.transform(topk_pairs_per_scene[:, -9:].flatten())).reshape(
+    topk_pairs_per_scene.shape[0], 9
 )
 top10 = np.array(enc.transform(topk_pairs_per_scene[:, -10:].flatten())).reshape(
     topk_pairs_per_scene.shape[0], 10
@@ -91,11 +118,33 @@ from sklearn.model_selection import train_test_split
 from sklearn.utils import shuffle
 
 if training:
-    rx_current_position, encoded_best_ray, top3, top5, top10, top25, top50, top75, top100 = shuffle(
+    (
         rx_current_position,
         encoded_best_ray,
+        top2,
         top3,
+        top4,
         top5,
+        top6,
+        top7,
+        top8,
+        top9,
+        top10,
+        top25,
+        top50,
+        top75,
+        top100,
+    ) = shuffle(
+        rx_current_position,
+        encoded_best_ray,
+        top2,
+        top3,
+        top4,
+        top5,
+        top6,
+        top7,
+        top8,
+        top9,
         top10,
         top25,
         top50,
@@ -109,10 +158,22 @@ if training:
         X_test,
         y_train,
         y_test,
+        top2_train,
+        top2_test,
         top3_train,
         top3_test,
+        top4_train,
+        top4_test,
         top5_train,
         top5_test,
+        top6_train,
+        top6_test,
+        top7_train,
+        top7_test,
+        top8_train,
+        top8_test,
+        top9_train,
+        top9_test,
         top10_train,
         top10_test,
         top25_train,
@@ -126,8 +187,14 @@ if training:
     ) = train_test_split(
         rx_current_position,
         encoded_best_ray,
+        top2,
         top3,
+        top4,
         top5,
+        top6,
+        top7,
+        top8,
+        top9,
         top10,
         top25,
         top50,
@@ -138,11 +205,33 @@ if training:
         shuffle=False,
     )
 else:
-    X_test, y_test, top3_test, top5_test, top10_test, top25_test, top50_test, top75_test, top100_test = shuffle(
+    (
+        X_test,
+        y_test,
+        top2_test,
+        top3_test,
+        top4_test,
+        top5_test,
+        top6_test,
+        top7_test,
+        top8_test,
+        top9_test,
+        top10_test,
+        top25_test,
+        top50_test,
+        top75_test,
+        top100_test,
+    ) = shuffle(
         rx_current_position,
         encoded_best_ray,
+        top2,
         top3,
+        top4,
         top5,
+        top6,
+        top7,
+        top8,
+        top9,
         top10,
         top25,
         top50,
@@ -156,15 +245,16 @@ if training:
     from sklearn.tree import DecisionTreeClassifier
     from sklearn.ensemble import RandomForestClassifier
     from sklearn.neural_network import MLPClassifier
+
     # v7
-    # max_depth=10 52.21% | 3.44% 
-    # max_depth=14 68.40% | 8.04% 
+    # max_depth=10 52.21% | 3.44%
+    # max_depth=14 68.40% | 8.04%
     # max_depth=15 70.49% | 13.79% (BEST)
-    # max_depth=16 73.36% | 8.04% 
-    # max_depth=17 75.39% | 6.32% 
+    # max_depth=16 73.36% | 8.04%
+    # max_depth=17 75.39% | 6.32%
     # v6
     # max_depth=18 73.73% | 11.49% (BEST)
-    # max_depth=19 74.8%  | 3.4% 
+    # max_depth=19 74.8%  | 3.4%
     # max_depth=20 78%    | 4%
     clf = DecisionTreeClassifier(random_state=0, max_depth=15)
     # clf = DecisionTreeClassifier(random_state=0)
@@ -175,9 +265,9 @@ if training:
 
     clf.fit(X_train, y_train)
 
-    dump(clf, "trained_model_v"+str(current_version)+".joblib")
+    dump(clf, "trained_model_v" + str(current_version) + ".joblib")
 else:
-    clf = load("trained_model_v"+str(current_version)+".joblib")
+    clf = load("trained_model_v" + str(current_version) + ".joblib")
 
 
 y_pred = clf.predict(X_test)
@@ -189,8 +279,14 @@ print(f"Accuracy: {accuracy_score(y_test, y_pred)*100} %")
 
 # Now calculate the topK accuracy
 is_top1 = []
+is_top2 = []
 is_top3 = []
+is_top4 = []
 is_top5 = []
+is_top6 = []
+is_top7 = []
+is_top8 = []
+is_top9 = []
 is_top10 = []
 is_top25 = []
 is_top50 = []
@@ -198,49 +294,79 @@ is_top75 = []
 is_top100 = []
 for idx, pred in enumerate(y_pred):
     is_top1.append(pred == y_test[idx])
+    is_top2.append(pred in top2_test[idx])
     is_top3.append(pred in top3_test[idx])
+    is_top4.append(pred in top4_test[idx])
     is_top5.append(pred in top5_test[idx])
+    is_top6.append(pred in top6_test[idx])
+    is_top7.append(pred in top7_test[idx])
+    is_top8.append(pred in top8_test[idx])
+    is_top9.append(pred in top9_test[idx])
     is_top10.append(pred in top10_test[idx])
     is_top25.append(pred in top25_test[idx])
     is_top50.append(pred in top50_test[idx])
     is_top75.append(pred in top75_test[idx])
     is_top100.append(pred in top100_test[idx])
 
-top1_acc = (is_top1.count(True)/len(y_pred))*100
-top3_acc = (is_top3.count(True)/len(y_pred))*100
-top5_acc = (is_top5.count(True)/len(y_pred))*100
-top10_acc = (is_top10.count(True)/len(y_pred))*100
-top25_acc = (is_top25.count(True)/len(y_pred))*100
-top50_acc = (is_top50.count(True)/len(y_pred))*100
-top75_acc = (is_top75.count(True)/len(y_pred))*100
-top100_acc = (is_top100.count(True)/len(y_pred))*100
+top1_acc = (is_top1.count(True) / len(y_pred)) * 100
+top2_acc = (is_top2.count(True) / len(y_pred)) * 100
+top3_acc = (is_top3.count(True) / len(y_pred)) * 100
+top4_acc = (is_top4.count(True) / len(y_pred)) * 100
+top5_acc = (is_top5.count(True) / len(y_pred)) * 100
+top6_acc = (is_top6.count(True) / len(y_pred)) * 100
+top7_acc = (is_top7.count(True) / len(y_pred)) * 100
+top8_acc = (is_top8.count(True) / len(y_pred)) * 100
+top9_acc = (is_top9.count(True) / len(y_pred)) * 100
+top10_acc = (is_top10.count(True) / len(y_pred)) * 100
+top25_acc = (is_top25.count(True) / len(y_pred)) * 100
+top50_acc = (is_top50.count(True) / len(y_pred)) * 100
+top75_acc = (is_top75.count(True) / len(y_pred)) * 100
+top100_acc = (is_top100.count(True) / len(y_pred)) * 100
 
 print(f"Top-1 accuracy: {(is_top1.count(True)/len(y_pred))*100} %")
+print(f"Top-2 accuracy: {(is_top2.count(True)/len(y_pred))*100} %")
 print(f"Top-3 accuracy: {(is_top3.count(True)/len(y_pred))*100} %")
+print(f"Top-4 accuracy: {(is_top4.count(True)/len(y_pred))*100} %")
 print(f"Top-5 accuracy: {(is_top5.count(True)/len(y_pred))*100} %")
+print(f"Top-6 accuracy: {(is_top6.count(True)/len(y_pred))*100} %")
+print(f"Top-7 accuracy: {(is_top7.count(True)/len(y_pred))*100} %")
+print(f"Top-8 accuracy: {(is_top8.count(True)/len(y_pred))*100} %")
+print(f"Top-9 accuracy: {(is_top9.count(True)/len(y_pred))*100} %")
 print(f"Top-10 accuracy: {(is_top10.count(True)/len(y_pred))*100} %")
 print(f"Top-25 accuracy: {(is_top25.count(True)/len(y_pred))*100} %")
 print(f"Top-50 accuracy: {(is_top50.count(True)/len(y_pred))*100} %")
 print(f"Top-75 accuracy: {(is_top75.count(True)/len(y_pred))*100} %")
 print(f"Top-100 accuracy: {(is_top100.count(True)/len(y_pred))*100} %")
 
-print(f'clf.get_depth(): {clf.get_depth()}')
+print(f"clf.get_depth(): {clf.get_depth()}")
 
-import matplotlib.pyplot as plt
-import seaborn as sns
+# import matplotlib.pyplot as plt
+# import seaborn as sns
 
-sns.set_theme()
+# sns.set_theme()
 
-plt.plot([1, 3, 5, 10, 25, 50, 75, 100], [top1_acc,top3_acc,top5_acc,top10_acc, top25_acc, top50_acc,top75_acc,top100_acc])
-plt.grid(True)
-plt.xticks([1, 25, 50, 75, 100])
+# plt.plot(
+#     [1, 3, 5, 10, 25, 50, 75, 100],
+#     [
+#         top1_acc,
+#         top3_acc,
+#         top5_acc,
+#         top10_acc,
+#         top25_acc,
+#         top50_acc,
+#         top75_acc,
+#         top100_acc,
+#     ],
+# )
+# plt.grid(True)
+# plt.xticks([1, 25, 50, 75, 100])
 
-# plt.yticks(np.arange(round(top1_acc, 2), 100, 0.5))
-plt.xlim(1, 100)
-plt.ylim(top1_acc, 100)
-plt.xlabel("K values")
-plt.ylabel("Accuracy (%)")
-plt.savefig("a.png")
+# # plt.yticks(np.arange(round(top1_acc, 2), 100, 0.5))
+# plt.xlim(1, 100)
+# plt.ylim(top1_acc, 100)
+# plt.xlabel("K values")
+# plt.ylabel("Accuracy (%)")
+# plt.savefig("a.png")
 
 ################################## Sionna v0.15.1
 # NLOS: 1274 elements (alias v7) (removing three outlier beams indexes)

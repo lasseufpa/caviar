@@ -1,9 +1,8 @@
 import numpy as np
 from joblib import load
 
-approach = "oracle"  # Choose between "oracle", "dec_tree" or "random"
+approach = "dec_tree"  # Choose between "oracle", "dec_tree" or "random"
 
-latency_sla = 80
 latency_package_size = 64
 
 run = np.load("no-rescue_mission_set.npz")
@@ -57,11 +56,11 @@ def compute_throughput_sla(throughput_list, throughput_sla):
     return throughput_slis
 
 
-def compute_latency_sla(throughput_list, latency_sla):
+def compute_latency_sla(latency_list, latency_sla):
     success = 0
     latency_slis = []
-    for idx, throughput in enumerate(throughput_list):
-        if get_latency(latency_package_size, throughput) >= latency_sla:
+    for idx, latency in enumerate(latency_list):
+        if get_latency(latency_package_size, latency) <= latency_sla:
             success += 1
         latency_slis.append((success / (idx + 1)) * 100)
     return latency_slis
@@ -94,7 +93,7 @@ for idx, sli in enumerate(throughput_slis):
 ax.legend()
 ax.set_xlabel("Time steps")
 ax.set_ylabel("SLI adherence (%)")
-ax.view_init(elev=130, azim=-90, roll=0)
+ax.view_init(elev=90, azim=-90, roll=0)
 ax.set_zlabel("Throughput SLA (Mbps)")
 ax.set_ylim(0, 100)
 plt.title(f"Throughput ({approach})")
@@ -110,7 +109,7 @@ for idx, sli in enumerate(latency_slis):
 ax.legend()
 ax.set_xlabel("Time steps")
 ax.set_ylabel("SLI adherence (%)")
-ax.view_init(elev=135, azim=-90, roll=0)
+ax.view_init(elev=90, azim=-90, roll=0)
 ax.set_zlabel("Latency SLA (ms)")
 ax.set_ylim(0, 100)
 plt.title(f"Latency ({approach})")
