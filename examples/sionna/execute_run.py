@@ -9,10 +9,12 @@ import mimo_channels
 from calc_time import getBitRate
 from realtime_plot import plot_throughput
 from joblib import load
+from run_obj_unreal import plot_beam_interaction
 
 mi.set_variant("cuda_ad_rgb")
 
-save_rt_paths_as_txt = False
+save_rt_paths_as_txt = True
+plot_beam = True
 save_sionna_3d_scenes_as_png = False
 plot_realtime_throughput = False
 save_all_data_as_npz = False
@@ -241,12 +243,14 @@ def run(current_step, new_x, new_y, new_z):
 
         if save_rt_paths_as_txt:
             paths_visualization_output = os.path.join(
-                current_dir, "runs", "paths", f"run_{str(current_step)}.OBJ"
+                current_dir, "runs", "paths", f"run_{str(current_step)}.txt"
             )
             # Checks if figures output folder exists
             if not os.path.exists(os.path.dirname(paths_visualization_output)):
                 os.mkdir(os.path.dirname(paths_visualization_output))
             paths.export(paths_visualization_output)
+            if plot_beam:
+                plot_beam_interaction(paths_visualization_output)
 
         if plot_realtime_throughput:
             plot_throughput(
@@ -281,6 +285,7 @@ def run(current_step, new_x, new_y, new_z):
     del paths  # deallocation of memory
 
     # return best_bit_rate_Gbps
+    # return predicted_bit_rate_Gbps
     return random_bit_rate_Gbps
 
 

@@ -20,11 +20,16 @@ def convertPositionFromSionnaToAirSim(x, y, z):
 def convertPositionFromAirSimToUnreal(x, y, z):
     # Unreal coordinates for AirSim PlayerStart position (Unreal's origin point)
     # Central Park offset
-    offset = {"x": 2245, "y": 213, "z": 13580}
-    return np.divide([x - offset["x"], y - offset["y"], -1 * (z - offset["z"])], 100)
+    # offset = {"x": 2245, "y": 213, "z": 13580}
+    offset = {"x": 0, "y": 0, "z": 0}
+    scaled_coords=np.multiply([x, y, z], 100).tolist()
+    return [scaled_coords[0] - offset["x"], scaled_coords[1] - offset["y"], -1 * (scaled_coords[2] - offset["z"])]
 
 
-def convertPositionFromSionnatoUnreal(x, y, z):
+def convertPositionFromSionnatoUnreal(sionna_coords):
+    x = sionna_coords[0]
+    y = sionna_coords[1]
+    z = sionna_coords[2]
     airsim_coords = convertPositionFromSionnaToAirSim(x, y, z)
     unreal_coords = convertPositionFromAirSimToUnreal(
         x=airsim_coords[0], y=airsim_coords[1], z=airsim_coords[2]
