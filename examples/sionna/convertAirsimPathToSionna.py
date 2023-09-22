@@ -21,9 +21,14 @@ def convertPositionFromAirSimToUnreal(x, y, z):
     # Unreal coordinates for AirSim PlayerStart position (Unreal's origin point)
     # Central Park offset
     # offset = {"x": 2245, "y": 213, "z": 13580}
-    offset = {"x": 0, "y": 0, "z": 0}
-    scaled_coords=np.multiply([x, y, z], 100).tolist()
-    return [scaled_coords[0] - offset["x"], scaled_coords[1] - offset["y"], -1 * (scaled_coords[2] - offset["z"])]
+    # offset = {"x": 0, "y": 0, "z": 0}
+    offset = {"x": 0, "y": 0, "z": 14.673}
+    scaled_coords = np.multiply([x, y, z], 100).tolist()
+    return [
+        scaled_coords[0] - offset["x"],
+        scaled_coords[1] - offset["y"],
+        (-1 * scaled_coords[2]) - offset["z"],
+    ]
 
 
 def convertPositionFromSionnatoUnreal(sionna_coords):
@@ -69,20 +74,12 @@ def readPaths(path):
 #     )
 
 test_list = [
-    [-360, -233.0, 128],
-    [-333, -218.15, 128],
-    [-223, -157.65, 128],
-    [-70, -73.5, 128],
-    [-40, -128.05, 128],
-    [-70, -73.5, 128],
-    [-19, -45.45, 128],
-    [23, -22.35, 128],
-    [120, 31.0, 128],
-    [150, -23.55, 128],
-    [120, 31.0, 128],
-    [300, 130.0, 128],
+    [0, 0, 0.05],
+    [0, 0, -1.484],
+    [1.131, 1.131, -1.457],
+    [1.003, 1.003, -9.621],
 ]
 
 for coordinate in test_list:
-    r = convertPositionFromAirSimToSionna(coordinate[0], coordinate[1], 0)
+    r = convertPositionFromAirSimToUnreal(coordinate[0], coordinate[1], coordinate[2])
     print(r)
