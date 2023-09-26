@@ -3,7 +3,7 @@ import airsim
 from convertAirsimPathToSionna import convertPositionFromSionnatoUnreal
 import numpy as np
 
-def plot_beam_interaction(filepath, duration=0.5):
+def plot_beam_interaction(filepath, duration=0.3):
     client = airsim.MultirotorClient()
     # init_time = time.time()
     with open(filepath, "r") as run:
@@ -14,23 +14,32 @@ def plot_beam_interaction(filepath, duration=0.5):
         file.append(line.rstrip())
 
     list_with_values = []
+    path = []
 
     for line in file:
         if line.startswith("v"):
-            list_with_values.append(line[2:])
+            path.append(line[2:])
+        if line.startswith("l"):
+            if path != []:
+                list_with_values.append(path)
+                path = []
+    
+    list_of_lists = [[string.split() for string in value] for value in list_with_values]
 
-    list_of_lists = [value.split() for value in list_with_values]
-
-    converted_list = [convertPositionFromSionnatoUnreal(np.array(sublist, dtype=np.float32).tolist()) for sublist in list_of_lists]
+    converted_list = [[convertPositionFromSionnatoUnreal(np.array(subsublist, dtype=np.float32).tolist()) for subsublist in sublist] for sublist in list_of_lists]
 
     # end_time = time.time()
 
     # print(f"Total time: {(end_time - init_time)*1e3} ms")
 
-    for i in range(len(converted_list)-1):
-        client.simRunConsoleCommand(
-            f"ke * plot_raytrace {list_with_values[i]} {list_with_values[i+1]} {duration}"
-        )
+    for path_idx, path in enumerate(converted_list[0]):
+        for vertice in range(len(path)-1):
+            print(f"ke * plot_raytrace {converted_list[path_idx][vertice][0]} {converted_list[path_idx][vertice][1]} {converted_list[path_idx][vertice][2]} {converted_list[path_idx][vertice+1][0]} {converted_list[path_idx][vertice+1][1]} {converted_list[path_idx][vertice+1][2]} {duration}")
+            client.simRunConsoleCommand(
+                f"ke * plot_raytrace {(converted_list[path_idx][vertice][0]-244.5)} {converted_list[path_idx][vertice][1]-636.5} {(converted_list[path_idx][vertice][2]-27500)} {(converted_list[path_idx][vertice+1][0]-244.5)} {(converted_list[path_idx][vertice+1][1]-636.5)} {(converted_list[path_idx][vertice+1][2]-27500)} {duration}"
+            )
+    
+    # client.simRunConsoleCommand("ke * plot_raytrace 0 0 0 -36000.0 -23300.0 -12814.673 60")
 
     """for i in range(len(converted_list)):
         client.simRunConsoleCommand(f'ke * plot_raytrace {list_with_values[i]} {list_with_values[i+1]} {duration}')
