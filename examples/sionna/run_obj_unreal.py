@@ -4,6 +4,7 @@ from convertAirsimPathToSionna import convertPositionFromSionnatoUnreal
 import numpy as np
 
 def plot_beam_interaction(filepath, duration=0.3):
+# def plot_beam_interaction(filepath, duration=60):
     client = airsim.MultirotorClient()
     # init_time = time.time()
     with open(filepath, "r") as run:
@@ -34,9 +35,11 @@ def plot_beam_interaction(filepath, duration=0.3):
 
     for path_idx, path in enumerate(converted_list[0]):
         for vertice in range(len(path)-1):
-            print(f"ke * plot_raytrace {converted_list[path_idx][vertice][0]} {converted_list[path_idx][vertice][1]} {converted_list[path_idx][vertice][2]} {converted_list[path_idx][vertice+1][0]} {converted_list[path_idx][vertice+1][1]} {converted_list[path_idx][vertice+1][2]} {duration}")
+            # client.simRunConsoleCommand(
+            #     f"ke * plot_raytrace {(converted_list[path_idx][vertice][0]-244.5)} {converted_list[path_idx][vertice][1]-636.5} {(converted_list[path_idx][vertice][2]-27500)} {(converted_list[path_idx][vertice+1][0]-244.5)} {(converted_list[path_idx][vertice+1][1]-636.5)} {(converted_list[path_idx][vertice+1][2]-27500)} {duration}"
+            # )
             client.simRunConsoleCommand(
-                f"ke * plot_raytrace {(converted_list[path_idx][vertice][0]-244.5)} {converted_list[path_idx][vertice][1]-636.5} {(converted_list[path_idx][vertice][2]-27500)} {(converted_list[path_idx][vertice+1][0]-244.5)} {(converted_list[path_idx][vertice+1][1]-636.5)} {(converted_list[path_idx][vertice+1][2]-27500)} {duration}"
+                f"ke * plot_raytrace {(converted_list[path_idx][vertice][0])-45} {converted_list[path_idx][vertice][1]-692} {(converted_list[path_idx][vertice][2]-27542)} {(converted_list[path_idx][vertice+1][0])-45} {(converted_list[path_idx][vertice+1][1])-692} {(converted_list[path_idx][vertice+1][2]-27542)} {duration}"
             )
     
     # client.simRunConsoleCommand("ke * plot_raytrace 0 0 0 -36000.0 -23300.0 -12814.673 60")
