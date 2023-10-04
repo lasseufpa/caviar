@@ -6,15 +6,15 @@ import numpy as np
 def convertPositionFromAirSimToSionna(x, y, z):
     # Sionna coordinates for AirSim PlayerStart position (AirSim's origin point)
     # Central Park offset
-    offset = {"x": 23.34, "y": -3.42, "z": 137.23}
+    offset = {"x": 26.50, "y": -0.3, "z": 144.62000977}
     return [offset["x"] + x, offset["y"] - y, offset["z"] - z]
 
 
 def convertPositionFromSionnaToAirSim(x, y, z):
     # Sionna coordinates for AirSim PlayerStart position (AirSim's origin point)
     # Central Park offset
-    offset = {"x": 23.34, "y": -3.42, "z": 137.23}
-    return [x - offset["x"], -y - offset["y"], -z - offset["z"]]
+    offset = {"x": 26.50, "y": -0.3, "z": 144.62000977}
+    return [(x - offset["x"]) * 100, (y + offset["y"]) * -100, (z - offset["z"]) * 100]
 
 
 def convertPositionFromAirSimToUnreal(x, y, z):
