@@ -23,8 +23,13 @@ class runAirSim(threading.Thread):
     def run(self):
         print("-----------> runAirSim")
         global airsim_simu
-        airsim_simu = subprocess.Popen([
-            "/home/fhb/Downloads/central_park/central_park/Binaries/Linux/central_park-Linux-Shipping", "-WINDOWED", "-ResX=640", "-ResY=480"]
+        airsim_simu = subprocess.Popen(
+            [
+                "/home/fhb/Downloads/central_park/central_park/Binaries/Linux/central_park-Linux-DebugGame",
+                "-WINDOWED",
+                "-ResX=640",
+                "-ResY=480",
+            ]
         )
 
 
@@ -38,7 +43,8 @@ class runMobility(threading.Thread):
         mobility_simu = subprocess.Popen(
             [
                 "/home/fhb/miniconda3/envs/tf/bin/python",
-                "/home/fhb/git/caviar/examples/airsimTools/caviar_integration.py"]
+                "/home/fhb/codes/caviar/examples/airsimTools/caviar_integration.py",
+            ]
         )
 
 
@@ -52,7 +58,7 @@ class runSionna(threading.Thread):
         sionna_simu = subprocess.Popen(
             [
                 "/home/fhb/miniconda3/envs/tf/bin/python",
-                "/home/fhb/git/caviar/examples/sionna/followPath.py"
+                "/home/fhb/codes/caviar/examples/sionna/followPath.py",
             ]
         )
 
@@ -72,7 +78,7 @@ if __name__ == "__main__":
         communications_thread.start()
     except Exception as e:
         print(f"Error: {str(e)}")
-    
+
     while True:
         res = input("Press 'w' to close")
         if res == "w":
@@ -89,5 +95,3 @@ if __name__ == "__main__":
             sionna_simu.send_signal(signal.SIGTERM)
             print("------------------------------------------> END")
             break
-
-
