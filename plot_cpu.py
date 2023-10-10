@@ -1,50 +1,82 @@
 import numpy as np
 import matplotlib
-matplotlib.use("pgf")
-matplotlib.rcParams.update({
-    "pgf.texsystem": "pdflatex",
-    'font.family': 'serif',
-    'text.usetex': True,
-    'pgf.rcfonts': False,
-})
-matplotlib.rc('xtick', labelsize=8) 
-matplotlib.rc('ytick', labelsize=8) 
+
+# matplotlib.use("pgf")
+# matplotlib.rcParams.update(
+#     {
+#         "pgf.texsystem": "pdflatex",
+#         "font.name": "Times",
+#         "text.usetex": True,
+#         "pgf.rcfonts": False,
+#     }
+# )
+# matplotlib.rc("xtick", labelsize=8)
+# matplotlib.rc("ytick", labelsize=8)
 from matplotlib import pyplot as plt
 import seaborn as sns
 
 sns.set_theme()
 
-colors = sns.color_palette('deep')
-simtype = '1uavs'
-simode = 'nowait'
+colors = sns.color_palette("deep")
+simtype = "1uavs"
+simode = "newgpu"
+
 
 def moving_average(x, w):
-    return np.convolve(x, np.ones(w), 'valid') / w
+    return np.convolve(x, np.ones(w), "valid") / w
+
 
 def plot_individual(n_users):
-
-    with open('/home/fhb/Documents/caviar_records/for_'+str(n_users)+ "uavs_" + simode +'_airsim.txt', 'r') as file:
+    with open(
+        "/home/joao/Downloads/caviar_records/for_"
+        + str(n_users)
+        + "uavs_"
+        + simode
+        + "_airsim.txt",
+        "r",
+    ) as file:
         lines = file.readlines()
         line_array = []
         for line in lines[1:]:
             line_array.append(line.split())
     unreal = np.array(line_array, dtype=float)
 
-    with open('/home/fhb/Documents/caviar_records/for_'+str(n_users)+ "uavs_" + simode +'_mobility.txt', 'r') as file:
+    with open(
+        "/home/joao/Downloads/caviar_records/for_"
+        + str(n_users)
+        + "uavs_"
+        + simode
+        + "_mobility.txt",
+        "r",
+    ) as file:
         lines = file.readlines()
         line_array = []
         for line in lines[1:]:
             line_array.append(line.split())
     airsim = np.array(line_array, dtype=float)
 
-    with open('/home/fhb/Documents/caviar_records/for_'+str(n_users)+ "uavs_" + simode +'_sionna.txt', 'r') as file:
+    with open(
+        "/home/joao/Downloads/caviar_records/for_"
+        + str(n_users)
+        + "uavs_"
+        + simode
+        + "_sionna.txt",
+        "r",
+    ) as file:
         lines = file.readlines()
         line_array = []
         for line in lines[1:]:
             line_array.append(line.split())
     yolo = np.array(line_array, dtype=float)
 
-    with open('/home/fhb/Documents/caviar_records/for_'+str(n_users)+ "uavs_" + simode +'_nats.txt', 'r') as file:
+    with open(
+        "/home/joao/Downloads/caviar_records/for_"
+        + str(n_users)
+        + "uavs_"
+        + simode
+        + "_nats.txt",
+        "r",
+    ) as file:
         lines = file.readlines()
         line_array = []
         for line in lines[1:]:
@@ -58,41 +90,47 @@ def plot_individual(n_users):
     yolo = yolo[:lenght_limit]
     ns3 = ns3[:lenght_limit]
 
-    unreal_cpu = moving_average(unreal[:,1], 400)/12
-    airsim_cpu = moving_average(airsim[:,1], 400)/12
-    yolo_cpu = moving_average(yolo[:,1], 400)/12
-    ns3_cpu = moving_average(ns3[:,1], 400)/12
-    time = moving_average(ns3[:,0], 400)
+    unreal_cpu = moving_average(unreal[:, 1], 25) / 12
+    airsim_cpu = moving_average(airsim[:, 1], 25) / 12
+    yolo_cpu = moving_average(yolo[:, 1], 25) / 12
+    ns3_cpu = moving_average(ns3[:, 1], 25) / 12
+    time = moving_average(ns3[:, 0], 25)
     Total = unreal_cpu + airsim_cpu + yolo_cpu + ns3_cpu
 
-    #plt.figure(figsize=(3.2,2.2))
-    print(time.max())
+    # plt.figure(figsize=(3.2,2.2))
+    print(len(ns3))
     plt.xlabel("Elapsed time (s)")
-    plt.ylabel('CPU (%)')
-    plt.xlim(0, time.max()+time.max()*0.02)
+    plt.ylabel("CPU (%)")
+    plt.xlim(-1, time.max() + time.max() * 0.02)
     plt.ylim(-2, 120)
-    plt.plot(time,Total, marker='', label='Total', color=colors[5])
-    plt.plot(time,unreal_cpu, marker='', label='3D module', color=colors[0])
-    plt.plot(time,airsim_cpu, marker='', label='AI module', color=colors[1])
-    plt.plot(time,yolo_cpu, marker='', label='Comm. mdule', color=colors[3])
-    plt.plot(time,ns3_cpu, marker='', label='NATS', color=colors[2])
-
+    plt.xticks(np.arange(0, time.max() + time.max() * 0.02, 100))
+    plt.plot(time, Total, label="Total", color=colors[5])
+    plt.plot(time, unreal_cpu, label="3D module", color=colors[0])
+    plt.plot(time, airsim_cpu, label="AI module", color=colors[1])
+    plt.plot(time, yolo_cpu, label="Comm. module", color=colors[3])
+    plt.plot(time, ns3_cpu, label="NATS", color=colors[2])
 
     # airsim_cpu.resize(unreal_cpu.shape,refcheck=False)
     # yolo_cpu.resize(unreal_cpu.shape,refcheck=False)
     # ns3_cpu.resize(unreal_cpu.shape,refcheck=False)
 
-
-
     # plt.legend()
-    plt.legend(loc='upper right')
+    plt.legend(loc="upper right")
     # plt.grid()
     plt.tight_layout()
-    #plt.savefig('../figures/graphs/results_cpu/'+str(n_users)+'users_CPU_'+simtype+'.pgf')
-    plt.savefig('/home/fhb/Documents/caviar_records/'+str(n_users)+ "_" + simode +'.pdf')
+    # plt.savefig('../figures/graphs/results_cpu/'+str(n_users)+'users_CPU_'+simtype+'.pgf')
+    # plt.savefig(
+    #     "/home/joao/Downloads/caviar_records/" + str(n_users) + "_" + simode + ".pdf"
+    # )
+    plt.savefig(
+        "/home/joao/papers/2023-joaoborges-caviarrt-ieee-journal-dblcolumn/Figures/cpu_"
+        + str(n_users)
+        + ".pdf"
+    )
     plt.close()
 
-    return ns3_cpu,time
+    return ns3_cpu, time
+
 
 # totals = []
 # times = []
@@ -109,7 +147,7 @@ plot_individual(4)
 plot_individual(5)
 
 
-#plt.figure(figsize=(3.8,2.8))
+# plt.figure(figsize=(3.8,2.8))
 # plt.xlabel("Elapsed time (s)")
 # plt.ylabel('CPU (%)')
 # plt.ylim(0, 10)
@@ -127,5 +165,5 @@ plot_individual(5)
 
 # plt.tight_layout()
 # #plt.savefig('../figures/graphs/results_cpu/ns3_cpu_'+simtype+'.pgf')
-# plt.savefig('/home/fhb/paper_plots/cpu/ns3_cpu_'+simtype+'.png')
+# plt.savefig('/home/joao/paper_plots/cpu/ns3_cpu_'+simtype+'.png')
 # plt.close()

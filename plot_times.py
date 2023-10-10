@@ -20,6 +20,9 @@ sns.set_theme()
 
 
 time_ = [464.649, 591.301, 758.933, 870.339, 946.006]
+time_distrib = [417.508, 460.114, 700.837, 949.089, 1239.943]
+# time_distrib = [417.508, 460.114, 700.837, 913, 1239.943]
+
 time5uavs = [
     1303.842682,
     1327.299582,
@@ -44,11 +47,21 @@ nusers = [1, 2, 3, 4, 5]
 
 # plt.figure(figsize=(5.4,3.6))
 plt.xlabel("Nº of users")
-plt.ylabel("Elapsed time (s)")
+plt.ylabel("Elapsed time (seconds)")
 plt.xlim(0.95, 5.05)
 plt.xticks(np.arange(1, 6, 1))
-plt.ticklabel_format(style="sci", axis="y", scilimits=(0, 0))
+# plt.ticklabel_format(style="sci", axis="y", scilimits=(0, 0))
 plt.plot(nusers, time_, marker="o", color=colors[1])
+# plt.plot(
+#     nusers, time_, marker="o", color=colors[1], label="Monolithic execution (1 PC)"
+# )
+# plt.plot(
+#     nusers,
+#     time_distrib,
+#     marker="*",
+#     color=colors[2],
+#     label="Distributed execution (2 PCs)",
+# )
 # plt.plot(nusers,time5uavs, marker='', label='Simulation considering five UAVs', color=colors[2])
 # plt.plot(nusers,time5uavspall, marker='', label='Simulation considering five UAVs using parallel computing', color=colors[3])
 
