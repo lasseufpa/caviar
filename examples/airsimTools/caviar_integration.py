@@ -25,9 +25,9 @@ from ultralytics import YOLO
 model = YOLO("yolov8n.pt")
 #########################
 
-inloop = True
+is_sync = True  # sync(true)/async(false)
 is_rescue_mission = True
-simulation_time_step = 0.5
+simulation_time_step = 0.5  # 500 ms (simulation time)
 save_multimodal = False
 
 ########## INITIALIZATION OF VARIABLES (DO NOT CHANGE THE VALUES) ########
@@ -206,7 +206,7 @@ with NATSClient() as natsclient:
             # Continue the simulation for 100ms
             start_time = time.time()
 
-            if inloop:
+            if is_sync:
                 if sionna_finished_running:
                     client.simContinueForTime(simulation_time_step)
                     sionna_finished_running = False
