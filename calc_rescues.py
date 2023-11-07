@@ -25,15 +25,20 @@ if __name__ == "__main__":
         rescue_times.append(get_time_for_rescue(throughput_bps))
 
     sns.set_theme()
+    plt.figure(figsize=(7, 6))
     plt.plot(throughputs, rescue_times)
     plt.grid(True)
 
-    x_ticks = np.arange(0, 101, 20)
+    x_ticks = np.arange(0, 101, 5)
     x_ticks[0] = 1
 
+    y_ticks = np.arange(0, 351, 15)
+
     plt.xticks(x_ticks)
-    plt.xlim(1, 100)
-    plt.xlabel("Throughputs (Mbps)")
-    plt.ylabel("Rescue times (seconds)")
+    plt.yticks(y_ticks)
+    plt.xlim(0.75, 100)
+    plt.ylim(-1, 325)
+    plt.xlabel("Throughput (Mbps)")
+    plt.ylabel("Estimated virtual time to finish one rescue (seconds)")
     plt.tight_layout()
     plt.savefig("time_to_finish_rescues_mbps.pdf")
