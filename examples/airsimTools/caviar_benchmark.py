@@ -8,6 +8,7 @@ from pynats import NATSClient
 import json
 import numpy as np
 import airsim
+rng = np.random.default_rng(1)
 
 def convertPositionFromAirSimToSionna(x, y, z):
     # Sionna coordinates for AirSim PlayerStart position (AirSim's origin point)
@@ -20,55 +21,85 @@ from ultralytics import YOLO
 model = YOLO("yolov8n.pt")
 #########################
 
-inloop = True
+#########################
 
-sionna_finished_runnning = True
-
-current_throughput = 0
-
+is_sync = True
+is_rescue_mission = False
+simulation_time_step = 0.5
 save_multimodal = False
 
+########## INITIALIZATION OF VARIABLES (DO NOT CHANGE THE VALUES) ########
+rescue_steps = 0  # in case of a rescue, indicates for how many steps the UAV must wait (keep at zero. Value is updated during execution)
+reached_waypoint = False
+sionna_finished_running = True
+current_throughput = 0
 rescued_targets = 0
+person_to_be_rescued = False
+###########################################################
 
 simu_time_of_rescue = []
 simu_pose_of_rescue = []
 throughputs_during_rescue = []
 times_waited_during_rescue = []
+step_time_rescue = []
+lastuav = caviar_config.drone_ids[-1]
+
+
+
+def applyFilter(
+    image,
+    packet_drop_rate,
+    output_folder="/home/fhb/Downloads/fromBytes.png",
+    rng=rng,
+):
+    height = image.shape[0]
+    width = image.shape[1]
+    n_channels = image.shape[2]
+    total_number_of_pixels = height * width * n_channels
+    packets_to_drop = int(total_number_of_pixels * packet_drop_rate)
+    dropped_package_indexes = rng.choice(
+        total_number_of_pixels, packets_to_drop, replace=False
+    )
+    random_drop_kernel = np.ones(total_number_of_pixels)
+    random_drop_kernel[dropped_package_indexes] = 0
+    random_drop_kernel = random_drop_kernel.reshape((height, width, n_channels))
+    degraded_image = np.multiply(image, random_drop_kernel).astype("uint8")
+    cv2.imwrite(output_folder, degraded_image)
+
 
 def get_time_for_rescue(throughput):
-    '''
-    This function calculates the time for transmit them all and finish 
+    """
+    This function calculates the time for transmit them all and finish
     the rescue.
 
-    The rescue will finish after transmiting 100 pictures of 4 MB (3.2e7 bits), representing
-    a 4K image and a point cloud file made with LiDAR with 2 GB (16e9 bits)
-    '''
-    tx_max = (3.2e7 * 100)  + (16e9)
-    time_to_tx = (tx_max / (throughput))
+    The rescue will finish after transmiting 10 pictures of 4 MB (3.2e7 bits), 
+    with 4 MB representing the size of a 4K image
+    """
+    tx_max = 3.2e7 * 10
+    time_to_tx = tx_max / (throughput)
     return time_to_tx
 
 
-def addNoise(image, throughput): 
-    gaussian_noise = np.zeros(image.shape, np.uint8)
 
-    if throughput < 80 and throughput > 60:
-        # PSNR: ~23.585 dB
-        print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Noise level LOW: {throughput}")
-        cv2.randn(gaussian_noise, 0, 45)   
-    elif throughput <= 60 and throughput > 20:
-        # PSNR: ~19.1642 dB
-        print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Noise level MEDIUM: {throughput}")
-        cv2.randn(gaussian_noise, 0, 90)
-    elif throughput <= 20 and throughput >= 0:
-        # PSNR: ~8.1041 dB
-        print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Noise level HIGH: {throughput}")
-        cv2.randn(2*gaussian_noise, 0, 270)
-        gaussian_noise-100
+def addNoise(image, throughput):
+    if throughput < 0.09 and throughput > 0.06:
+        # PSNR: ~26.3629 dB
+        print(f">>>>>>>>>>>>>>>>>>>>> Noise level LOW: {throughput}")
+        applyFilter(image, packet_drop_rate=0.01)
+    elif throughput <= 0.06 and throughput > 0.03:
+        # PSNR: ~12.3902 dB
+        print(f">>>>>>>>>>>>>>>>>>>>> Noise level MEDIUM: {throughput}")
+        applyFilter(image, packet_drop_rate=0.25)
+    elif throughput <= 0.03 and throughput >= 0:
+        # PSNR: ~9.376 dB
+        print(f">>>>>>>>>>>>>>>>>>>>> Noise level HIGH: {throughput}")
+        applyFilter(image, packet_drop_rate=0.5)
     else:
-        print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> No Noise level: {throughput}")
+        print(f">>>>>>>>>>>>>>>>>>>>> No Noise level: {throughput}")
 
-    image = cv2.add(image, gaussian_noise)
-    return image
+    degraded_image = cv2.imread("/home/fhb/Downloads/fromBytes.png")
+
+    return degraded_image
 
 with NATSClient() as natsclient:
     # Number of trajectories to be executed
@@ -95,15 +126,16 @@ with NATSClient() as natsclient:
     natsclient.connect()
 
     def callback(msg):
-        global sionna_finished_runnning
-        sionna_finished_runnning = True
-
+        global sionna_finished_running
+        sionna_finished_running = True
 
     def updateThroughput(msg):
         global current_throughput
         payload = json.loads(msg.payload.decode())
-        current_throughput = float(payload['throughput'])
-        print(f'----------------------------> CURRENT THROUGHPUT: {current_throughput} Gbps')
+        current_throughput = float(payload["throughput"])
+        print(
+            f"----------------------------> CURRENT THROUGHPUT: {current_throughput} Gbps"
+        )
 
     natsclient.subscribe(subject="communications.state", callback=callback)
     natsclient.subscribe(subject="communications.throughput", callback=updateThroughput)
@@ -115,7 +147,16 @@ with NATSClient() as natsclient:
         initial_time = time.time()
 
         isFinished = False
+        # Read paths
+        path_list = []
 
+        with open(
+            os.path.join(trajectories_files, "path" + str(episode) + ".csv")
+        ) as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=",")
+            csv_reader.__next__()
+            for row in csv_reader:
+                path_list.append([float(row[0]), float(row[1]), float(row[2])])
         # Delay between episodes to avoid crashs
         time.sleep(1)
 
@@ -129,35 +170,44 @@ with NATSClient() as natsclient:
         
         for uav in caviar_config.drone_ids:
             init_xoffset = int(uav[3:])
-            init_yoffset = ((11*init_xoffset)/20)-35
+            # init_yoffset = ((11*init_xoffset)/20)-35
+            init_yoffset = ((2892*init_xoffset)/173)-(4987/173)
             caviar_tools.airsim_setpose(
-                client, uav, -360 - init_xoffset, -233 - init_yoffset, 130, 0, 0, 0, 0
+                client, uav, path_list[0][0] - init_xoffset, path_list[0][1] - init_yoffset, path_list[0][2], 0, 0, 0, 0
             )
             time.sleep(0.5)
 
 
         # takeoff and start the UAV trajectory
+        time.sleep(0.5)
         caviar_tools.airsim_takeoff_all(client)
-        time.sleep(2)
-
+        # time.sleep(1)
         for uav in caviar_config.drone_ids:
             z_offset = int(uav[3:])
+            print("z off set" + str(z_offset))
             caviar_tools.move_to_point(
-                client, uav, -360, -233, 128 - z_offset, 10
+                client, uav, path_list[0][0], path_list[0][1], path_list[0][2] - z_offset, 2
             )
-            time.sleep(0.5)
+            time.sleep(1)
 
 
-        path_list = []
+        while(caviar_tools.has_uav_arrived(
+                    client,
+                    lastuav,
+                    path_list[0][0],
+                    path_list[0][1],
+                    path_list[0][2] - int(lastuav[3:]))==False):
+            print(caviar_tools.has_uav_arrived(
+                    client,
+                    lastuav,
+                    path_list[0][0],
+                    path_list[0][1],
+                    path_list[0][2] - int(lastuav[3:])))
+        # time.sleep(10)
 
-        with open(
-            os.path.join(trajectories_files, "path" + str(episode) + ".csv")
-        ) as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=",")
-            csv_reader.__next__()
-            for row in csv_reader:
-                path_list.append([float(row[0]), float(row[1]), float(row[2])])
-        actualWaypoint = 0
+
+
+        actualWaypoint = [0] * len(caviar_config.drone_ids)
 
         initial_timestamp = caviar_tools.airsim_gettimestamp(client, caviar_config.drone_ids[0])
 
@@ -166,19 +216,18 @@ with NATSClient() as natsclient:
         while not (isFinished):
             # Continue the simulation for 100ms
             start_time = time.time()
-            
-            if inloop:
-                if sionna_finished_runnning:
-                    client.simContinueForTime(0.10)
-                    sionna_finished_runnning = False
+
+            if is_sync:
+                if sionna_finished_running:
+                    client.simContinueForTime(simulation_time_step)
+                    sionna_finished_running = False
             else:
-                client.simContinueForTime(0.10)
+                client.simContinueForTime(simulation_time_step)
                 # client.simPause(False)
-            natsclient.wait(count=1)
-            
+            natsclient.wait(count=2)
 
             # Get information about each UAV in the configuration file (caviar_config.py)
-            for uav in caviar_config.drone_ids:
+            for idx, uav in enumerate(caviar_config.drone_ids):
                 uav_pose = caviar_tools.airsim_getpose(client, uav)
                 uav_orien = caviar_tools.airsim_getorientation(client, uav)
                 uav_linear_acc = caviar_tools.airsim_getlinearacc(client, uav)
@@ -191,53 +240,67 @@ with NATSClient() as natsclient:
                 rawimg = caviar_tools.airsim_getimages(
                     client, caviar_config.drone_ids[0]
                 )
-                img = cv2.imdecode(airsim.string_to_uint8_array(rawimg), cv2.IMREAD_COLOR)
-                height, width, depth = img.shape
-                # img_size_bits = height * width * depth * 8 # Considering that each channel from a RGB image is represented by 8 bits color depth (0, 255)
-                # img_size_bytes = img_size_bits/1024
-                # cv2.imshow("window_name", img)
-                # print('img_size_bytes: ', img_size_bytes)
+                img = cv2.imdecode(
+                    airsim.string_to_uint8_array(rawimg), cv2.IMREAD_COLOR
+                )
 
                 img = addNoise(img, current_throughput)
-                
+
                 ## REMOVE AFTER EXPERIMENT
-                results = model.predict(source=img, classes=0, save=True, save_txt=True)  # save predictions as labels
+                results = model.predict(
+                    source=img, classes=0, save=False, save_txt=False
+                )  # save predictions as labels
                 try:
-                    print(f'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Detected class: {results[0].boxes.data[0,5]}')
-                    print(f'>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Human detected probability: {results[0].boxes.data[0,4]}')
-                    target_is_detected = results[0].boxes.data[0,5] == 0
+                    print(
+                        f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Detected class: {results[0].boxes.data[0,5]}"
+                    )
+                    print(
+                        f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Human detected probability: {results[0].boxes.data[0,4]}"
+                    )
+                    target_is_detected = results[0].boxes.data[0, 5] == 0
                     if target_is_detected:
-                        rescue_time = get_time_for_rescue(current_throughput*1e9)
+                        rescue_time = get_time_for_rescue(current_throughput * 1e9)
                         throughputs_during_rescue.append(current_throughput)
                         times_waited_during_rescue.append(rescue_time)
-                        client.simDestroyObject(caviar_config.pedestrians[actualWaypoint-1])
-                        print(f"@@@@@@@ get_time_for_rescue(current_throughput): {rescue_time}")
-                        time.sleep(rescue_time)
+                        client.simDestroyObject(
+                            caviar_config.pedestrians[actualWaypoint[idx] - 1]
+                        )
+                        print(
+                            f"@@@@@@@ get_time_for_rescue(current_throughput): {rescue_time}"
+                        )
+                        # time.sleep(rescue_time)
                         rescued_targets = rescued_targets + 1
-                        simu_time_of_rescue.append((airsim_timestamp-initial_timestamp)*1e-9)
-                        simu_pose_of_rescue.append(convertPositionFromAirSimToSionna(uav_pose[0],uav_pose[1],uav_pose[2]))
+                        simu_time_of_rescue.append(
+                            (airsim_timestamp - initial_timestamp) * 1e-9
+                        )
+                        simu_pose_of_rescue.append(
+                            convertPositionFromAirSimToSionna(
+                                uav_pose[0], uav_pose[1], uav_pose[2]
+                            )
+                        )
+                        person_to_be_rescued = False
                 except:
                     print("NO DETECTION")
                 #########################
-
-                natsclient.publish(
-                    subject="3D.mobility.positions",
-                    payload=b'{"UE_type":"UAV","UE_Id":'
-                    + b'"'
-                    + str(uav).encode()
-                    + b'"'
-                    + b',"timestamp":'
-                    + b'"'
-                    + str(airsim_timestamp).encode()
-                    + b'"'
-                    + b',"position": {"x":'
-                    + str(uav_pose[0]).encode()
-                    + b',"y":'
-                    + str(uav_pose[1]).encode()
-                    + b',"z":'
-                    + str(uav_pose[2]).encode()
-                    + b"}}",
-                )
+                if uav == "uav1":
+                    natsclient.publish(
+                        subject="3D.mobility.positions",
+                        payload=b'{"UE_type":"UAV","UE_Id":'
+                        + b'"'
+                        + str(uav).encode()
+                        + b'"'
+                        + b',"timestamp":'
+                        + b'"'
+                        + str(airsim_timestamp).encode()
+                        + b'"'
+                        + b',"position": {"x":'
+                        + str(uav_pose[0]).encode()
+                        + b',"y":'
+                        + str(uav_pose[1]).encode()
+                        + b',"z":'
+                        + str(uav_pose[2]).encode()
+                        + b"}}",
+                    )
                 
 
                 # Check if the UAV is landed or has collided and finish the episode
@@ -252,52 +315,69 @@ with NATSClient() as natsclient:
                         + "s"
                     )
                 # Verify actual position
-                if caviar_tools.has_uav_arrived(
+                if (caviar_tools.has_uav_arrived(
                     client,
                     uav,
-                    path_list[actualWaypoint][0],
-                    path_list[actualWaypoint][1],
-                    path_list[actualWaypoint][2] - int(uav[3:]),
-                ):
-                    actualWaypoint = actualWaypoint + 1
-                    # Add here the YOLO for object detection
-                    print("Compute best beam")
-                    print("get transmission delay for 10 images")
+                    path_list[actualWaypoint[idx]][0],
+                    path_list[actualWaypoint[idx]][1],
+                    path_list[actualWaypoint[idx]][2] - int(uav[3:])
+                ) or reached_waypoint):
+                    reached_waypoint = True
+                    if rescue_steps == 0:
+                        # Must start rescue
+                        if person_to_be_rescued:
+                            print("Rescue")
+                            rescue_steps_raw = rescue_time / simulation_time_step
+                            if rescue_time % simulation_time_step == 0:
+                                rescue_steps = int(rescue_steps_raw)
+                            else:
+                                rescue_steps = int(rescue_steps_raw) + 1
+                        # No one to rescue. Must go to the next waypoint
+                        else:
+                            actualWaypoint[idx] = actualWaypoint[idx] + 1
+                            caviar_tools.move_to_point(
+                                client,
+                                uav,
+                                path_list[actualWaypoint[idx]][0],
+                                path_list[actualWaypoint[idx]][1],
+                                path_list[actualWaypoint[idx]][2]- int(uav[3:]),
+                            )
 
-                    print("wait")
+                            reached_waypoint = False
 
-                    caviar_tools.move_to_point(
-                        client,
-                        uav,
-                        path_list[actualWaypoint][0],
-                        path_list[actualWaypoint][1],
-                        path_list[actualWaypoint][2] - int(uav[3:]),
-                    )
-                    print(actualWaypoint)
+                            print(actualWaypoint[idx])
 
-                    if actualWaypoint == (len(path_list) - 7):
-                        client.simPause(False)
-                        caviar_tools.airsim_land_all(client)
-                        isFinished = True
-                        print(
-                            "Episode "
-                            + str(episode)
-                            + " concluded with "
-                            + str(time.time() - initial_time)
-                            + "s"
-                        )
+                            if actualWaypoint[idx] == (len(path_list) - 5):
+                                client.simPause(False)
+                                caviar_tools.airsim_land_all(client)
+                                isFinished = True
+                                print(
+                                    "Episode "
+                                    + str(episode)
+                                    + " concluded with "
+                                    + str(time.time() - initial_time)
+                                    + "s"
+                                )
+                    # Continues the rescue
+                    else:
+                        rescue_steps = rescue_steps - 1
+                        if rescue_steps == 0:
+                            person_to_be_rescued = False  # finished rescue
 
             output_folder = os.path.join(os.getcwd(), "runs")
             if save_multimodal:
-                caviar_tools.airsim_save_external_images(client, output_folder, "FixedCamera1")
+                caviar_tools.airsim_save_external_images(
+                    client, output_folder, "FixedCamera1"
+                )
             # Get an write information about others objects in the simulation (cars and pedestrians). Each object is described in the configuration file (caviar_config.py)
             for obj in caviar_config.ue_objects:
                 object_pose = caviar_tools.unreal_getpose(client, obj)
                 object_orien = caviar_tools.unreal_getorientation(client, obj)
             end_time = time.time()
             print(f"CAVIAR in-loop step duration (seconds): {end_time-start_time}")
+            step_time_rescue.append(end_time-start_time)
             print(f">>>>>>>>>>>>>>> Simulation duration (seconds): {(airsim_timestamp-initial_timestamp)*1e-9}")
-            if (airsim_timestamp-initial_timestamp)*1e-9 >= 2:
+            if (airsim_timestamp-initial_timestamp)*1e-9 >= 60:
                 time.sleep(2)
                 os._exit(os.EX_OK)
 
@@ -310,5 +390,6 @@ with NATSClient() as natsclient:
             simu_time_of_rescue=simu_time_of_rescue,
             simu_pose_of_rescue=simu_pose_of_rescue,
             throughputs_during_rescue=throughputs_during_rescue,
-            times_waited_during_rescue=times_waited_during_rescue
+            times_waited_during_rescue=times_waited_during_rescue,
+            steps_time = step_time_rescue
         )
