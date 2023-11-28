@@ -287,7 +287,7 @@ for idx in range(number_of_users):
 
 # ------------------------------------------------------------------------------
 
-groups = ("One", "Two", "Three", "Four", "Five")
+classes = ("One", "Two", "Three", "Four", "Five")
 cpu_means = {
     "3D": (
         unreal_cpu_means[0],
@@ -442,19 +442,19 @@ ram_std_devs = {
 
 hatches = {
     "3D": "",
-    "AI": "-",
-    "Orchestrator": "*",
+    "AI": "*",
+    "Orchestrator": "-",
     "Communications": "/",
     "Total": "|",
 }
 
-x = np.arange(len(groups))  # the label locations
-width = 0.18  # the width of the bars
+x = np.arange(len(classes))
+width = 0.15
 multiplier = 0
 
 fig, ax = plt.subplots(layout="constrained")
-fig.set_figwidth(26)
-fig.set_figheight(6)
+fig.set_figwidth(25)
+fig.set_figheight(7)
 
 for idx, ((attribute, measurement), std_dev, curr_hatch) in enumerate(
     zip(cpu_means.items(), cpu_std_devs.values(), hatches.values())
@@ -467,7 +467,6 @@ for idx, ((attribute, measurement), std_dev, curr_hatch) in enumerate(
         x + offset,
         measurement,
         width,
-        yerr=std_dev,
         hatch=curr_hatch,
         color=curr_color,
         label=attribute,
@@ -476,25 +475,26 @@ for idx, ((attribute, measurement), std_dev, curr_hatch) in enumerate(
     ax.bar_label(rects, padding=3)
     multiplier += 1
 
-# Add some text for labels, title and custom x-axis tick labels, etc.
 ax.set_ylabel("CPU (%)")
 ax.set_yticks(np.arange(0, 100 + 1, 10))
-ax.set_xticks(x + width, groups)
+ax.set_xticks(x + width, classes)
 ax.legend(loc="upper left", ncols=3)
 ax.set_ylim(0, 100)
-plt.savefig("/home/joao/Downloads/caviar_records/CPU.pdf")
+plt.savefig(
+    "/home/joao/papers/2023-joaoborges-caviarrt-ieee-journal-dblcolumn/Figures/CPU.pdf"
+)
 plt.close()
 
 # ------------------------------------------------------------------------------
 
 
-x = np.arange(len(groups))  # the label locations
-width = 0.18  # the width of the bars
+x = np.arange(len(classes))
+width = 0.15
 multiplier = 0
 
 fig, ax = plt.subplots(layout="constrained")
-fig.set_figwidth(26)
-fig.set_figheight(6)
+fig.set_figwidth(25)
+fig.set_figheight(7)
 
 for idx, ((attribute, measurement), std_dev, curr_hatch) in enumerate(
     zip(ram_means.items(), ram_std_devs.values(), hatches.values())
@@ -507,7 +507,6 @@ for idx, ((attribute, measurement), std_dev, curr_hatch) in enumerate(
         x + offset,
         measurement,
         width,
-        yerr=std_dev,
         hatch=curr_hatch,
         color=curr_color,
         label=attribute,
@@ -516,12 +515,13 @@ for idx, ((attribute, measurement), std_dev, curr_hatch) in enumerate(
     ax.bar_label(rects, padding=3)
     multiplier += 1
 
-# Add some text for labels, title and custom x-axis tick labels, etc.
 ax.set_ylabel("RAM (MB)")
 ax.set_xlabel("Number of UAVs")
-ax.set_xticks(x + width, groups)
+ax.set_xticks(x + width, classes)
 ax.legend(loc="upper left", ncols=3)
-plt.savefig("/home/joao/Downloads/caviar_records/RAM.pdf")
+plt.savefig(
+    "/home/joao/papers/2023-joaoborges-caviarrt-ieee-journal-dblcolumn/Figures/RAM.pdf"
+)
 plt.close()
 # ------------------------------------------------------------------------------
 
