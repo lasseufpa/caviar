@@ -4,6 +4,18 @@ import numpy as np
 
 sns.set_theme()
 
+# Change plt font to Times New Roman with rcParams
+plt.rcParams.update(
+    {
+        "font.family": "serif",
+        "font.serif": "Times New Roman",
+        "axes.labelsize": 19,
+        "xtick.labelsize": 19,
+        "ytick.labelsize": 19,
+        "legend.fontsize": 19,
+    }
+)
+
 top1_acc_train = 70.4960
 top2_acc_train = 80.9399
 top3_acc_train = 83.550
@@ -95,7 +107,7 @@ plt.plot(
         top100_acc_train,
     ],
     marker="x",
-    label="Test set",
+    label="Validation",
 )
 
 plt.plot(
@@ -117,20 +129,24 @@ plt.plot(
         top100_acc_sar,
     ],
     marker="*",
-    label="Search and rescue",
+    label="Test",
 )
 
 x_ticks = np.arange(0, 101, 10)
 x_ticks[0] = 1
 plt.grid(True)
 plt.xticks(x_ticks)
-plt.legend()
+plt.legend(loc="lower right")
 plt.yticks(np.arange(35, 101, 5))
 plt.xlim(0, 101)
 plt.ylim(35, 100)
 plt.xlabel("K values")
 plt.ylabel("Accuracy (%)")
-plt.savefig("topk_results.png")
+# put legend on the bottom right corner
+plt.tight_layout()
+plt.savefig(
+    "/home/joao/papers/2023-joaoborges-caviarrt-ieee-journal-dblcolumn/Figures/topk_results.pdf"
+)
 
 # train
 # Top-1 accuracy: 70.49608355091384 %

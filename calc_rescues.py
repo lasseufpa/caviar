@@ -25,20 +25,34 @@ if __name__ == "__main__":
         rescue_times.append(get_time_for_rescue(throughput_bps))
 
     sns.set_theme()
+
+    plt.rcParams.update(
+        {
+            "font.family": "serif",
+            "font.serif": "Times New Roman",
+            "axes.labelsize": 19,
+            "xtick.labelsize": 19,
+            "ytick.labelsize": 19,
+            "legend.fontsize": 19,
+        }
+    )
+
     plt.figure(figsize=(7, 6))
     plt.plot(throughputs, rescue_times)
     plt.grid(True)
 
-    x_ticks = np.arange(0, 101, 5)
+    x_ticks = np.arange(0, 101, 10)
     x_ticks[0] = 1
 
-    y_ticks = np.arange(0, 351, 15)
+    y_ticks = np.arange(0, 351, 20)
 
     plt.xticks(x_ticks)
     plt.yticks(y_ticks)
     plt.xlim(0.75, 100)
     plt.ylim(-1, 325)
     plt.xlabel("Throughput (Mbps)")
-    plt.ylabel("Estimated virtual time to finish one rescue (seconds)")
+    plt.ylabel("Estimated virtual time to finish one rescue (sec.)")
     plt.tight_layout()
-    plt.savefig("time_to_finish_rescues_mbps.pdf")
+    plt.savefig(
+        "/home/joao/papers/2023-joaoborges-caviarrt-ieee-journal-dblcolumn/Figures/time_to_finish_rescues_mbps.pdf"
+    )

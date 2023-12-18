@@ -14,6 +14,7 @@ two_uavs_output = np.load("for_2uavs_newgpu_gpu.npz", allow_pickle=True)
 three_uavs_output = np.load("for_3uavs_newgpu_gpu.npz", allow_pickle=True)
 four_uavs_output = np.load("for_4uavs_newgpu_gpu.npz", allow_pickle=True)
 five_uavs_output = np.load("for_5uavs_newgpu_gpu.npz", allow_pickle=True)
+ten_uavs_output = np.load("for_10uavs_newgpu_gpu.npz", allow_pickle=True)
 
 one_uavs_central_park_cpu = one_uavs_output["central_park_cpu"]
 one_uavs_python_cpu = one_uavs_output["python_cpu"]
@@ -30,41 +31,48 @@ four_uavs_python_cpu = four_uavs_output["python_cpu"]
 five_uavs_central_park_cpu = five_uavs_output["central_park_cpu"]
 five_uavs_python_cpu = five_uavs_output["python_cpu"]
 
-classes = ["One", "Two", "Three", "Four", "Five"]
+ten_uavs_central_park_cpu = ten_uavs_output["central_park_cpu"]
+ten_uavs_python_cpu = ten_uavs_output["python_cpu"]
+
+# classes = ["One", "Two", "Three", "Four", "Five", "Ten"]
+classes = ["One", "Three", "Five", "Ten"]
 
 gpu_proc_means = {
-    "3D": (
+    "3D&Mob.": (
         np.mean(one_uavs_central_park_cpu),
-        np.mean(two_uavs_central_park_cpu),
+        # np.mean(two_uavs_central_park_cpu),
         np.mean(three_uavs_central_park_cpu),
-        np.mean(four_uavs_central_park_cpu),
+        # np.mean(four_uavs_central_park_cpu),
         np.mean(five_uavs_central_park_cpu),
+        np.mean(ten_uavs_central_park_cpu),
     ),
     "Communications": (
         np.mean(one_uavs_python_cpu),
-        np.mean(two_uavs_python_cpu),
+        # np.mean(two_uavs_python_cpu),
         np.mean(three_uavs_python_cpu),
-        np.mean(four_uavs_python_cpu),
+        # np.mean(four_uavs_python_cpu),
         np.mean(five_uavs_python_cpu),
+        np.mean(ten_uavs_python_cpu),
     ),
     "Total": (
         np.mean(one_uavs_python_cpu) + np.mean(one_uavs_central_park_cpu),
-        np.mean(two_uavs_python_cpu) + np.mean(two_uavs_central_park_cpu),
+        # np.mean(two_uavs_python_cpu) + np.mean(two_uavs_central_park_cpu),
         np.mean(three_uavs_python_cpu) + np.mean(three_uavs_central_park_cpu),
-        np.mean(four_uavs_python_cpu) + np.mean(four_uavs_central_park_cpu),
+        # np.mean(four_uavs_python_cpu) + np.mean(four_uavs_central_park_cpu),
         np.mean(five_uavs_python_cpu) + np.mean(five_uavs_central_park_cpu),
+        np.mean(ten_uavs_python_cpu) + np.mean(ten_uavs_central_park_cpu),
     ),
 }
 
 hatches = {
-    "3D": "",
+    "3D&Mob.": "",
     "Communications": "/",
     "Total": "|",
 }
 
 curr_colors = {
-    "3D": colors[0],
-    "Communications": colors[3],
+    "3D&Mob.": colors[1],
+    "Communications": colors[0],
     "Total": colors[4],
 }
 
@@ -72,8 +80,20 @@ x = np.arange(len(classes))
 width = 0.17
 multiplier = 0
 
+plt.rcParams.update(
+    {
+        "font.family": "serif",
+        "font.serif": "Times New Roman",
+        "font.size": 20,
+        "legend.fontsize": 28,
+        "axes.labelsize": 34,
+        "xtick.labelsize": 34,
+        "ytick.labelsize": 34,
+    }
+)
+
 fig, ax = plt.subplots(layout="constrained")
-fig.set_figwidth(25)
+fig.set_figwidth(26)
 fig.set_figheight(7)
 
 for idx, ((attribute, measurement), curr_hatch, curr_color) in enumerate(

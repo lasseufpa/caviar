@@ -1,53 +1,54 @@
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
-import os
 
-# For 1 UVA
+# For 1 UAV
+# Communications 64%
+# 3D             12%
+# Total          76%
 
-# Sionna 64%
-# Unreal 12%
+# For 2 UAV
+# Communications 61%
+# 3D             14%
+# Total          75%
 
-# For 2 UVA
+# For 3 UAV
+# Communications 59%
+# 3D             16%
+# Total          75%
 
-# Sionna 61%
-# Unreal 14%
+# For 4 UAV
+# Communications 57%
+# 3D             18%
+# Total          75%
 
-# For 3 UVA
+# For 5 UAV
+# Communications 55%
+# 3D             20%
+# Total          75%
 
-# Sionna 59%
-# Unreal 16%
-
-# For 4 UVA
-
-# Sionna 57%
-# Unreal 18%
-
-# For 5 UVA
-
-# Sionna 55%
-# Unreal 20%
-
+# For 10 UAV:
+# Communications 45%
+# 3D             29%
+# Total          74%
 sns.set_theme()
 colors = sns.color_palette("deep")
 
-classes = ["One", "Two", "Three", "Four", "Five"]
+classes = ["One", "Three", "Five", "Ten"]
 
 ram_means = {
     "3D": (
         12,
-        14,
         16,
-        18,
         20,
+        29,
     ),
-    "Communications": (64, 61, 59, 57, 55),
+    "Communications": (64, 59, 55, 45),
     "Total": (
         76,
         75,
         75,
-        75,
-        75,
+        74,
     ),
 }
 
@@ -58,17 +59,29 @@ hatches = {
 }
 
 curr_colors = {
-    "3D": colors[0],
-    "Communications": colors[3],
+    "3D": colors[1],
+    "Communications": colors[0],
     "Total": colors[4],
 }
 
 x = np.arange(len(classes))
-width = 0.17
+width = 0.20
 multiplier = 0
 
+plt.rcParams.update(
+    {
+        "font.family": "serif",
+        "font.serif": "Times New Roman",
+        "font.size": 20,
+        "legend.fontsize": 28,
+        "axes.labelsize": 34,
+        "xtick.labelsize": 34,
+        "ytick.labelsize": 34,
+    }
+)
+
 fig, ax = plt.subplots(layout="constrained")
-fig.set_figwidth(25)
+fig.set_figwidth(26)
 fig.set_figheight(7)
 
 for idx, ((attribute, measurement), curr_hatch, curr_color) in enumerate(

@@ -1,17 +1,5 @@
 import numpy as np
-import matplotlib
 
-matplotlib.use("pgf")
-matplotlib.rcParams.update(
-    {
-        "pgf.texsystem": "pdflatex",
-        "font.family": "serif",
-        "text.usetex": True,
-        "pgf.rcfonts": False,
-    }
-)
-matplotlib.rc("xtick", labelsize=8)
-matplotlib.rc("ytick", labelsize=8)
 from matplotlib import pyplot as plt
 import seaborn as sns
 
@@ -20,6 +8,7 @@ sns.set_theme()
 
 
 time_ = [464.649, 591.301, 758.933, 870.339, 946.006]
+real_time_factor = np.divide(time_, 60).tolist()
 time_distrib = [417.508, 460.114, 700.837, 949.089, 1239.943]
 # time_distrib = [417.508, 460.114, 700.837, 913, 1239.943]
 
@@ -45,33 +34,39 @@ time5uavspall = [
 ]
 nusers = [1, 2, 3, 4, 5]
 
-# plt.figure(figsize=(5.4,3.6))
-plt.xlabel("Nº of users")
-plt.ylabel("Elapsed time (seconds)")
-plt.xlim(0.95, 5.05)
-plt.xticks(np.arange(1, 6, 1))
-# plt.ticklabel_format(style="sci", axis="y", scilimits=(0, 0))
-plt.plot(nusers, time_, marker="o", color=colors[1])
-# plt.plot(
-#     nusers, time_, marker="o", color=colors[1], label="Monolithic execution (1 PC)"
-# )
-# plt.plot(
-#     nusers,
-#     time_distrib,
-#     marker="*",
-#     color=colors[2],
-#     label="Distributed execution (2 PCs)",
-# )
-# plt.plot(nusers,time5uavs, marker='', label='Simulation considering five UAVs', color=colors[2])
-# plt.plot(nusers,time5uavspall, marker='', label='Simulation considering five UAVs using parallel computing', color=colors[3])
+plt.rcParams.update(
+    {
+        "font.family": "serif",
+        "font.serif": "Times New Roman",
+        "axes.labelsize": 19,
+        "xtick.labelsize": 19,
+        "ytick.labelsize": 19,
+        "legend.fontsize": 19,
+    }
+)
 
+fig, ax1 = plt.subplots()
+ax1.plot(
+    nusers, time_, marker="o", color=colors[1], zorder=1
+)  # Set z-order to 1 for ax1
+ax1.set_xlabel("Number of connected UAVs")
+ax1.set_ylabel("Total wall-clock time (seconds)", color=colors[1])
+ax1.set_xlim(0.96, 5.03)
+ax1.set_xticks(np.arange(1, 6, 1))
+ax1.set_yticks(np.arange(400, 1000 + 1, 100))
+ax1.tick_params(axis="y", colors=colors[1])
 
-# plt.legend()
-# plt.legend(loc='upper left')
-# plt.grid()
+# create the second plot
+ax2 = ax1.twinx()
+ax2.bar(
+    nusers, real_time_factor, width=0.3, color=colors[0], alpha=0.4, zorder=0
+)  # Set z-order to 0 for ax2
+ax2.set_ylabel("Real-time factor (RTF)", color=colors[0])
+ax2.set_yticks(np.arange(0, 16 + 1, 1))
+ax2.tick_params(axis="y", colors=colors[0])
 
+plt.grid(False)
 plt.tight_layout()
-# plt.savefig('../figures/graphs/results_time/simulations_times.pgf')
 plt.savefig(
     "/home/joao/papers/2023-joaoborges-caviarrt-ieee-journal-dblcolumn/Figures/simulations_times.pdf"
 )
