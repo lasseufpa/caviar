@@ -37,7 +37,7 @@ colors = sns.color_palette("deep")
 classes = ["One", "Three", "Five", "Ten"]
 
 ram_means = {
-    "3D": (
+    "3D&Mob": (
         12,
         16,
         20,
@@ -53,13 +53,13 @@ ram_means = {
 }
 
 hatches = {
-    "3D": "",
+    "3D&Mob": "",
     "Communications": "/",
     "Total": "|",
 }
 
 curr_colors = {
-    "3D": colors[1],
+    "3D&Mob": colors[1],
     "Communications": colors[0],
     "Total": colors[4],
 }
