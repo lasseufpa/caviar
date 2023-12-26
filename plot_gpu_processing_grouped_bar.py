@@ -38,7 +38,7 @@ ten_uavs_python_cpu = ten_uavs_output["python_cpu"]
 classes = ["One", "Three", "Five", "Ten"]
 
 gpu_proc_means = {
-    "3D&Mob.": (
+    "Mob+3D": (
         np.mean(one_uavs_central_park_cpu),
         # np.mean(two_uavs_central_park_cpu),
         np.mean(three_uavs_central_park_cpu),
@@ -65,13 +65,13 @@ gpu_proc_means = {
 }
 
 hatches = {
-    "3D&Mob.": "",
+    "Mob+3D": "",
     "Communications": "/",
     "Total": "|",
 }
 
 curr_colors = {
-    "3D&Mob.": colors[1],
+    "Mob+3D": colors[1],
     "Communications": colors[0],
     "Total": colors[4],
 }
@@ -100,6 +100,9 @@ for idx, ((attribute, measurement), curr_hatch, curr_color) in enumerate(
     zip(gpu_proc_means.items(), hatches.values(), curr_colors.values())
 ):
     offset = width * multiplier
+
+    # iterate over measurement array and truncate values to first three decimal values
+    measurement = [np.trunc(val * 1000) / 1000 for val in measurement]
 
     rects = ax.bar(
         x + offset,

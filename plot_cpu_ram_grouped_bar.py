@@ -322,7 +322,7 @@ for idx in [0, 1, 2, 3, 4, 5]:
 # classes = ("One", "Two", "Three", "Four", "Five", "Ten")
 classes = ("One", "Three", "Five", "Ten")
 cpu_means = {
-    "3D&Mob.": (
+    "Mob+3D": (
         unreal_cpu_means[0],
         unreal_cpu_means[2],
         unreal_cpu_means[4],
@@ -355,7 +355,7 @@ cpu_means = {
 }
 
 cpu_std_devs = {
-    "3D&Mob.": (
+    "Mob+3D": (
         unreal_cpu_stds[0],
         unreal_cpu_stds[2],
         unreal_cpu_stds[4],
@@ -388,7 +388,7 @@ cpu_std_devs = {
 }
 
 ram_means = {
-    "3D&Mob.": (
+    "Mob+3D": (
         unreal_ram_means[0],
         unreal_ram_means[2],
         unreal_ram_means[4],
@@ -421,7 +421,7 @@ ram_means = {
 }
 
 ram_std_devs = {
-    "3D&Mob.": (
+    "Mob+3D": (
         unreal_ram_stds[0],
         unreal_ram_stds[2],
         unreal_ram_stds[4],
@@ -454,7 +454,7 @@ ram_std_devs = {
 }
 
 hatches = {
-    "3D&Mob.": "",
+    "Mob+3D": "",
     "AI": "*",
     "Orchestrator": "-",
     "Communications": "/",

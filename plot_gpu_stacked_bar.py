@@ -37,7 +37,7 @@ colors = sns.color_palette("deep")
 classes = ["One", "Three", "Five", "Ten"]
 
 ram_means = {
-    "3D&Mob": (
+    "Mob+3D": (
         12,
         16,
         20,
@@ -53,13 +53,13 @@ ram_means = {
 }
 
 hatches = {
-    "3D&Mob": "",
+    "Mob+3D": "",
     "Communications": "/",
     "Total": "|",
 }
 
 curr_colors = {
-    "3D&Mob": colors[1],
+    "Mob+3D": colors[1],
     "Communications": colors[0],
     "Total": colors[4],
 }
@@ -88,6 +88,9 @@ for idx, ((attribute, measurement), curr_hatch, curr_color) in enumerate(
     zip(ram_means.items(), hatches.values(), curr_colors.values())
 ):
     offset = width * multiplier
+
+    # iterate over measurement array and truncate values to first three decimal values
+    measurement = [np.trunc(val * 1000) / 1000 for val in measurement]
 
     rects = ax.bar(
         x + offset,
