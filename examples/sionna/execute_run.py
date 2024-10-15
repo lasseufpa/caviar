@@ -73,11 +73,11 @@ def getRunMIMOdata(
 ):
     if rx_number > 1:
         for rx_index in range(rx_number):
-            current_rx_mimoChannel = mimoChannel[rx_index] 
+            current_rx_mimoChannel = mimoChannel[rx_index]
 
             equivalentChannel = mimo_channels.getDFTOperatedChannel(
                 current_rx_mimoChannel, number_Tx_antennas, number_Rx_antennas
-            )   
+            )
 
             equivalentChannelMagnitude = np.abs(equivalentChannel)
 
@@ -89,13 +89,18 @@ def getRunMIMOdata(
 
         equivalentChannel = mimo_channels.getDFTOperatedChannel(
             current_rx_mimoChannel, number_Tx_antennas, number_Rx_antennas
-        )   
+        )
         equivalentChannelMagnitude = np.abs(equivalentChannel)
         best_ray = np.argwhere(
             equivalentChannelMagnitude == np.max(equivalentChannelMagnitude)
         )
 
-    return current_rx_mimoChannel, equivalentChannel, equivalentChannelMagnitude, best_ray
+    return (
+        current_rx_mimoChannel,
+        equivalentChannel,
+        equivalentChannelMagnitude,
+        best_ray,
+    )
 
 
 def run(current_step, new_x, new_y, new_z):
@@ -190,7 +195,7 @@ def run(current_step, new_x, new_y, new_z):
 
     # Get bit rate
     bit_rate = getBitRate(equivalentChannelMagnitude, bandwidth=40e6)
-    bit_rate_Gbps = bit_rate / 1e9 # Converts to Gbps
+    bit_rate_Gbps = bit_rate / 1e9  # Converts to Gbps
     # bit_rate_Gbps = bit_rate_Gbps / 10 # Divides the throughput between 10 drones in a hypothetical swarm
     best_ray_rx = best_ray[0][0]
     best_ray_tx = best_ray[0][1]
@@ -210,12 +215,12 @@ def run(current_step, new_x, new_y, new_z):
     all_predicted_bit_rate_Gbps.append(predicted_bit_rate_Gbps * int(1e3))
 
     output_filename = os.path.join(current_dir, "runs", f"run_{str(current_step)}")
-    figures_output_filename = os.path.join(
-        current_dir, "runs", "figures", f"run_0.png"
-    )
+    figures_output_filename = os.path.join(current_dir, "runs", "figures", f"run_0.png")
 
     if number_of_paths > 0:
-        print(f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> {number_of_paths} paths obtained during this run")
+        print(
+            f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> {number_of_paths} paths obtained during this run"
+        )
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
 
@@ -260,7 +265,7 @@ def run(current_step, new_x, new_y, new_z):
                 random_bit_rate_Gbps * int(1e3),
                 np.mean(all_best_bit_rate_Gbps[-10:]),
                 np.mean(all_predicted_bit_rate_Gbps[-10:]),
-                np.mean(all_random_bit_rate_Gbps[-10:])
+                np.mean(all_random_bit_rate_Gbps[-10:]),
             )
 
         if save_all_data_as_npz:
@@ -280,7 +285,9 @@ def run(current_step, new_x, new_y, new_z):
                 random_bit_rate_Gbps=random_bit_rate_Gbps,
             )
     else:
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> No paths obtained during this run")
+        print(
+            ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> No paths obtained during this run"
+        )
 
     del paths  # deallocation of memory
 
