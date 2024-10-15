@@ -5,13 +5,13 @@ import numpy as np
 
 def get_time_for_rescue(throughput):
     """
-    This function calculates the time for transmit them all and finish
+    This function calculates the time to transmit rescue images and finish
     the rescue.
 
-    The rescue will finish after transmiting 100 pictures of 4 MB (3.2e7 bits), representing
-    a 4K image and a point cloud file made with LiDAR with 2 GB (16e9 bits)
+    The rescue will finish after transmiting 10 pictures of 4 MB
+    (4 MiB = 3.355e7 bits), representing a 4K image
     """
-    data_to_transmit_in_bits = 3.2e7 * 10
+    data_to_transmit_in_bits = 3.355e7 * 10
     time_to_tx = data_to_transmit_in_bits / (throughput)
     return time_to_tx
 
