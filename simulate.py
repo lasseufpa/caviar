@@ -109,13 +109,13 @@ if __name__ == "__main__":
     #         break
     def abort_simulation():
         print("The program was terminated manually!")
-        time.sleep(5)
-        airsim_simu.send_signal(signal.SIGTERM)
         time.sleep(1)
         airsim_simu.send_signal(signal.SIGTERM)
         time.sleep(1)
         airsim_simu.send_signal(signal.SIGTERM)
-        time.sleep(2)
+        time.sleep(1)
+        airsim_simu.send_signal(signal.SIGTERM)
+        time.sleep(1)
         nats_simu.send_signal(signal.SIGTERM)
         mobility_simu.send_signal(signal.SIGTERM)
         sionna_simu.send_signal(signal.SIGTERM)
