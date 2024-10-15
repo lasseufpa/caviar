@@ -1,28 +1,17 @@
 import subprocess
 import signal
 import threading
-from getch import getch
 import time
+import sys
 from pynats import NATSClient
 import json
-
-key = "a"
-
-def verifyKey():
-    global key
-    lock = threading.Lock()
-    while True:
-        with lock:
-            pass
-            # print("Thread Working...")
-            # key = input("Press 'w' to close")
 
 def signal_handler(sig, frame):
     global key
     print("Ctrl+C detected. Stopping the thread.")
     key = "w"
-    time.sleep(10)
-    exit(0)
+    abort_simulation()
+    sys.exit(0)
 
 signal.signal(signal.SIGINT, signal_handler)
 
@@ -118,6 +107,24 @@ if __name__ == "__main__":
     #         sionna_simu.send_signal(signal.SIGTERM)
     #         print("------------------------------------------> END")
     #         break
+    def abort_simulation():
+        print("The program was terminated manually!")
+        time.sleep(1)
+        airsim_simu.send_signal(signal.SIGTERM)
+        time.sleep(1)
+        airsim_simu.send_signal(signal.SIGTERM)
+        time.sleep(1)
+        airsim_simu.send_signal(signal.SIGTERM)
+        time.sleep(1)
+        nats_simu.send_signal(signal.SIGTERM)
+        mobility_simu.send_signal(signal.SIGTERM)
+        sionna_simu.send_signal(signal.SIGTERM)
+        airsim_simu.wait()
+        nats_simu.wait()
+        mobility_simu.wait()
+        sionna_simu.wait()
+        print("------------------------------------------> END")
+        sys.exit(0)
 
     with NATSClient() as natsclient:
         natsclient.connect()
@@ -130,20 +137,9 @@ if __name__ == "__main__":
             """
             payload = json.loads(msg.payload.decode())
             isFinished = payload["isFinished"]
-            if key == "w" or isFinished == "True":
-                print("The program was terminated manually!")
-                time.sleep(5)
-                airsim_simu.send_signal(signal.SIGTERM)
-                time.sleep(1)
-                airsim_simu.send_signal(signal.SIGTERM)
-                time.sleep(1)
-                airsim_simu.send_signal(signal.SIGTERM)
-                time.sleep(2)
-                nats_simu.send_signal(signal.SIGTERM)
-                mobility_simu.send_signal(signal.SIGTERM)
-                sionna_simu.send_signal(signal.SIGTERM)
-                print("------------------------------------------> END")
-                exit(0)
+            if isFinished == "True":
+                abort_simulation()
+                sys.exit(0)
             # natsclient.wait(count=1)
         natsclient.subscribe(
             subject="simulation.status", callback=simulation_check
