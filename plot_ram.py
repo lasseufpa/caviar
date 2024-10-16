@@ -28,7 +28,7 @@ def moving_average(x, w):
 
 def plot_individual(n_users):
     with open(
-        "/home/joao/Downloads/caviar_records/for_"
+        "./output/caviar_records/for_"
         + str(n_users)
         + "uavs_"
         + simode
@@ -42,7 +42,7 @@ def plot_individual(n_users):
     unreal = np.array(line_array, dtype=float)
 
     with open(
-        "/home/joao/Downloads/caviar_records/for_"
+        "./output/caviar_records/for_"
         + str(n_users)
         + "uavs_"
         + simode
@@ -56,7 +56,7 @@ def plot_individual(n_users):
     airsim = np.array(line_array, dtype=float)
 
     with open(
-        "/home/joao/Downloads/caviar_records/for_"
+        "./output/caviar_records/for_"
         + str(n_users)
         + "uavs_"
         + simode
@@ -70,7 +70,7 @@ def plot_individual(n_users):
     yolo = np.array(line_array, dtype=float)
 
     with open(
-        "/home/joao/Downloads/caviar_records/for_"
+        "./output/caviar_records/for_"
         + str(n_users)
         + "uavs_"
         + simode
@@ -114,9 +114,9 @@ def plot_individual(n_users):
     plt.tight_layout()
     # plt.savefig('Figures/'+str(n_users)+'users_CPU.png')
     # plt.savefig('../figures/graphs/results_ram/'+str(n_users)+'users_RAM_5uavs.pgf')
-    # plt.savefig("/home/joao/Downloads/caviar_records/ram_" + str(n_users) + ".pdf")
+    # plt.savefig("./output/caviar_records/ram_" + str(n_users) + ".pdf")
     plt.savefig(
-        "/home/joao/papers/2023-joaoborges-caviarrt-ieee-journal-dblcolumn/Figures/ram_"
+        "./output/ram_"
         + str(n_users)
         + ".pdf"
     )

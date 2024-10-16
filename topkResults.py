@@ -145,7 +145,7 @@ plt.ylabel("Accuracy (%)")
 # put legend on the bottom right corner
 plt.tight_layout()
 plt.savefig(
-    "/home/joao/papers/2023-joaoborges-caviarrt-ieee-journal-dblcolumn/Figures/topk_results.pdf"
+    "./output/topk_results.pdf"
 )
 
 # train

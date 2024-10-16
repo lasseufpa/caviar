@@ -24,68 +24,68 @@ n_bins = 50
 
 
 one_uav_3D_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_1uavs_nowait_airsim.txt"
+    "./output/for_1uavs_nowait_airsim.txt"
 )
 one_uav_AI_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_1uavs_nowait_mobility.txt"
+    "./output/for_1uavs_nowait_mobility.txt"
 )
 one_uav_comm_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_1uavs_nowait_sionna.txt"
+    "./output/for_1uavs_nowait_sionna.txt"
 )
 one_uav_orchestrator_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_1uavs_nowait_nats.txt"
+    "./output/for_1uavs_nowait_nats.txt"
 )
 
 two_uav_3D_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_2uavs_nowait_airsim.txt"
+    "./output/for_2uavs_nowait_airsim.txt"
 )
 two_uav_AI_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_2uavs_nowait_mobility.txt"
+    "./output/for_2uavs_nowait_mobility.txt"
 )
 two_uav_comm_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_2uavs_nowait_sionna.txt"
+    "./output/for_2uavs_nowait_sionna.txt"
 )
 two_uav_orchestrator_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_2uavs_nowait_nats.txt"
+    "./output/for_2uavs_nowait_nats.txt"
 )
 
 three_uav_3D_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_3uavs_nowait_airsim.txt"
+    "./output/for_3uavs_nowait_airsim.txt"
 )
 three_uav_AI_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_3uavs_nowait_mobility.txt"
+    "./output/for_3uavs_nowait_mobility.txt"
 )
 three_uav_comm_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_3uavs_nowait_sionna.txt"
+    "./output/for_3uavs_nowait_sionna.txt"
 )
 three_uav_orchestrator_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_3uavs_nowait_nats.txt"
+    "./output/for_3uavs_nowait_nats.txt"
 )
 
 four_uav_3D_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_4uavs_nowait_airsim.txt"
+    "./output/for_4uavs_nowait_airsim.txt"
 )
 four_uav_AI_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_4uavs_nowait_mobility.txt"
+    "./output/for_4uavs_nowait_mobility.txt"
 )
 four_uav_comm_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_4uavs_nowait_sionna.txt"
+    "./output/for_4uavs_nowait_sionna.txt"
 )
 four_uav_orchestrator_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_4uavs_nowait_nats.txt"
+    "./output/for_4uavs_nowait_nats.txt"
 )
 
 five_uav_3D_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_5uavs_nowait_airsim.txt"
+    "./output/for_5uavs_nowait_airsim.txt"
 )
 five_uav_AI_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_5uavs_nowait_mobility.txt"
+    "./output/for_5uavs_nowait_mobility.txt"
 )
 five_uav_comm_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_5uavs_nowait_sionna.txt"
+    "./output/for_5uavs_nowait_sionna.txt"
 )
 five_uav_orchestrator_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_5uavs_nowait_nats.txt"
+    "./output/for_5uavs_nowait_nats.txt"
 )
 
 
@@ -231,5 +231,5 @@ plt.bar(
     alpha=0.5,
 )
 plt.tight_layout()
-plt.savefig("/home/joao/Downloads/caviar_records/orchestrator_ram_hist.pdf")
+plt.savefig("./output/orchestrator_ram_hist.pdf")
 plt.close()

@@ -5,8 +5,8 @@ import cv2
 
 
 rng = np.random.default_rng(1)
-image = img.open("/home/joao/Downloads/airsimtest.png")
-im = cv2.imread("/home/joao/Downloads/airsimtest.png", cv2.IMREAD_UNCHANGED)
+image = img.open("./output/airsimtest.png")
+im = cv2.imread("./output/airsimtest.png", cv2.IMREAD_UNCHANGED)
 width = 1
 height = 1
 bit_depth = 32
@@ -16,7 +16,7 @@ pixel_size_bytes = (width * height * bit_depth) / 8
 def dropPacketsFromImage(
     image,
     packet_drop_rate,
-    output_folder="/home/joao/Downloads/fromBytes.png",
+    output_folder="./output/fromBytes.png",
     packet_size_bytes=pixel_size_bytes,
     rng=rng,
 ):
@@ -65,7 +65,7 @@ dropPacketsFromImage(image, 0.25)
 def applyFilter(
     image,
     packet_drop_rate,
-    output_folder="/home/joaoborges/Downloads/fromBytes.png",
+    output_folder="./output/fromBytes.png",
     rng=rng,
 ):
     height = image.shape[0]

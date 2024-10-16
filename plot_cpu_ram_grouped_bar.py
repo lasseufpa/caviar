@@ -11,81 +11,81 @@ simode = "newgpu"
 n_bins = 50
 
 one_uav_unreal_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_1uavs_newgpu_airsim.txt"
+    "/output/caviar_records/for_1uavs_newgpu_airsim.txt"
 )
 one_uav_airsim_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_1uavs_newgpu_mobility.txt"
+    "/output/caviar_records/for_1uavs_newgpu_mobility.txt"
 )
 one_uav_yolo_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_1uavs_newgpu_sionna.txt"
+    "/output/caviar_records/for_1uavs_newgpu_sionna.txt"
 )
 one_uav_ns3_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_1uavs_newgpu_nats.txt"
+    "/output/caviar_records/for_1uavs_newgpu_nats.txt"
 )
 
 two_uav_unreal_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_2uavs_newgpu_airsim.txt"
+    "/output/caviar_records/for_2uavs_newgpu_airsim.txt"
 )
 two_uav_airsim_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_2uavs_newgpu_mobility.txt"
+    "/output/caviar_records/for_2uavs_newgpu_mobility.txt"
 )
 two_uav_yolo_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_2uavs_newgpu_sionna.txt"
+    "/output/caviar_records/for_2uavs_newgpu_sionna.txt"
 )
 two_uav_ns3_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_2uavs_newgpu_nats.txt"
+    "/output/caviar_records/for_2uavs_newgpu_nats.txt"
 )
 
 three_uav_unreal_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_3uavs_newgpu_airsim.txt"
+    "/output/caviar_records/for_3uavs_newgpu_airsim.txt"
 )
 three_uav_airsim_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_3uavs_newgpu_mobility.txt"
+    "/output/caviar_records/for_3uavs_newgpu_mobility.txt"
 )
 three_uav_yolo_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_3uavs_newgpu_sionna.txt"
+    "/output/caviar_records/for_3uavs_newgpu_sionna.txt"
 )
 three_uav_ns3_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_3uavs_newgpu_nats.txt"
+    "/output/caviar_records/for_3uavs_newgpu_nats.txt"
 )
 
 four_uav_unreal_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_4uavs_newgpu_airsim.txt"
+    "/output/caviar_records/for_4uavs_newgpu_airsim.txt"
 )
 four_uav_airsim_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_4uavs_newgpu_mobility.txt"
+    "/output/caviar_records/for_4uavs_newgpu_mobility.txt"
 )
 four_uav_yolo_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_4uavs_newgpu_sionna.txt"
+    "/output/caviar_records/for_4uavs_newgpu_sionna.txt"
 )
 four_uav_ns3_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_4uavs_newgpu_nats.txt"
+    "/output/caviar_records/for_4uavs_newgpu_nats.txt"
 )
 
 five_uav_unreal_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_5uavs_newgpu_airsim.txt"
+    "/output/caviar_records/for_5uavs_newgpu_airsim.txt"
 )
 five_uav_airsim_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_5uavs_newgpu_mobility.txt"
+    "/output/caviar_records/for_5uavs_newgpu_mobility.txt"
 )
 five_uav_yolo_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_5uavs_newgpu_sionna.txt"
+    "/output/caviar_records/for_5uavs_newgpu_sionna.txt"
 )
 five_uav_ns3_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_5uavs_newgpu_nats.txt"
+    "/output/caviar_records/for_5uavs_newgpu_nats.txt"
 )
 
 ten_uav_unreal_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_10uavs_newgpu_airsim.txt"
+    "/output/caviar_records/for_10uavs_newgpu_airsim.txt"
 )
 ten_uav_airsim_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_10uavs_newgpu_mobility.txt"
+    "/output/caviar_records/for_10uavs_newgpu_mobility.txt"
 )
 ten_uav_yolo_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_10uavs_newgpu_sionna.txt"
+    "/output/caviar_records/for_10uavs_newgpu_sionna.txt"
 )
 ten_uav_ns3_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_10uavs_newgpu_nats.txt"
+    "/output/caviar_records/for_10uavs_newgpu_nats.txt"
 )
 
 
@@ -512,7 +512,7 @@ ax.set_xticks(x + width, classes)
 ax.legend(loc="upper left", ncols=3)
 ax.set_ylim(0, 100)
 plt.savefig(
-    "/home/joao/papers/2023-joaoborges-caviarrt-ieee-journal-dblcolumn/Figures/CPU.pdf"
+    "./output/CPU.pdf"
 )
 plt.close()
 
@@ -602,7 +602,7 @@ plt.close()
 # )
 # plt.legend(loc="upper left")
 # plt.tight_layout()
-# plt.savefig("/home/joao/Downloads/caviar_records/unreal_cpu_hist.pdf")
+# plt.savefig("/output/caviar_records/unreal_cpu_hist.pdf")
 # plt.close()
 
 # plt.figure()
@@ -647,7 +647,7 @@ plt.close()
 # )
 # plt.legend(loc="upper left")
 # plt.tight_layout()
-# plt.savefig("/home/joao/Downloads/caviar_records/airsim_cpu_hist.pdf")
+# plt.savefig("/output/caviar_records/airsim_cpu_hist.pdf")
 # plt.close()
 
 # plt.figure()
@@ -686,7 +686,7 @@ plt.close()
 # )
 # plt.legend(loc="upper left")
 # plt.tight_layout()
-# plt.savefig("/home/joao/Downloads/caviar_records/yolo_cpu_hist.pdf")
+# plt.savefig("/output/caviar_records/yolo_cpu_hist.pdf")
 # plt.close()
 
 # plt.figure()
@@ -719,7 +719,7 @@ plt.close()
 # )
 # plt.legend(loc="upper left")
 # plt.tight_layout()
-# plt.savefig("/home/joao/Downloads/caviar_records/ns3_cpu_hist.pdf")
+# plt.savefig("/output/caviar_records/ns3_cpu_hist.pdf")
 # plt.close()
 
 # # ---------------------------------------------------------------------------
@@ -766,7 +766,7 @@ plt.close()
 # )
 # plt.legend(loc="upper left")
 # plt.tight_layout()
-# plt.savefig("/home/joao/Downloads/caviar_records/unreal_ram_hist.pdf")
+# plt.savefig("/output/caviar_records/unreal_ram_hist.pdf")
 # plt.close()
 
 # plt.figure()
@@ -811,7 +811,7 @@ plt.close()
 # )
 # plt.legend(loc="upper left")
 # plt.tight_layout()
-# plt.savefig("/home/joao/Downloads/caviar_records/airsim_ram_hist.pdf")
+# plt.savefig("/output/caviar_records/airsim_ram_hist.pdf")
 # plt.close()
 
 # plt.figure()
@@ -850,7 +850,7 @@ plt.close()
 # )
 # plt.legend(loc="upper left")
 # plt.tight_layout()
-# plt.savefig("/home/joao/Downloads/caviar_records/yolo_ram_hist.pdf")
+# plt.savefig("/output/caviar_records/yolo_ram_hist.pdf")
 # plt.close()
 
 # plt.figure()
@@ -883,5 +883,5 @@ plt.close()
 # )
 # plt.legend(loc="upper left")
 # plt.tight_layout()
-# plt.savefig("/home/joao/Downloads/caviar_records/ns3_ram_hist.pdf")
+# plt.savefig("/output/caviar_records/ns3_ram_hist.pdf")
 # plt.close()

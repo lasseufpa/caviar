@@ -312,7 +312,7 @@ def readUPASteeringCodebooks(inputFileName):
 def test_channel():
     # RESULTS_DIR='/Users/psb/ownCloud/Projects/DNN Wireless/rwi-3d-modeling/restuls/run00000'
     # RESULTS_DIR = 'D:/insitedata/pc128/example_working/restuls/run00000'
-    RESULTS_DIR = "D:/github/5gm-rwi-simulation/example/results_new_simuls/run00003/"
+    RESULTS_DIR = "../../output/"
     antenna_number = 2
     BASE_DIR = os.path.dirname(os.path.realpath(__file__))
     P2MPATHS_FILE = os.path.join(RESULTS_DIR, "study", "model.paths.t001_01.r002.p2m")
@@ -387,7 +387,7 @@ def test_channel():
 
 def test_readUPASteeringCodebooks():
     # inputFileName = 'D:/gits/lasse/software/mimo-matlab/upa_codebook_12x12.mat'
-    inputFileName = "D:/gits/lasse/software/mimo-matlab/upa_codebook_2x3.mat"
+    inputFileName = "../../output/"
     codevectors, Nx, Ny = readUPASteeringCodebooks(inputFileName)
     print("#1 = ", codevectors[:, 0])
     print("#4 = ", codevectors[:, 3])

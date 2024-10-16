@@ -4,7 +4,7 @@ import threading
 import time
 import psutil
 
-record_path = "/home/fhb/Documents/caviar_records"
+record_path = "./output/caviar_records"
 
 experiment_id = "for_03uavs_03.2"
 interval = 0.2
@@ -36,7 +36,7 @@ class runAirSim(threading.Thread):
         global airsim_simu
         airsim_simu = subprocess.Popen(
             ["psrecord",
-             "/home/fhb/Downloads/central_park/LinuxNoEditor/central_park/Binaries/Linux/central_park-Linux-DebugGame "+
+             "3d/LinuxNoEditor/central_park/Binaries/Linux/central_park-Linux-DebugGame"+
              "-WINDOWED "+
              "-ResX=640 "+
              "-ResY=480",
@@ -57,8 +57,8 @@ class runMobility(threading.Thread):
         global mobility_simu
         mobility_simu = subprocess.Popen(
             [   "psrecord",
-                "/home/fhb/miniconda3/envs/tf/bin/python " +
-                "/home/fhb/git/caviar/examples/airsimTools/caviar_benchmark.py",
+                "python " +
+                "examples/airsimTools/caviar_benchmark.py",
                 "--log",
                 record_path + "/" + experiment_id+"_mobility.txt",
                 "--interval",
@@ -96,8 +96,8 @@ class runSionna(threading.Thread):
         global sionna_simu
         sionna_simu = subprocess.Popen(
             [   "psrecord",
-                "/home/fhb/miniconda3/envs/tf/bin/python "+
-                "/home/fhb/git/caviar/examples/sionna/followPath.py",
+                "python "+
+                "./examples/sionna/followPath.py",
                 "--log",
                 record_path + "/" + experiment_id+"_sionna.txt",
                 "--interval",

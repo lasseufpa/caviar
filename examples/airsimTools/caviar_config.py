@@ -4,7 +4,7 @@ isOnline = True
 
 # Path for the AirSim waypoints file, to be used with online simulations
 #airsim_path_file = "./path1.csv"
-airsim_path_file = "./paths/trajectories/path1.csv"
+airsim_path_file = "./waypoints/trajectories/path1.csv"
 
 # Path for the record file, to be used with stand alone simulations
 record_file = "./record1.csv"

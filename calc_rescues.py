@@ -54,5 +54,5 @@ if __name__ == "__main__":
     plt.ylabel("Estimated virtual time to finish one rescue (sec.)")
     plt.tight_layout()
     plt.savefig(
-        "/home/joao/papers/2023-joaoborges-caviarrt-ieee-journal-dblcolumn/Figures/time_to_finish_rescues_mbps.pdf"
+        "./output/time_to_finish_rescues_mbps.pdf"
     )

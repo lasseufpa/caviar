@@ -58,7 +58,7 @@ times_waited_during_rescue = []
 def applyFilter(
     image,
     packet_drop_rate,
-    output_folder="/home/joaoborges/Downloads/fromBytes.png",
+    output_folder="./../../output/fromBytes.png",
     rng=rng,
 ):
     height = image.shape[0]
@@ -105,7 +105,7 @@ def addNoise(image, throughput):
     else:
         print(f">>>>>>>>>>>>>>>>>>>>> No Noise level: {throughput}")
 
-    degraded_image = cv2.imread("/home/joaoborges/Downloads/fromBytes.png")
+    degraded_image = cv2.imread("/../../output/fromBytes.png")
 
     return degraded_image
 
