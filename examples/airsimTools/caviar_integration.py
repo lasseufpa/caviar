@@ -9,7 +9,15 @@ import json
 import numpy as np
 import airsim
 
-rng = np.random.default_rng(1)
+################################ Loading settings ##############################
+
+settings_file = open("caviar_settings.json", "r")
+settings = json.load(settings_file)
+settings_file.close()
+
+################################################################################
+
+rng = np.random.default_rng(settings["random_seed"])
 
 
 def convertPositionFromAirSimToSionna(x, y, z):
@@ -18,12 +26,6 @@ def convertPositionFromAirSimToSionna(x, y, z):
     offset = {"x": 23.34, "y": -3.42, "z": 137.23}
     return [offset["x"] + x, offset["y"] - y, offset["z"] - z]
 
-
-################################ Loading settings ##############################
-
-settings_file = open("caviar_settings.json", "r")
-settings = json.load(settings_file)
-settings_file.close()
 
 ################################################################################
 
