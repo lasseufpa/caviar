@@ -9,7 +9,15 @@ import json
 import numpy as np
 import airsim
 
-rng = np.random.default_rng(1)
+################################ Loading settings ##############################
+
+settings_file = open("caviar_settings.json", "r")
+settings = json.load(settings_file)
+settings_file.close()
+
+################################################################################
+
+rng = np.random.default_rng(settings["random_seed"])
 
 
 def convertPositionFromAirSimToSionna(x, y, z):
@@ -19,16 +27,18 @@ def convertPositionFromAirSimToSionna(x, y, z):
     return [offset["x"] + x, offset["y"] - y, offset["z"] - z]
 
 
-## REMOVE AFTER EXPERIMENT
+################################################################################
+
+## REMOVE AFTER EXPERIMENT #####################################################
 from ultralytics import YOLO
 
 model = YOLO("yolov8n.pt")
-#########################
+################################################################################
 
-is_sync = True  # sync(true)/async(false)
-is_rescue_mission = True
-simulation_time_step = 0.5  # 500 ms (simulation time)
-save_multimodal = False
+is_sync = settings["is_sync"]  # sync(true)/async(false)
+is_rescue_mission = settings["is_rescue_mission"]
+simulation_time_step = settings["simulation_time_step"]  # 500 ms (simulation time)
+save_multimodal = settings["save_multimodal"]
 
 ########## INITIALIZATION OF VARIABLES (DO NOT CHANGE THE VALUES) ########
 rescue_steps = 0  # in case of a rescue, indicates for how many steps the UAV must wait (keep at zero. Value is updated during execution)

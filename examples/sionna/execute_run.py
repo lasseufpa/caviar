@@ -10,57 +10,76 @@ from calc_time import getBitRate
 from realtime_plot import plot_throughput
 from joblib import load
 from run_obj_unreal import plot_beam_interaction
+import json
 
 mi.set_variant("cuda_ad_rgb")
 
-save_rt_paths_as_txt = True
-plot_beam = True
-save_sionna_3d_scenes_as_png = False
-plot_realtime_throughput = False
-save_all_data_as_npz = False
-
-rx_number = 1
+################################ Loading settings ##############################
+settings_file = open("caviar_settings.json", "r")
+settings = json.load(settings_file)
+settings_file.close()
+################################################################################
+save_rt_paths_as_txt = settings["save_rt_paths_as_txt"]
+plot_beam = settings["plot_beam"]
+save_sionna_3d_scenes_as_png = settings["save_sionna_3d_scenes_as_png"]
+plot_realtime_throughput = settings["plot_realtime_throughput"]
+save_all_data_as_npz = settings["save_all_data_as_npz"]
+rx_number = settings["rx_number"]
 ################################# Configure paths ##############################
 
 current_dir = os.getcwd()
 output_dir = os.path.join(current_dir, "runs")
 
-mitsuba_file = os.path.join(
+scene_file_name = settings["scene_file_name"]
+
+scene_file = os.path.join(
     current_dir,
     "examples",
     "sionna",
-    "central_park",
-    "central_park.xml",
+    scene_file_name,
+    scene_file_name + ".xml",
 )
 
 ################################# Configure Rx mobility parameters #############
 
-rx_3D_object_name = "mesh-Cube"
-rx_starting_x = 23.69
-rx_starting_y = -3.351
-rx_starting_z = 139
+rx_3D_object_name = settings["rx_3D_object_name"]
+rx_starting_x = settings["rx_starting_x"]
+rx_starting_y = settings["rx_starting_y"]
+rx_starting_z = settings["rx_starting_z"]
 
 ################################# Configure Tx parameters #############
 # Ground
-tx_x = -154
-tx_y = 64
-tx_z = 120  # 5m above roof
+tx_x = settings["tx_x"]
+tx_y = settings["tx_y"]
+tx_z = settings["tx_z"]  # 5m above roof
+
+# Rotation parameters in radians, as defined in
+# https://nvlabs.github.io/sionna/api/rt.html#sionna.rt.Transmitter
+tx_alpha = settings["tx_alpha"]
+tx_beta = settings["tx_beta"]
+tx_gamma = settings["tx_gamma"]
+
+################################# Configure Rx parameters #############
+
+rx_alpha = settings["rx_alpha"]
+rx_beta = settings["rx_beta"]
+rx_gamma = settings["rx_gamma"]
 
 ################################# Configure camera parameters #############
 
 # cam_x = rx_x
 # cam_y = rx_y
-cam_z = 700
+cam_z = settings["cam_z"]
 
 ################################# Configure simulation parameters ##############
 
-step_size = 15
-number_of_steps = 1
+step_size = settings["step_size"]
+number_of_steps = settings["number_of_steps"]
 
-nTx = 64
-nRx = 4
+nTx = settings["nTx"]
+nRx = settings["nRx"]
 
-rng = np.random.default_rng(1)
+rng = np.random.default_rng(settings["random_seed"])
 all_best_bit_rate_Gbps = []
 all_random_bit_rate_Gbps = []
 all_predicted_bit_rate_Gbps = []
@@ -105,20 +124,20 @@ def getRunMIMOdata(
 
 def run(current_step, new_x, new_y, new_z):
     translate(
-        mitsuba_file, rx_3D_object_name, new_x, new_y, new_z
+        scene_file, rx_3D_object_name, new_x, new_y, new_z
     )  # move the receiver 3D object
     rx_current_x = rx_starting_x + new_x
     rx_current_y = rx_starting_y + new_y
     rx_current_z = rx_starting_z + new_z
-    scene = load_scene(mitsuba_file)
+    scene = load_scene(scene_file)
 
     scene.tx_array = PlanarArray(
         num_rows=int(np.sqrt(nTx)),
         num_cols=int(np.sqrt(nTx)),
         vertical_spacing=0.5,
         horizontal_spacing=0.5,
-        pattern="tr38901",
-        polarization="V",
+        pattern=settings["tx_antenna_pattern"],
+        polarization=settings["tx_antenna_polarization"],
     )
 
     scene.rx_array = PlanarArray(
@@ -126,12 +145,14 @@ def run(current_step, new_x, new_y, new_z):
         num_cols=int(np.sqrt(nRx)),
         vertical_spacing=0.5,
         horizontal_spacing=0.5,
-        pattern="tr38901",
-        polarization="V",
+        pattern=settings["rx_antenna_pattern"],
+        polarization=settings["rx_antenna_polarization"],
     )
 
     tx = Transmitter(
-        name="tx", position=[tx_x, tx_y, tx_z], orientation=[-2.0944, 0.785398, 0]
+        name="tx",
+        position=[tx_x, tx_y, tx_z],
+        orientation=[tx_alpha, tx_beta, tx_gamma],
     )
 
     scene.add(tx)
@@ -139,13 +160,13 @@ def run(current_step, new_x, new_y, new_z):
     for rx_index in range(rx_number):
         rx = Receiver(
             name="rx" + str(rx_index),
-            position=[rx_current_x, rx_current_y, rx_current_z - 10 + rx_index],
-            orientation=[-0.523599, 0, 0],
+            position=[rx_current_x, rx_current_y, rx_current_z - 1 + rx_index],
+            orientation=[rx_alpha, rx_beta, rx_gamma],
         )
 
         scene.add(rx)
 
-    scene.frequency = 40e9  # Carrier frequency (Hz)
+    scene.frequency = settings["carrier_frequency"]  # Carrier frequency (Hz)
 
     scene.synthetic_array = True
     # cm = scene.coverage_map(max_depth=5,
