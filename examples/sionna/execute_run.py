@@ -15,7 +15,7 @@ import json
 mi.set_variant("cuda_ad_rgb")
 
 ################################ Loading settings ##############################
-settings_file = open("settings.json", "r")
+settings_file = open("caviar_settings.json", "r")
 settings = json.load(settings_file)
 settings_file.close()
 ################################################################################
