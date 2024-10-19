@@ -1,0 +1,13 @@
+ {
+"SettingsVersion": 1.2,
+"SimMode": "Multirotor",
+"ViewMode": "",
+"Vehicles": {
+"uav1": {
+"VehicleType": "SimpleFlight"
+},
+"uav2": {
+"VehicleType": "SimpleFlight"
+}
+}
+}
