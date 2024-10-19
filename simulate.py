@@ -6,6 +6,7 @@ import sys
 from pynats import NATSClient
 import json
 
+
 def signal_handler(sig, frame):
     global key
     print("Ctrl+C detected. Stopping the thread.")
@@ -13,7 +14,9 @@ def signal_handler(sig, frame):
     abort_simulation()
     sys.exit(0)
 
+
 signal.signal(signal.SIGINT, signal_handler)
+
 
 class runNatsServer(threading.Thread):
     def __init__(
@@ -87,7 +90,6 @@ if __name__ == "__main__":
         mobility_thread.start()
         time.sleep(2)
         communications_thread.start()
-        threading.Thread(target = verifyKey).start()
     except Exception as e:
         print(f"Error: {str(e)}")
 
@@ -141,11 +143,9 @@ if __name__ == "__main__":
                 abort_simulation()
                 sys.exit(0)
             # natsclient.wait(count=1)
-        natsclient.subscribe(
-            subject="simulation.status", callback=simulation_check
-        )
+
+        natsclient.subscribe(subject="simulation.status", callback=simulation_check)
         natsclient.wait(count=1)
         while True:
             pass
             natsclient.wait(count=1)
-        

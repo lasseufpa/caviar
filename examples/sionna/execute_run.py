@@ -10,27 +10,26 @@ from calc_time import getBitRate
 from realtime_plot import plot_throughput
 from joblib import load
 from run_obj_unreal import plot_beam_interaction
-import json
+import sys
+
+sys.path.append("./")
+import caviar_config
 
 mi.set_variant("cuda_ad_rgb")
 
-################################ Loading settings ##############################
-settings_file = open("caviar_settings.json", "r")
-settings = json.load(settings_file)
-settings_file.close()
 ################################################################################
-save_rt_paths_as_txt = settings["save_rt_paths_as_txt"]
-plot_beam = settings["plot_beam"]
-save_sionna_3d_scenes_as_png = settings["save_sionna_3d_scenes_as_png"]
-plot_realtime_throughput = settings["plot_realtime_throughput"]
-save_all_data_as_npz = settings["save_all_data_as_npz"]
-rx_number = settings["rx_number"]
+save_rt_paths_as_txt = caviar_config.save_rt_paths_as_txt
+plot_beam = caviar_config.plot_beam
+save_sionna_3d_scenes_as_png = caviar_config.save_sionna_3d_scenes_as_png
+plot_realtime_throughput = caviar_config.plot_realtime_throughput
+save_all_data_as_npz = caviar_config.save_all_data_as_npz
+rx_number = caviar_config.rx_number
 ################################# Configure paths ##############################
 
 current_dir = os.getcwd()
 output_dir = os.path.join(current_dir, "runs")
 
-scene_file_name = settings["scene_file_name"]
+scene_file_name = caviar_config.scene_file_name
 
 scene_file = os.path.join(
     current_dir,
@@ -42,44 +41,44 @@ scene_file = os.path.join(
 
 ################################# Configure Rx mobility parameters #############
 
-rx_3D_object_name = settings["rx_3D_object_name"]
-rx_starting_x = settings["rx_starting_x"]
-rx_starting_y = settings["rx_starting_y"]
-rx_starting_z = settings["rx_starting_z"]
+rx_3D_object_name = caviar_config.rx_3D_object_name
+rx_starting_x = caviar_config.rx_starting_x
+rx_starting_y = caviar_config.rx_starting_y
+rx_starting_z = caviar_config.rx_starting_z
 
 ################################# Configure Tx parameters #############
 # Ground
-tx_x = settings["tx_x"]
-tx_y = settings["tx_y"]
-tx_z = settings["tx_z"]  # 5m above roof
+tx_x = caviar_config.tx_x
+tx_y = caviar_config.tx_y
+tx_z = caviar_config.tx_z  # 5m above roof
 
 # Rotation parameters in radians, as defined in
 # https://nvlabs.github.io/sionna/api/rt.html#sionna.rt.Transmitter
-tx_alpha = settings["tx_alpha"]
-tx_beta = settings["tx_beta"]
-tx_gamma = settings["tx_gamma"]
+tx_alpha = caviar_config.tx_alpha
+tx_beta = caviar_config.tx_beta
+tx_gamma = caviar_config.tx_gamma
 
 ################################# Configure Rx parameters #############
 
-rx_alpha = settings["rx_alpha"]
-rx_beta = settings["rx_beta"]
-rx_gamma = settings["rx_gamma"]
+rx_alpha = caviar_config.rx_alpha
+rx_beta = caviar_config.rx_beta
+rx_gamma = caviar_config.rx_gamma
 
 ################################# Configure camera parameters #############
 
 # cam_x = rx_x
 # cam_y = rx_y
-cam_z = settings["cam_z"]
+cam_z = caviar_config.cam_z
 
 ################################# Configure simulation parameters ##############
 
-step_size = settings["step_size"]
-number_of_steps = settings["number_of_steps"]
+step_size = caviar_config.step_size
+number_of_steps = caviar_config.number_of_steps
 
-nTx = settings["nTx"]
-nRx = settings["nRx"]
+nTx = caviar_config.nTx
+nRx = caviar_config.nRx
 
-rng = np.random.default_rng(settings["random_seed"])
+rng = np.random.default_rng(caviar_config.random_seed)
 all_best_bit_rate_Gbps = []
 all_random_bit_rate_Gbps = []
 all_predicted_bit_rate_Gbps = []
@@ -136,8 +135,8 @@ def run(current_step, new_x, new_y, new_z):
         num_cols=int(np.sqrt(nTx)),
         vertical_spacing=0.5,
         horizontal_spacing=0.5,
-        pattern=settings["tx_antenna_pattern"],
-        polarization=settings["tx_antenna_polarization"],
+        pattern=caviar_config.tx_antenna_pattern,
+        polarization=caviar_config.tx_antenna_polarization,
     )
 
     scene.rx_array = PlanarArray(
@@ -145,8 +144,8 @@ def run(current_step, new_x, new_y, new_z):
         num_cols=int(np.sqrt(nRx)),
         vertical_spacing=0.5,
         horizontal_spacing=0.5,
-        pattern=settings["rx_antenna_pattern"],
-        polarization=settings["rx_antenna_polarization"],
+        pattern=caviar_config.rx_antenna_pattern,
+        polarization=caviar_config.rx_antenna_polarization,
     )
 
     tx = Transmitter(
@@ -166,7 +165,7 @@ def run(current_step, new_x, new_y, new_z):
 
         scene.add(rx)
 
-    scene.frequency = settings["carrier_frequency"]  # Carrier frequency (Hz)
+    scene.frequency = caviar_config.carrier_frequency  # Carrier frequency (Hz)
 
     scene.synthetic_array = True
     # cm = scene.coverage_map(max_depth=5,

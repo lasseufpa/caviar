@@ -1,5 +1,3 @@
-import caviar_config
-import caviar_tools
 import time
 import os
 import cv2
@@ -8,16 +6,14 @@ from pynats import NATSClient
 import json
 import numpy as np
 import airsim
+import caviar_tools
+import sys
 
-################################ Loading settings ##############################
+sys.path.append("./")
+import caviar_config
 
-settings_file = open("caviar_settings.json", "r")
-settings = json.load(settings_file)
-settings_file.close()
 
-################################################################################
-
-rng = np.random.default_rng(settings["random_seed"])
+rng = np.random.default_rng(caviar_config.random_seed)
 
 
 def convertPositionFromAirSimToSionna(x, y, z):
@@ -35,10 +31,10 @@ from ultralytics import YOLO
 model = YOLO("yolov8n.pt")
 ################################################################################
 
-is_sync = settings["is_sync"]  # sync(true)/async(false)
-is_rescue_mission = settings["is_rescue_mission"]
-simulation_time_step = settings["simulation_time_step"]  # 500 ms (simulation time)
-save_multimodal = settings["save_multimodal"]
+is_sync = caviar_config.is_sync  # sync(true)/async(false)
+is_rescue_mission = caviar_config.is_rescue_mission
+simulation_time_step = caviar_config.simulation_time_step  # 500 ms (simulation time)
+save_multimodal = caviar_config.save_multimodal
 
 ########## INITIALIZATION OF VARIABLES (DO NOT CHANGE THE VALUES) ########
 rescue_steps = 0  # in case of a rescue, indicates for how many steps the UAV must wait (keep at zero. Value is updated during execution)
@@ -78,14 +74,14 @@ def applyFilter(
 
 def get_time_for_rescue(throughput):
     """
-    This function calculates the time for transmit them all and finish
+    This function calculates the time to transmit rescue images and finish
     the rescue.
 
-    The rescue will finish after transmiting 10 pictures of 4 MB (3.2e7 bits),
-    with 4 MB representing the size of a 4K image
+    The rescue will finish after transmiting 10 pictures of 4 MB
+    (4 MiB = 3.355e7 bits), representing a 4K image
     """
-    tx_max = 3.2e7 * 10
-    time_to_tx = tx_max / (throughput)
+    data_to_transmit_in_bits = 3.355e7 * 10
+    time_to_tx = data_to_transmit_in_bits / (throughput)
     return time_to_tx
 
 
