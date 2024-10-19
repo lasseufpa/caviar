@@ -1,5 +1,3 @@
-import caviar_config
-import caviar_tools
 import time
 import os
 import cv2
@@ -8,7 +6,15 @@ from pynats import NATSClient
 import json
 import numpy as np
 import airsim
-rng = np.random.default_rng(1)
+import caviar_tools
+import sys
+
+sys.path.append("./")
+import caviar_config
+
+
+rng = np.random.default_rng(caviar_config.random_seed)
+
 
 def convertPositionFromAirSimToSionna(x, y, z):
     # Sionna coordinates for AirSim PlayerStart position (AirSim's origin point)
@@ -16,17 +22,19 @@ def convertPositionFromAirSimToSionna(x, y, z):
     offset = {"x": 23.34, "y": -3.42, "z": 137.23}
     return [offset["x"] + x, offset["y"] - y, offset["z"] - z]
 
-## REMOVE AFTER EXPERIMENT
+
+################################################################################
+
+## REMOVE AFTER EXPERIMENT #####################################################
 from ultralytics import YOLO
+
 model = YOLO("yolov8n.pt")
-#########################
+################################################################################
 
-#########################
-
-is_sync = True
-is_rescue_mission = False
-simulation_time_step = 0.5
-save_multimodal = False
+is_sync = caviar_config.is_sync  # sync(true)/async(false)
+is_rescue_mission = caviar_config.is_rescue_mission
+simulation_time_step = caviar_config.simulation_time_step  # 500 ms (simulation time)
+save_multimodal = caviar_config.save_multimodal
 
 ########## INITIALIZATION OF VARIABLES (DO NOT CHANGE THE VALUES) ########
 rescue_steps = 0  # in case of a rescue, indicates for how many steps the UAV must wait (keep at zero. Value is updated during execution)
@@ -43,7 +51,6 @@ throughputs_during_rescue = []
 times_waited_during_rescue = []
 step_time_rescue = []
 lastuav = caviar_config.drone_ids[-1]
-
 
 
 def applyFilter(
@@ -69,16 +76,15 @@ def applyFilter(
 
 def get_time_for_rescue(throughput):
     """
-    This function calculates the time for transmit them all and finish
+    This function calculates the time to transmit rescue images and finish
     the rescue.
 
-    The rescue will finish after transmiting 10 pictures of 4 MB (3.2e7 bits), 
-    with 4 MB representing the size of a 4K image
+    The rescue will finish after transmiting 10 pictures of 4 MB
+    (4 MiB = 3.355e7 bits), representing a 4K image
     """
-    tx_max = 3.2e7 * 10
-    time_to_tx = tx_max / (throughput)
+    data_to_transmit_in_bits = 3.355e7 * 10
+    time_to_tx = data_to_transmit_in_bits / (throughput)
     return time_to_tx
-
 
 
 def addNoise(image, throughput):
@@ -100,6 +106,7 @@ def addNoise(image, throughput):
     degraded_image = cv2.imread("/home/fhb/Downloads/fromBytes.png")
 
     return degraded_image
+
 
 with NATSClient() as natsclient:
     # Number of trajectories to be executed
@@ -167,16 +174,22 @@ with NATSClient() as natsclient:
         # Reset the airsim simulation
         caviar_tools.airsim_reset(client)
 
-        
         for uav in caviar_config.drone_ids:
             init_xoffset = int(uav[3:])
             # init_yoffset = ((11*init_xoffset)/20)-35
-            init_yoffset = ((2892*init_xoffset)/173)-(4987/173)
+            init_yoffset = ((2892 * init_xoffset) / 173) - (4987 / 173)
             caviar_tools.airsim_setpose(
-                client, uav, path_list[0][0] - init_xoffset, path_list[0][1] - init_yoffset, path_list[0][2], 0, 0, 0, 0
+                client,
+                uav,
+                path_list[0][0] - init_xoffset,
+                path_list[0][1] - init_yoffset,
+                path_list[0][2],
+                0,
+                0,
+                0,
+                0,
             )
             time.sleep(0.5)
-
 
         # takeoff and start the UAV trajectory
         time.sleep(0.5)
@@ -186,30 +199,41 @@ with NATSClient() as natsclient:
             z_offset = int(uav[3:])
             print("z off set" + str(z_offset))
             caviar_tools.move_to_point(
-                client, uav, path_list[0][0], path_list[0][1], path_list[0][2] - z_offset, 2
+                client,
+                uav,
+                path_list[0][0],
+                path_list[0][1],
+                path_list[0][2] - z_offset,
+                2,
             )
             time.sleep(1)
 
-
-        while(caviar_tools.has_uav_arrived(
+        while (
+            caviar_tools.has_uav_arrived(
+                client,
+                lastuav,
+                path_list[0][0],
+                path_list[0][1],
+                path_list[0][2] - int(lastuav[3:]),
+            )
+            == False
+        ):
+            print(
+                caviar_tools.has_uav_arrived(
                     client,
                     lastuav,
                     path_list[0][0],
                     path_list[0][1],
-                    path_list[0][2] - int(lastuav[3:]))==False):
-            print(caviar_tools.has_uav_arrived(
-                    client,
-                    lastuav,
-                    path_list[0][0],
-                    path_list[0][1],
-                    path_list[0][2] - int(lastuav[3:])))
+                    path_list[0][2] - int(lastuav[3:]),
+                )
+            )
         # time.sleep(10)
-
-
 
         actualWaypoint = [0] * len(caviar_config.drone_ids)
 
-        initial_timestamp = caviar_tools.airsim_gettimestamp(client, caviar_config.drone_ids[0])
+        initial_timestamp = caviar_tools.airsim_gettimestamp(
+            client, caviar_config.drone_ids[0]
+        )
 
         # Pause the simulation
         client.simPause(True)
@@ -301,7 +325,6 @@ with NATSClient() as natsclient:
                         + str(uav_pose[2]).encode()
                         + b"}}",
                     )
-                
 
                 # Check if the UAV is landed or has collided and finish the episode
                 if caviar_tools.airsim_getcollision(client, uav):
@@ -315,13 +338,16 @@ with NATSClient() as natsclient:
                         + "s"
                     )
                 # Verify actual position
-                if (caviar_tools.has_uav_arrived(
-                    client,
-                    uav,
-                    path_list[actualWaypoint[idx]][0],
-                    path_list[actualWaypoint[idx]][1],
-                    path_list[actualWaypoint[idx]][2] - int(uav[3:])
-                ) or reached_waypoint):
+                if (
+                    caviar_tools.has_uav_arrived(
+                        client,
+                        uav,
+                        path_list[actualWaypoint[idx]][0],
+                        path_list[actualWaypoint[idx]][1],
+                        path_list[actualWaypoint[idx]][2] - int(uav[3:]),
+                    )
+                    or reached_waypoint
+                ):
                     reached_waypoint = True
                     if rescue_steps == 0:
                         # Must start rescue
@@ -340,7 +366,7 @@ with NATSClient() as natsclient:
                                 uav,
                                 path_list[actualWaypoint[idx]][0],
                                 path_list[actualWaypoint[idx]][1],
-                                path_list[actualWaypoint[idx]][2]- int(uav[3:]),
+                                path_list[actualWaypoint[idx]][2] - int(uav[3:]),
                             )
 
                             reached_waypoint = False
@@ -375,9 +401,11 @@ with NATSClient() as natsclient:
                 object_orien = caviar_tools.unreal_getorientation(client, obj)
             end_time = time.time()
             print(f"CAVIAR in-loop step duration (seconds): {end_time-start_time}")
-            step_time_rescue.append(end_time-start_time)
-            print(f">>>>>>>>>>>>>>> Simulation duration (seconds): {(airsim_timestamp-initial_timestamp)*1e-9}")
-            if (airsim_timestamp-initial_timestamp)*1e-9 >= 60:
+            step_time_rescue.append(end_time - start_time)
+            print(
+                f">>>>>>>>>>>>>>> Simulation duration (seconds): {(airsim_timestamp-initial_timestamp)*1e-9}"
+            )
+            if (airsim_timestamp - initial_timestamp) * 1e-9 >= 60:
                 time.sleep(2)
                 os._exit(os.EX_OK)
 
@@ -385,11 +413,11 @@ with NATSClient() as natsclient:
         print(f"Rescued targets: {rescued_targets}")
         np.savez(
             "mission_log.npz",
-            total_mission_time=(airsim_timestamp-initial_timestamp)*1e-9,
+            total_mission_time=(airsim_timestamp - initial_timestamp) * 1e-9,
             rescued_targets=rescued_targets,
             simu_time_of_rescue=simu_time_of_rescue,
             simu_pose_of_rescue=simu_pose_of_rescue,
             throughputs_during_rescue=throughputs_during_rescue,
             times_waited_during_rescue=times_waited_during_rescue,
-            steps_time = step_time_rescue
+            steps_time=step_time_rescue,
         )
