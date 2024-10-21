@@ -39,7 +39,7 @@ class runAirSim(threading.Thread):
         global airsim_simu
         airsim_simu = subprocess.Popen(
             [
-                "/home/fhb/Downloads/v4_central_parkUE4.27.2ExeLinux/LinuxNoEditor/central_park/Binaries/Linux/central_park-Linux-DebugGame",
+                "3d/LinuxNoEditor/central_park/Binaries/Linux/central_park-Linux-DebugGame",
                 "-WINDOWED",
                 "-ResX=640",
                 "-ResY=480",
@@ -56,8 +56,8 @@ class runMobility(threading.Thread):
         global mobility_simu
         mobility_simu = subprocess.Popen(
             [
-                "/home/fhb/miniconda3/envs/caviar_env/bin/python",
-                "/home/fhb/git/caviar/examples/airsimTools/caviar_integration.py",
+                "python",
+                "examples/airsimTools/caviar_integration.py",
             ]
         )
 
@@ -71,8 +71,8 @@ class runSionna(threading.Thread):
         global sionna_simu
         sionna_simu = subprocess.Popen(
             [
-                "/home/fhb/miniconda3/envs/caviar_env/bin/python",
-                "/home/fhb/git/caviar/examples/sionna/followPath.py",
+                "python",
+                "examples/sionna/followPath.py",
             ]
         )
 

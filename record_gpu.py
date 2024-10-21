@@ -1,7 +1,7 @@
 from nvitop import Device, GpuProcess, NA, colored
 import time
 devices = Device.all()  # or `Device.cuda.all()` to use CUDA ordinal instead
-out_file = open("/home/fhb/Documents/caviar_records/gpu_full.txt", "w")
+out_file = open("./output/gpu_full.txt", "w")
 out_file.write("pid" + ";" + "command" + ";" + "gpu_memory" + ";" + "gpu_sm_utilization" + "\n")
 
 while True:

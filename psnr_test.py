@@ -9,7 +9,7 @@ from degradeImage import dropPacketsFromImage, applyFilter
 # model = YOLO("yolov8n.pt")
 
 init_1 = time.time()
-image = cv2.imread("/home/joao/Downloads/airsimtest.png", cv2.IMREAD_UNCHANGED)
+image = cv2.imread("./output/airsimtest.png", cv2.IMREAD_UNCHANGED)
 gaussian_noise = np.zeros(np.array(image).shape, np.uint8)
 # cv2.randn(gaussian_noise, 0, 270)
 # gaussian_noise = gaussian_noise-100 # PSNR: 8.1041 dB
@@ -21,12 +21,12 @@ cv2.randn(gaussian_noise, 0, 270)  # PSNR: 15.8578 dB
 # cv2.randn(gaussian_noise, 0, 25) # PSNR: 28.0667 dB
 # cv2.randn(gaussian_noise, 0, 10) # PSNR: 35.9116 dB
 degraded_image = cv2.add(image, gaussian_noise)
-cv2.imwrite("/home/joao/Downloads/degraded_image.png", degraded_image)
+cv2.imwrite("./output/degraded_image.png", degraded_image)
 end_1 = time.time()
 ################################################################################
 
 init_2 = time.time()
-image2 = img.open("/home/joao/Downloads/airsimtest.png")
+image2 = img.open("./output/airsimtest.png")
 
 # dropPacketsFromImage(
 #     image, 0.01
@@ -42,8 +42,8 @@ dropPacketsFromImage(
 )  # PSNR: 9.376 dB   | Human detected probability: NO DETECTION
 end_2 = time.time()
 # time.sleep(1)
-# image = cv2.imread("/home/joao/Downloads/airsimtest.png", cv2.IMREAD_UNCHANGED)
-# degraded_image = cv2.imread("/home/joao/Downloads/fromBytes.png", cv2.IMREAD_UNCHANGED)
+# image = cv2.imread("./output/airsimtest.png", cv2.IMREAD_UNCHANGED)
+# degraded_image = cv2.imread("./output/fromBytes.png", cv2.IMREAD_UNCHANGED)
 # psnr = cv2.PSNR(image, degraded_image)
 
 # print(f"PSNR: {round(psnr, 4)} dB")

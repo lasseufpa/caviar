@@ -68,5 +68,5 @@ ax2.tick_params(axis="y", colors=colors[0])
 plt.grid(False)
 plt.tight_layout()
 plt.savefig(
-    "/home/joao/papers/2023-joaoborges-caviarrt-ieee-journal-dblcolumn/Figures/simulations_times.pdf"
+    "./output/simulations_times.pdf"
 )

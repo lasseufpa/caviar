@@ -112,7 +112,7 @@ ax.set_ylim(0, 100)
 ax.set_xlabel("Number of UAVs")
 ax.set_ylabel("Usage (%)")
 plt.savefig(
-    "/home/joao/papers/2023-joaoborges-caviarrt-ieee-journal-dblcolumn/Figures/gpu_ram.pdf"
+    "./output/gpu_ram.pdf"
 )
 # plt.savefig("/home/joao/Downloads/caviar_records/CPU.pdf")
 # plt.close()

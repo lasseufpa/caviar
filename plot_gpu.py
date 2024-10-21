@@ -79,7 +79,7 @@ plt.ylim(0, 60, 10)
 plt.xlabel("Time step (n)")
 plt.ylabel("Usage (%)")
 plt.savefig(
-    "/home/joao/papers/2023-joaoborges-caviarrt-ieee-journal-dblcolumn/Figures/gpu_one_uavs_cpu.pdf"
+    "./output/gpu_one_uavs_cpu.pdf"
 )
 
 # ------------------------------------------------------------------------------
@@ -110,7 +110,7 @@ plt.ylim(0, 60, 10)
 plt.xlabel("Time step (n)")
 plt.ylabel("Usage (%)")
 plt.savefig(
-    "/home/joao/papers/2023-joaoborges-caviarrt-ieee-journal-dblcolumn/Figures/gpu_two_uavs_cpu.pdf"
+    "./output/gpu_two_uavs_cpu.pdf"
 )
 
 # ------------------------------------------------------------------------------
@@ -141,7 +141,7 @@ plt.ylim(0, 60, 10)
 plt.xlabel("Time step (n)")
 plt.ylabel("Usage (%)")
 plt.savefig(
-    "/home/joao/papers/2023-joaoborges-caviarrt-ieee-journal-dblcolumn/Figures/gpu_five_uavs_cpu.pdf"
+    "./output/gpu_five_uavs_cpu.pdf"
 )
 
 # ------------------------------------------------------------------------------
@@ -166,7 +166,7 @@ plt.ylim(0, 8)
 plt.xlabel("Time step (n)")
 plt.ylabel("Usage (%)")
 plt.savefig(
-    "/home/joao/papers/2023-joaoborges-caviarrt-ieee-journal-dblcolumn/Figures/gpu_one_uavs_ram.pdf"
+    "./output/gpu_one_uavs_ram.pdf"
 )
 
 # ------------------------------------------------------------------------------
@@ -189,7 +189,7 @@ plt.ylim(0, 8)
 plt.xlabel("Time step (n)")
 plt.ylabel("Usage (%)")
 plt.savefig(
-    "/home/joao/papers/2023-joaoborges-caviarrt-ieee-journal-dblcolumn/Figures/gpu_two_uavs_ram.pdf"
+    "./output/gpu_two_uavs_ram.pdf"
 )
 
 # ------------------------------------------------------------------------------
@@ -212,7 +212,7 @@ plt.ylim(0, 8)
 plt.xlabel("Time step (n)")
 plt.ylabel("Usage (%)")
 plt.savefig(
-    "/home/joao/papers/2023-joaoborges-caviarrt-ieee-journal-dblcolumn/Figures/gpu_five_uavs_ram.pdf"
+    "./output/gpu_five_uavs_ram.pdf"
 )
 
 # # ------------------------------------------------------------------------------
@@ -230,7 +230,7 @@ plt.savefig(
 # # plt.yticks(np.arange(-90, 21, 10))
 # plt.xlabel("Time step (n)")
 # plt.ylabel("Usage (%)")
-# plt.savefig("/home/joao/papers/2023-joaoborges-caviarrt-ieee-journal-dblcolumn/Figures/gpu_hist_one_uavs_cpu.pdf")
+# plt.savefig("./output/gpu_hist_one_uavs_cpu.pdf")
 
 # # ------------------------------------------------------------------------------
 # plt.figure()
@@ -241,7 +241,7 @@ plt.savefig(
 # # plt.yticks(np.arange(-90, 21, 10))
 # plt.xlabel("Time step (n)")
 # plt.ylabel("Usage (%)")
-# plt.savefig("/home/joao/papers/2023-joaoborges-caviarrt-ieee-journal-dblcolumn/Figures/gpu_hist_two_uavs_cpu.pdf")
+# plt.savefig("./output/gpu_hist_two_uavs_cpu.pdf")
 
 # # ------------------------------------------------------------------------------
 # plt.figure()
@@ -252,7 +252,7 @@ plt.savefig(
 # # plt.yticks(np.arange(-90, 21, 10))
 # plt.xlabel("Time step (n)")
 # plt.ylabel("Usage (%)")
-# plt.savefig("/home/joao/papers/2023-joaoborges-caviarrt-ieee-journal-dblcolumn/Figures/gpu_hist_five_uavs_cpu.pdf")
+# plt.savefig("./output/gpu_hist_five_uavs_cpu.pdf")
 
 # # ------------------------------------------------------------------------------
 # # ------------------------------------------------------------------------------
@@ -265,7 +265,7 @@ plt.savefig(
 # # plt.yticks(np.arange(-90, 21, 10))
 # plt.xlabel("Time step (n)")
 # plt.ylabel("Usage (%)")
-# plt.savefig("/home/joao/papers/2023-joaoborges-caviarrt-ieee-journal-dblcolumn/Figures/gpu_hist_one_uavs_ram.pdf")
+# plt.savefig("./output/gpu_hist_one_uavs_ram.pdf")
 
 # # ------------------------------------------------------------------------------
 # plt.figure()
@@ -276,7 +276,7 @@ plt.savefig(
 # # plt.yticks(np.arange(-90, 21, 10))
 # plt.xlabel("Time step (n)")
 # plt.ylabel("Usage (%)")
-# plt.savefig("/home/joao/papers/2023-joaoborges-caviarrt-ieee-journal-dblcolumn/Figures/gpu_hist_two_uavs_ram.pdf")
+# plt.savefig("./output/gpu_hist_two_uavs_ram.pdf")
 
 # # ------------------------------------------------------------------------------
 # plt.figure()
@@ -287,4 +287,4 @@ plt.savefig(
 # # plt.yticks(np.arange(-90, 21, 10))
 # plt.xlabel("Time step (n)")
 # plt.ylabel("Usage (%)")
-# plt.savefig("/home/joao/papers/2023-joaoborges-caviarrt-ieee-journal-dblcolumn/Figures/gpu_hist_five_uavs_ram.pdf")
+# plt.savefig("./output/gpu_hist_five_uavs_ram.pdf")

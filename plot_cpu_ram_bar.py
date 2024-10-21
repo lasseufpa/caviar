@@ -11,68 +11,68 @@ n_bins = 50
 
 
 one_uav_3D_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_1uavs_newgpu_airsim.txt"
+    "/output/caviar_records/for_1uavs_newgpu_airsim.txt"
 )
 one_uav_AI_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_1uavs_newgpu_mobility.txt"
+    "./output/caviar_records/for_1uavs_newgpu_mobility.txt"
 )
 one_uav_comm_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_1uavs_newgpu_sionna.txt"
+    "./output/caviar_records/for_1uavs_newgpu_sionna.txt"
 )
 one_uav_orchestrator_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_1uavs_newgpu_nats.txt"
+    "./output/caviar_records/for_1uavs_newgpu_nats.txt"
 )
 
 two_uav_3D_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_2uavs_newgpu_airsim.txt"
+    "./output/caviar_records/for_2uavs_newgpu_airsim.txt"
 )
 two_uav_AI_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_2uavs_newgpu_mobility.txt"
+    "./output/caviar_records/for_2uavs_newgpu_mobility.txt"
 )
 two_uav_comm_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_2uavs_newgpu_sionna.txt"
+    "./output/caviar_records/for_2uavs_newgpu_sionna.txt"
 )
 two_uav_orchestrator_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_2uavs_newgpu_nats.txt"
+    "./output/caviar_records/for_2uavs_newgpu_nats.txt"
 )
 
 three_uav_3D_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_3uavs_newgpu_airsim.txt"
+    "./output/caviar_records/for_3uavs_newgpu_airsim.txt"
 )
 three_uav_AI_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_3uavs_newgpu_mobility.txt"
+    "./output/caviar_records/for_3uavs_newgpu_mobility.txt"
 )
 three_uav_comm_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_3uavs_newgpu_sionna.txt"
+    "./output/caviar_records/for_3uavs_newgpu_sionna.txt"
 )
 three_uav_orchestrator_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_3uavs_newgpu_nats.txt"
+    "./output/caviar_records/for_3uavs_newgpu_nats.txt"
 )
 
 four_uav_3D_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_4uavs_newgpu_airsim.txt"
+    "./output/caviar_records/for_4uavs_newgpu_airsim.txt"
 )
 four_uav_AI_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_4uavs_newgpu_mobility.txt"
+    "./output/caviar_records/for_4uavs_newgpu_mobility.txt"
 )
 four_uav_comm_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_4uavs_newgpu_sionna.txt"
+    "./output/caviar_records/for_4uavs_newgpu_sionna.txt"
 )
 four_uav_orchestrator_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_4uavs_newgpu_nats.txt"
+    "./output/caviar_records/for_4uavs_newgpu_nats.txt"
 )
 
 five_uav_3D_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_5uavs_newgpu_airsim.txt"
+    "./output/caviar_records/for_5uavs_newgpu_airsim.txt"
 )
 five_uav_AI_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_5uavs_newgpu_mobility.txt"
+    "./output/caviar_records/for_5uavs_newgpu_mobility.txt"
 )
 five_uav_comm_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_5uavs_newgpu_sionna.txt"
+    "./output/caviar_records/for_5uavs_newgpu_sionna.txt"
 )
 five_uav_orchestrator_data_filepath = (
-    "/home/joao/Downloads/caviar_records/for_5uavs_newgpu_nats.txt"
+    "./output/caviar_records/for_5uavs_newgpu_nats.txt"
 )
 
 
@@ -202,7 +202,7 @@ plt.bar(
     alpha=0.5,
 )
 # plt.tight_layout()
-# plt.savefig("/home/joao/Downloads/caviar_records/threeD_cpu_bar.pdf")
+# plt.savefig("./output/caviar_records/threeD_cpu_bar.pdf")
 # plt.close()
 
 # plt.figure()
@@ -229,7 +229,7 @@ plt.bar(
     alpha=0.5,
 )
 # plt.tight_layout()
-# plt.savefig("/home/joao/Downloads/caviar_records/AI_cpu_bar.pdf")
+# plt.savefig("./output/caviar_records/AI_cpu_bar.pdf")
 # plt.close()
 
 # plt.figure()
@@ -256,7 +256,7 @@ plt.bar(
     alpha=0.5,
 )
 # plt.tight_layout()
-# plt.savefig("/home/joao/Downloads/caviar_records/comm_cpu_bar.pdf")
+# plt.savefig("./output/caviar_records/comm_cpu_bar.pdf")
 # plt.close()
 
 # plt.figure()
@@ -283,8 +283,8 @@ plt.bar(
     alpha=0.5,
 )
 plt.tight_layout()
-# plt.savefig("/home/joao/Downloads/caviar_records/orchestrator_cpu_bar.pdf")
-plt.savefig("/home/joao/Downloads/caviar_records/cpu_bar.pdf")
+# plt.savefig("./output/caviar_records/orchestrator_cpu_bar.pdf")
+plt.savefig("./output/caviar_records/cpu_bar.pdf")
 plt.close()
 
 # # ---------------------------------------------------------------------------
@@ -313,7 +313,7 @@ plt.bar(
     alpha=0.5,
 )
 # plt.tight_layout()
-# plt.savefig("/home/joao/Downloads/caviar_records/threeD_ram_bar.pdf")
+# plt.savefig("./output/caviar_records/threeD_ram_bar.pdf")
 # plt.close()
 
 # plt.figure()
@@ -340,7 +340,7 @@ plt.bar(
     alpha=0.5,
 )
 # plt.tight_layout()
-# plt.savefig("/home/joao/Downloads/caviar_records/AI_ram_bar.pdf")
+# plt.savefig("./output/caviar_records/AI_ram_bar.pdf")
 # plt.close()
 
 # plt.figure()
@@ -367,7 +367,7 @@ plt.bar(
     alpha=0.5,
 )
 # plt.tight_layout()
-# plt.savefig("/home/joao/Downloads/caviar_records/comm_ram_bar.pdf")
+# plt.savefig("./output/caviar_records/comm_ram_bar.pdf")
 # plt.close()
 
 # plt.figure()
@@ -394,6 +394,6 @@ plt.bar(
     alpha=0.5,
 )
 plt.tight_layout()
-# plt.savefig("/home/joao/Downloads/caviar_records/orchestrator_ram_bar.pdf")
-plt.savefig("/home/joao/Downloads/caviar_records/ram_bar.pdf")
+# plt.savefig("./output/caviar_records/orchestrator_ram_bar.pdf")
+plt.savefig("./output/caviar_records/ram_bar.pdf")
 plt.close()
