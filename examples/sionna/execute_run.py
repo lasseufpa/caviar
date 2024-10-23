@@ -159,7 +159,7 @@ def run(current_step, new_x, new_y, new_z):
     for rx_index in range(rx_number):
         rx = Receiver(
             name="rx" + str(rx_index),
-            position=[rx_current_x, rx_current_y, rx_current_z - 1 + rx_index],
+            position=[rx_current_x, rx_current_y, rx_current_z - 3 + rx_index],
             orientation=[rx_alpha, rx_beta, rx_gamma],
         )
 
