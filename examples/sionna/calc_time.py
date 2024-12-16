@@ -12,7 +12,7 @@ def dBW2Watts(dBW):
 
 
 def Watts2dBW(Watts):
-    return 10*np.log10(Watts)
+    return 10 * np.log10(Watts)
 
 
 def getBitRate(equivalentChannelMagnitude, bandwidth=40e6):
@@ -25,8 +25,12 @@ def getBitRate(equivalentChannelMagnitude, bandwidth=40e6):
     device_noise_temperature = 298.15  # The adopted value can be T_e = 25 °C = 298.15 K
     noise_factor = 1 + (device_noise_temperature / standard_noise_temperature)
     noise_figure = 10 * np.log10(noise_factor)  # in dB
-    noise_PSD = Boltzmann * standard_noise_temperature # in Joules, which is equal to W/Hz
-    noise_power_dBW = Watts2dBW(noise_PSD * bandwidth) + noise_figure # noise_figure = around 100 dBW
+    noise_PSD = (
+        Boltzmann * standard_noise_temperature
+    )  # in Joules, which is equal to W/Hz
+    noise_power_dBW = (
+        Watts2dBW(noise_PSD * bandwidth) + noise_figure
+    )  # noise_figure = around 100 dBW
     noise_power_Watts = dBW2Watts(noise_power_dBW)
     noise_power_mW = noise_power_Watts * 1e3
     ############################## Interference calculation ###################
@@ -34,7 +38,9 @@ def getBitRate(equivalentChannelMagnitude, bandwidth=40e6):
     interference_power_Watts = dBW2Watts(interference_power_dBW)
     interference_power_mW = interference_power_Watts * 1e3
     ###########################################################################
-    SNR = (equivalentChannelMagnitude.A1**2) / (noise_power_mW * interference_power_mW) # A1 used to flatten
+    SNR = (equivalentChannelMagnitude.A1**2) / (
+        noise_power_mW + interference_power_mW
+    )  # A1 used to flatten
     spectral_efficiency = np.log2(1 + SNR)
     bit_rate = (bandwidth * spectral_efficiency).reshape(H_shape[0], H_shape[1])
     return bit_rate
