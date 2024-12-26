@@ -5,6 +5,7 @@ import os
 dataset_name = "runs20241216_not_normalized"
 calc_SINR = True
 interference_power_dBW = -120
+tx_power_watts = 0.25  # 250 milliwatts
 
 # dataset_name = "allruns_v7"
 # calc_SINR = True
@@ -34,20 +35,18 @@ def getBitRate(equivalentChannelMagnitude, bandwidth=40e6):
     )  # in Joules, which is equal to W/Hz
     noise_power_dBW = Watts2dBW(noise_PSD * bandwidth) + noise_figure
     noise_power_Watts = dBW2Watts(noise_power_dBW)
-    noise_power_mW = noise_power_Watts * 1e3
     ############################## Interference calculation ###################
-    # interference_power_dBW = 100
-    # interference_power_dBW = 0
-    # interference_power_dBW = -100
     interference_power_Watts = dBW2Watts(interference_power_dBW)
-    interference_power_mW = interference_power_Watts * 1e3
     ###########################################################################
     # SNR = (equivalentChannelMagnitude.A1**2) / (
     #     noise_power_mW + interference_power_mW
     # )  # A1 used to flatten
-    SNR = np.array((equivalentChannelMagnitude.flatten() ** 2) / (noise_power_Watts))
+    SNR = np.array(
+        ((equivalentChannelMagnitude.flatten() ** 2) * tx_power_watts)
+        / (noise_power_Watts)
+    )
     SINR = np.array(
-        (equivalentChannelMagnitude.flatten() ** 2)
+        ((equivalentChannelMagnitude.flatten() ** 2) * tx_power_watts)
         / (noise_power_Watts + interference_power_Watts)
     )
     SNR_dBW = Watts2dBW(SNR).reshape(H_shape[0], H_shape[1])
