@@ -4,7 +4,7 @@ import os
 # dataset_name = "runs20241216_normalized"
 dataset_name = "runs20241216_not_normalized"
 calc_SINR = True
-interference_power_dBW = -120
+interference_power_dBW = -120  # also -90 dBm
 tx_power_watts = 0.25  # 250 milliwatts
 
 # dataset_name = "allruns_v7"
@@ -33,7 +33,8 @@ def getBitRate(equivalentChannelMagnitude, bandwidth=40e6):
     noise_PSD = (
         Boltzmann * standard_noise_temperature
     )  # in Joules, which is equal to W/Hz
-    noise_power_dBW = Watts2dBW(noise_PSD * bandwidth) + noise_figure
+    noise_power_dBW = Watts2dBW(noise_PSD * bandwidth) + noise_figure  # -124.88 dBW
+    noise_power_dBW_AK = -170
     noise_power_Watts = dBW2Watts(noise_power_dBW)
     ############################## Interference calculation ###################
     interference_power_Watts = dBW2Watts(interference_power_dBW)
@@ -49,15 +50,14 @@ def getBitRate(equivalentChannelMagnitude, bandwidth=40e6):
         ((equivalentChannelMagnitude.flatten() ** 2) * tx_power_watts)
         / (noise_power_Watts + interference_power_Watts)
     )
-    SNR_dBW = Watts2dBW(SNR).reshape(H_shape[0], H_shape[1])
-    SINR_dBW = Watts2dBW(SINR).reshape(H_shape[0], H_shape[1])
+
     if calc_SINR:
-        return SINR_dBW
+        spectral_efficiency = np.log2(1 + SINR)
     else:
-        return SNR_dBW
-    # spectral_efficiency = np.log2(1 + SNR)
-    # bit_rate = (bandwidth * spectral_efficiency).reshape(H_shape[0], H_shape[1])
-    # return bit_rate
+        spectral_efficiency = np.log2(1 + SNR)
+
+    bit_rate = (bandwidth * spectral_efficiency).reshape(H_shape[0], H_shape[1])
+    return bit_rate
 
 
 from scipy.constants import Boltzmann  # 1.380649e-23 J.K^-1
@@ -76,6 +76,9 @@ for H in equivalentChannelMagnitudes:
     oracle_SNRs.append(SNR[best_ray[0][0], best_ray[0][1]])
     random_SNRs.append(SNR[np.random.randint(0, 4), np.random.randint(0, 64)])
 
+print(f"mean bps: {np.mean(oracle_SNRs)}")
+print(f"variance bps: {np.var(oracle_SNRs)}")
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 
@@ -88,8 +91,8 @@ plt.legend()
 # plt.yticks(np.arange(-90, 21, 10))
 plt.xlabel("Step")
 if calc_SINR:
-    plt.ylabel("SINR (dB)")
-    plt.savefig("sinr_" + str(interference_power_dBW) + "dB_" + dataset_name + ".png")
+    plt.ylabel("rate (bps)")
+    plt.savefig("rate_" + str(interference_power_dBW) + "dB_" + dataset_name + ".png")
 else:
-    plt.ylabel("SNR (dB)")
-    plt.savefig("snr_" + dataset_name + ".png")
+    plt.ylabel("rate (bps)")
+    plt.savefig("rate_snr_" + dataset_name + ".png")
