@@ -1,13 +1,6 @@
 import numpy as np
 
 
-def dft_codebook(dim):
-    seq = np.matrix(np.arange(dim))
-    mat = seq.conj().T * seq
-    w = np.exp(-1j * 2 * np.pi * mat / dim)
-    return w
-
-
 def generate_dft_codebook(codebook_dimension):
     """
     Generate discrete Fourier transform (DFT) codebooks.
