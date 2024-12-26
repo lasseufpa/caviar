@@ -120,8 +120,8 @@ for iEpisode in range(numEpisodes):
 
             ## TODO: Generate as outputs the exact RX and Tx angles
 
-            equivalentChannel = mimo_channels.getDFTOperatedChannel(
-                mimoChannel, number_Tx_antennas, number_Rx_antennas
+            equivalentChannel = mimo_channels.generate_equivalent_channel(
+                number_Rx_antennas, number_Tx_antennas, mimoChannel
             )
             equivalentChannelMagnitude = np.abs(equivalentChannel)
 

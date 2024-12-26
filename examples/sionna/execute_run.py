@@ -93,8 +93,8 @@ def getRunMIMOdata(
         for rx_index in range(rx_number):
             current_rx_mimoChannel = mimoChannel[rx_index]
 
-            equivalentChannel = mimo_channels.getDFTOperatedChannel(
-                current_rx_mimoChannel, number_Tx_antennas, number_Rx_antennas
+            equivalentChannel = mimo_channels.generate_equivalent_channel(
+                number_Rx_antennas, number_Tx_antennas, current_rx_mimoChannel
             )
 
             equivalentChannelMagnitude = np.abs(equivalentChannel)
@@ -105,8 +105,8 @@ def getRunMIMOdata(
     else:
         current_rx_mimoChannel = mimoChannel
 
-        equivalentChannel = mimo_channels.getDFTOperatedChannel(
-            current_rx_mimoChannel, number_Tx_antennas, number_Rx_antennas
+        equivalentChannel = mimo_channels.generate_equivalent_channel(
+            number_Rx_antennas, number_Tx_antennas, current_rx_mimoChannel
         )
         equivalentChannelMagnitude = np.abs(equivalentChannel)
         best_ray = np.argwhere(
