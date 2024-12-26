@@ -5,7 +5,7 @@ import mitsuba as mi
 from sionna.rt import load_scene, Transmitter, Receiver, PlanarArray, Camera
 from sionna.channel import cir_to_ofdm_channel
 from obj_move import translate
-import mimo_channels
+import examples.sionna.dsp_utils as dsp_utils
 from calc_time import getBitRate
 from realtime_plot import plot_throughput
 from joblib import load
@@ -93,7 +93,7 @@ def getRunMIMOdata(
         for rx_index in range(rx_number):
             current_rx_mimoChannel = mimoChannel[rx_index]
 
-            equivalentChannel = mimo_channels.generate_equivalent_channel(
+            equivalentChannel = dsp_utils.generate_equivalent_channel(
                 number_Rx_antennas, number_Tx_antennas, current_rx_mimoChannel
             )
 
@@ -105,7 +105,7 @@ def getRunMIMOdata(
     else:
         current_rx_mimoChannel = mimoChannel
 
-        equivalentChannel = mimo_channels.generate_equivalent_channel(
+        equivalentChannel = dsp_utils.generate_equivalent_channel(
             number_Rx_antennas, number_Tx_antennas, current_rx_mimoChannel
         )
         equivalentChannelMagnitude = np.abs(equivalentChannel)

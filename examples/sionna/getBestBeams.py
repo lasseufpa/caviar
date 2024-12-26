@@ -22,7 +22,7 @@ References:
 import h5py
 import numpy as np
 import math
-import mimo_channels
+import examples.sionna.dsp_utils as dsp_utils
 
 ###############################################################################
 #### Configurations
@@ -111,7 +111,7 @@ for iEpisode in range(numEpisodes):
             # Correct ULA with Rx orientation
             AoA_az = -RxAngle + AoA_az  # angle_new = - delta_axis + angle_wi;
 
-            mimoChannel = mimo_channels.getNarrowBandULAMIMOChannel(
+            mimoChannel = dsp_utils.getNarrowBandULAMIMOChannel(
                 AoD_az, AoA_az, gain_in_dB, number_Tx_antennas, number_Rx_antennas
             )
 
@@ -120,7 +120,7 @@ for iEpisode in range(numEpisodes):
 
             ## TODO: Generate as outputs the exact RX and Tx angles
 
-            equivalentChannel = mimo_channels.generate_equivalent_channel(
+            equivalentChannel = dsp_utils.generate_equivalent_channel(
                 number_Rx_antennas, number_Tx_antennas, mimoChannel
             )
             equivalentChannelMagnitude = np.abs(equivalentChannel)

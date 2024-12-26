@@ -1,6 +1,6 @@
 import numpy as np
 
-from examples.sionna.mimo_channels import generate_dft_codebook
+from examples.sionna.dsp_utils import generate_dft_codebook
 
 
 # Legacy function from https://github.com/lasseufpa/5gm-data/blob/master/mimo_channels.py#L21
