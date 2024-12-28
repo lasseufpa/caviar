@@ -1,6 +1,5 @@
 from PIL import Image as img
 import numpy as np
-import time
 import cv2
 
 
@@ -20,11 +19,6 @@ def dropPacketsFromImage(
     packet_size_bytes=pixel_size_bytes,
     rng=rng,
 ):
-    # number_of_pixels_in_tcp_packet = 65536 / pixel_size_bytes
-    # packet_size_bytes = pixel_size_bytes
-    # packet_size_bytes = 65536  # Max size of a TCP packet = 64 KiB = 65536 bytes
-
-    # starting_instant = time.time()
     image_bytes = bytearray(image.tobytes())
     image_size_bytes = len(image_bytes)
 
@@ -34,6 +28,7 @@ def dropPacketsFromImage(
     total_number_of_packets = image_size_bytes // int(packet_size_bytes)
     packets_to_drop = int(packet_drop_rate * total_number_of_packets)
     image_packets = np.array(image_bytes).reshape((total_number_of_packets, -1))
+
     # Gets different packages indexes to drop
     dropped_package_indexes = rng.choice(
         total_number_of_packets, packets_to_drop, replace=False
@@ -55,8 +50,6 @@ def dropPacketsFromImage(
     )
 
     image_bytes_saveable.save(output_folder)
-    # ending_instant = time.time()
-    # print(f"Duration: {ending_instant-starting_instant}")
 
 
 dropPacketsFromImage(image, 0.25)

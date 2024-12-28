@@ -93,22 +93,6 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Error: {str(e)}")
 
-    # while True:
-    #     res = input("Press 'w' to close")
-    #     if res == "w":
-    #         print("The program was terminated manually!")
-    #         time.sleep(5)
-    #         airsim_simu.send_signal(signal.SIGTERM)
-    #         time.sleep(1)
-    #         airsim_simu.send_signal(signal.SIGTERM)
-    #         time.sleep(1)
-    #         airsim_simu.send_signal(signal.SIGTERM)
-    #         time.sleep(2)
-    #         nats_simu.send_signal(signal.SIGTERM)
-    #         mobility_simu.send_signal(signal.SIGTERM)
-    #         sionna_simu.send_signal(signal.SIGTERM)
-    #         print("------------------------------------------> END")
-    #         break
     def abort_simulation():
         print("The program was terminated manually!")
         time.sleep(1)
@@ -142,7 +126,6 @@ if __name__ == "__main__":
             if isFinished == "True":
                 abort_simulation()
                 sys.exit(0)
-            # natsclient.wait(count=1)
 
         natsclient.subscribe(subject="simulation.status", callback=simulation_check)
         natsclient.wait(count=1)
