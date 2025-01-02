@@ -185,7 +185,7 @@ def run(current_step, new_x, new_y, new_z):
 
     # Get the channel frequency response
     h_matrix = cir_to_ofdm_channel(
-        [0.0], path_coefficients, path_delays, normalize=True
+        [0.0], path_coefficients, path_delays, normalize=False
     )
 
     # -------------------------------------------------------------------------------------------------------------------------------
