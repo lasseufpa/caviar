@@ -111,24 +111,3 @@ if __name__ == "__main__":
         sionna_simu.wait()
         print("------------------------------------------> END")
         sys.exit(0)
-
-    with NATSClient() as natsclient:
-        natsclient.connect()
-
-        def simulation_check(msg):
-            """Executes step on Sionna according to the current position in AirSim.
-
-            Args:
-                current_step (int): The current step index
-            """
-            payload = json.loads(msg.payload.decode())
-            isFinished = payload["isFinished"]
-            if isFinished == "True":
-                abort_simulation()
-                sys.exit(0)
-
-        natsclient.subscribe(subject="simulation.status", callback=simulation_check)
-        natsclient.wait(count=1)
-        while True:
-            pass
-            natsclient.wait(count=1)
