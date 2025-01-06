@@ -8,6 +8,7 @@ import numpy as np
 import airsim
 import caviar_tools
 import sys
+from PIL import Image
 
 sys.path.append("./")
 import caviar_config
@@ -55,7 +56,6 @@ times_waited_during_rescue = []
 def applyFilter(
     image,
     packet_drop_rate,
-    output_folder="./output/fromBytes.png",
     rng=rng,
 ):
     height = image.shape[0]
@@ -69,27 +69,28 @@ def applyFilter(
     random_drop_kernel = np.ones(total_number_of_pixels)
     random_drop_kernel[dropped_package_indexes] = 0
     random_drop_kernel = random_drop_kernel.reshape((height, width, n_channels))
-    degraded_image = np.multiply(image, random_drop_kernel).astype("uint8")
-    cv2.imwrite(output_folder, degraded_image)
+    degraded_data = np.multiply(image, random_drop_kernel).astype("uint8")
+    degraded_image = Image.fromarray(degraded_data.astype(np.uint8))
+
+    return degraded_image
 
 
 def addNoise(image, throughput):
     if throughput < 0.09 and throughput > 0.06:
         # PSNR: ~26.3629 dB
         print(f">>>>>>>>>>>>>>>>>>>>> Noise level LOW: {throughput}")
-        applyFilter(image, packet_drop_rate=0.01)
+        degraded_image = applyFilter(image, packet_drop_rate=0.01)
     elif throughput <= 0.06 and throughput > 0.03:
         # PSNR: ~12.3902 dB
         print(f">>>>>>>>>>>>>>>>>>>>> Noise level MEDIUM: {throughput}")
-        applyFilter(image, packet_drop_rate=0.25)
+        degraded_image = applyFilter(image, packet_drop_rate=0.25)
     elif throughput <= 0.03 and throughput >= 0:
         # PSNR: ~9.376 dB
         print(f">>>>>>>>>>>>>>>>>>>>> Noise level HIGH: {throughput}")
-        applyFilter(image, packet_drop_rate=0.5)
+        degraded_image = applyFilter(image, packet_drop_rate=0.5)
     else:
         print(f">>>>>>>>>>>>>>>>>>>>> No Noise level: {throughput}")
-
-    degraded_image = cv2.imread("./output/fromBytes.png")
+        degraded_image = image
 
     return degraded_image
 
