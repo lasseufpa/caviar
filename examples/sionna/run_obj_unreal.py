@@ -1,6 +1,9 @@
 import airsim
-from examples.sionna.coordinates_converter import convertPositionFromSionnatoUnreal
 import numpy as np
+import sys
+
+sys.path.append("./")
+from examples.sionna.coordinates_converter import convertPositionFromSionnatoUnreal
 
 
 def plot_beam_interaction(filepath, duration=0.3):

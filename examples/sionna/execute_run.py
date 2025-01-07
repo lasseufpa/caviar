@@ -5,7 +5,6 @@ import mitsuba as mi
 from sionna.rt import load_scene, Transmitter, Receiver, PlanarArray, Camera
 from sionna.channel import cir_to_ofdm_channel
 from obj_move import translate
-import examples.sionna.dsp_utils as dsp_utils
 from calc_time import getBitRate
 from realtime_plot import plot_throughput
 from joblib import load
@@ -13,6 +12,7 @@ from run_obj_unreal import plot_beam_interaction
 import sys
 
 sys.path.append("./")
+import examples.sionna.dsp_utils as dsp_utils
 import caviar_config
 
 mi.set_variant("cuda_ad_rgb")
