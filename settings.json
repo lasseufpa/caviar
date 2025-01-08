@@ -1,13 +1,22 @@
- {
-"SettingsVersion": 1.2,
-"SimMode": "Multirotor",
-"ViewMode": "",
-"Vehicles": {
-"uav1": {
-"VehicleType": "SimpleFlight"
-},
-"uav2": {
-"VehicleType": "SimpleFlight"
-}
-}
+{
+    "SettingsVersion": 1.2,
+    "SimMode": "Multirotor",
+    "ViewMode": "",
+    "CameraDefaults": {
+                    "CaptureSettings": [
+                        {
+                            "ImageType": 0,
+                            "Width": 640,
+                            "Height": 640
+                        }
+                    ]
+                },
+    "Vehicles": {
+        "uav1": {
+            "VehicleType": "SimpleFlight"
+        },
+        "uav2": {
+            "VehicleType": "SimpleFlight"
+        }
+    }
 }
