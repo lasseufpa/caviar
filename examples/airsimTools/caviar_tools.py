@@ -382,5 +382,5 @@ def addPedestriansOnPath(client, path):
                 True,
             )
             client.simSetObjectScale(
-                caviar_config.pedestrians[i], airsim.Vector3r(2, 2, 2)
+                caviar_config.pedestrians[i], airsim.Vector3r(3, 3, 3)
             )
