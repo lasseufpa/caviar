@@ -88,7 +88,7 @@ if __name__ == "__main__":
         threeD_thread.start()
         time.sleep(2)
         mobility_thread.start()
-        time.sleep(2)
+        time.sleep(8)
         communications_thread.start()
     except Exception as e:
         print(f"Error: {str(e)}")
@@ -111,3 +111,19 @@ if __name__ == "__main__":
         sionna_simu.wait()
         print("------------------------------------------> END")
         sys.exit(0)
+
+    with NATSClient() as natsclient:
+        natsclient.connect()
+
+        def simulation_check(msg):
+            payload = json.loads(msg.payload.decode())
+            isFinished = payload["isFinished"]
+            if isFinished == "True":
+                abort_simulation()
+                sys.exit(0)
+
+        natsclient.subscribe(subject="simulation.status", callback=simulation_check)
+        natsclient.wait(count=1)
+        while True:
+            pass
+            natsclient.wait(count=1)

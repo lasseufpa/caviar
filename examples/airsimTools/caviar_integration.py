@@ -9,6 +9,7 @@ import airsim
 import caviar_tools
 import sys
 from PIL import Image
+import torch
 
 sys.path.append("./")
 import caviar_config
@@ -27,11 +28,8 @@ def convertPositionFromAirSimToSionna(x, y, z):
 
 ################################################################################
 
-## REMOVE AFTER EXPERIMENT #####################################################
-from ultralytics import YOLO
-
-model = YOLO("yolov8n.pt")
-################################################################################
+from caviar_yolo import model, transform, post_proccess, device, cfg
+from yolo import draw_bboxes
 
 is_sync = caviar_config.is_sync  # sync(true)/async(false)
 is_rescue_mission = caviar_config.is_rescue_mission
@@ -127,7 +125,9 @@ with NATSClient() as natsclient:
         global current_throughput
         payload = json.loads(msg.payload.decode())
         current_throughput = float(payload["throughput"])
-        print(f"----------------> CURRENT THROUGHPUT: {current_throughput} Gbps")
+        print(
+            f"----------------> CURRENT THROUGHPUT: {current_throughput * int(1e3)} Mbps"
+        )
 
     natsclient.subscribe(subject="communications.state", callback=callback)
     natsclient.subscribe(subject="communications.throughput", callback=updateThroughput)
@@ -225,17 +225,39 @@ with NATSClient() as natsclient:
                     airsim.string_to_uint8_array(rawimg), cv2.IMREAD_COLOR
                 )
 
+                img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
                 img = addNoise(img, current_throughput)
 
-                ## REMOVE AFTER EXPERIMENT
-                results = model.predict(
-                    source=img, classes=0, save=True, save_txt=True
-                )  # save predictions as labels
+                img = Image.fromarray(img_rgb)
+                image, bbox, rev_tensor = transform(img)
+                image = image.to(device)[None]
+                rev_tensor = rev_tensor.to(device)[None]
+
+                with torch.no_grad():
+                    model.eval()
+                    raw_results = model(image)
+                    results = post_proccess(raw_results, rev_tensor)
+
+                    output_image = draw_bboxes(
+                        image, results, idx2label=cfg.dataset.class_list
+                    )
+
+                    output_image.save("./output/with_bounding_box.png")
+
+                    try:
+                        pred_class = cfg.dataset.class_list[
+                            int(results[0][0].cpu().numpy()[0])
+                        ]
+                        pred_prob = results[0][0].cpu().numpy()[5]
+                    except:
+                        pred_class = None
+                        pred_prob = None
                 try:
-                    print(f"> Detected class: {results[0].boxes.data[0,5]}")
-                    print(f"> Human detected probability: {results[0].boxes.data[0,4]}")
-                    target_is_detected = results[0].boxes.data[0, 5] == 0
+                    target_is_detected = pred_class == "Person" and pred_prob >= 0.9
                     if target_is_detected:
+                        print(f"> Detected class: {pred_class}")
+                        print(f"> Human detected probability: {pred_prob}")
                         rescue_time = get_time_for_rescue(current_throughput * 1e9)
                         throughputs_during_rescue.append(current_throughput)
                         times_waited_during_rescue.append(rescue_time)
