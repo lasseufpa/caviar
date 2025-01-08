@@ -26,10 +26,10 @@ def getBitRate(equivalentChannelMagnitude, bandwidth=40e6):
     noise_power_dBW = Watts2dBW(noise_PSD * bandwidth) + noise_figure
     noise_power_Watts = dBW2Watts(noise_power_dBW)
     ############################## Interference calculation ###################
-    interference_power_dBW = -120
+    interference_power_dBW = -130
     interference_power_Watts = dBW2Watts(interference_power_dBW)
     ###########################################################################
-    tx_power_watts = 0.25  # 250 milliwatts
+    tx_power_watts = 0.5  # 500 milliwatts
     SINR = ((equivalentChannelMagnitude.A1**2) * tx_power_watts) / (
         noise_power_Watts + interference_power_Watts
     )  # A1 used to flatten
