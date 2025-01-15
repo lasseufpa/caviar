@@ -22,6 +22,14 @@
 
 Go to https://github.com/nats-io/nats-server/tags , download the latest `.deb` release and install it.
 
+---
+
+(FOR WINDOWS):
+
+Go to https://github.com/nats-io/nats-server/tags , download the latest `.exe` and place it on the project root folder, after cloning it.
+
+---
+
 ## Installing
 
 ### 1) Clone the project repository
@@ -48,6 +56,13 @@ Download the executable
 curl https://nextcloud.lasseufpa.org/s/zdNNfM2YCmfrHsi/download/central_park.zip --output central_park.zip
 
 ```
+
+---
+
+(FOR WINDOWS): use the following link and manually download it:
+https://nextcloud.lasseufpa.org/s/rt4YP5DxEybfYXo
+
+---
 
 Unzip the file
 
