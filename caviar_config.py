@@ -81,10 +81,10 @@ pedestrians = [
 
 ################################################################################
 # execute_run.py configuration
-save_rt_paths_as_txt = True
+save_rt_paths_as_txt = False
 save_sionna_3d_scenes_as_png = False
 save_all_data_as_npz = False
-plot_beam = True
+plot_beam = False
 plot_realtime_throughput = False
 scene_file_name = "central_park"
 rx_3D_object_name = "mesh-Cube"

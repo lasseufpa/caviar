@@ -1,16 +1,94 @@
-# Python template
+# Getting started
 
-Python template containing formatter, linter and other automatic verifications. First you need to install the Conda environment with required packages using `conda env create -f env.yml` (if you want to change the name of the environment from env to something else such as your_env_name, edit the entry "name" in the env.yml file). After successfully creating the environment, activate it using the `conda activate` command, such `conda activate your_env_name` (after this, all your commands will be executed into the python environment). Finally, execute the command 
-`pre-commit install` to activate the pre-commit, so every time you make a commit it will verify your code and assure that you complied with all project standards.
+\*Currently tested on Ubuntu 22.04
 
-## Using this template
+## Pre-requisites
 
-When creating a new repository on GitHub, be sure to select in the template field `python_template` from LASSE organization. So, all the files in this template will be moved to your new project.
+### Auxiliary linux packages
 
-## VS Code integration
+#### First update (if necessary)
 
-File `.vscode/settings.json` contains the default workspace configurations to automatically activate the formatter, linter, type check and sort imports in VS Code. Most of them promote file verification when saving the document. *Remember to select the correct python environment into the VS Code to enable it to use the packages installed into the environment*.
+    sudo apt update
 
-## GitHub Actions
+#### cURL
 
-Into `.github/` folder, there are specifications to GitHub actions to verify if the pushed commits are compliant with the project standards. You may need to activate GitHub actions in your repo to enable this verification.
+    sudo apt install curl
+
+#### Unzip
+
+    sudo apt install unzip
+
+### Setting up the NATS server
+
+Go to https://github.com/nats-io/nats-server/tags , download the latest `.deb` release and install it.
+
+## Installing
+
+### 1) Clone the project repository
+
+#### Using SSH:
+
+    git clone git@github.com:lasseufpa/caviar.git
+
+#### Using HTTP:
+
+    git clone https://github.com/lasseufpa/caviar.git
+
+### 2) Set up the 3D scenario
+
+Go to the folder where the 3D executable will be stored:
+
+```
+cd caviar/3d
+```
+
+Download the executable
+
+```
+curl https://nextcloud.lasseufpa.org/s/zdNNfM2YCmfrHsi/download/central_park.zip --output central_park.zip
+
+```
+
+Unzip the file
+
+```
+unzip central_park.zip
+```
+
+### 3) Install the requirements
+
+    pip install -r requirements.txt
+
+## Executing a simulation
+
+In the project root folder, run:
+
+    python3 simulate.py
+
+This will start a simulation of the flights defined in `caviar/examples/airsimTools/waypoints/trajectories/`
+
+To correctly abort a simulation, in the terminal press:
+
+    ctrl+C
+
+## Configuring the simulation
+
+The configuration parameters used in the simulation are stored in `caviar/caviar_config.py`
+
+**More documentation on the configuration soon**
+
+## Citation
+
+If you benefit from this work on a publicaton, please cite using:
+
+```
+@ARTICLE{borges2024caviar,
+  author={Borges, João and Bastos, Felipe and Correa, Ilan and Batista, Pedro and Klautau, Aldebaro},
+  journal={IEEE Internet of Things Journal},
+  title={{CAVIAR: Co-Simulation of 6G Communications, 3-D Scenarios, and AI for Digital Twins}},
+  year={2024},
+  volume={11},
+  number={19},
+  pages={31287-31300},
+  doi={10.1109/JIOT.2024.3418675}}
+```

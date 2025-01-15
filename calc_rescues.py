@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
-import seaborn as sns
 import numpy as np
+
+# import seaborn as sns
 
 
 def get_time_for_rescue(throughput):
@@ -16,40 +17,40 @@ def get_time_for_rescue(throughput):
     return time_to_tx
 
 
-if __name__ == "__main__":
-    throughputs = np.arange(1, 100, 0.1)
-    rescue_times = []
-    for throughput in throughputs:
-        throughput_bps = throughput * 1e6
-        rescue_times.append(get_time_for_rescue(throughput_bps))
+# if __name__ == "__main__":
+#     throughputs = np.arange(1, 100, 0.1)
+#     rescue_times = []
+#     for throughput in throughputs:
+#         throughput_bps = throughput * 1e6
+#         rescue_times.append(get_time_for_rescue(throughput_bps))
 
-    sns.set_theme()
+#     sns.set_theme()
 
-    plt.rcParams.update(
-        {
-            "font.family": "serif",
-            "font.serif": "Times New Roman",
-            "axes.labelsize": 19,
-            "xtick.labelsize": 19,
-            "ytick.labelsize": 19,
-            "legend.fontsize": 19,
-        }
-    )
+#     plt.rcParams.update(
+#         {
+#             "font.family": "serif",
+#             "font.serif": "Times New Roman",
+#             "axes.labelsize": 19,
+#             "xtick.labelsize": 19,
+#             "ytick.labelsize": 19,
+#             "legend.fontsize": 19,
+#         }
+#     )
 
-    plt.figure(figsize=(7, 6))
-    plt.plot(throughputs, rescue_times)
-    plt.grid(True)
+#     plt.figure(figsize=(7, 6))
+#     plt.plot(throughputs, rescue_times)
+#     plt.grid(True)
 
-    x_ticks = np.arange(0, 101, 10)
-    x_ticks[0] = 1
+#     x_ticks = np.arange(0, 101, 10)
+#     x_ticks[0] = 1
 
-    y_ticks = np.arange(0, 351, 20)
+#     y_ticks = np.arange(0, 351, 20)
 
-    plt.xticks(x_ticks)
-    plt.yticks(y_ticks)
-    plt.xlim(0.75, 100)
-    plt.ylim(-1, 325)
-    plt.xlabel("Throughput (Mbps)")
-    plt.ylabel("Estimated virtual time to finish one rescue (sec.)")
-    plt.tight_layout()
-    plt.savefig("./output/time_to_finish_rescues_mbps.pdf")
+#     plt.xticks(x_ticks)
+#     plt.yticks(y_ticks)
+#     plt.xlim(0.75, 100)
+#     plt.ylim(-1, 325)
+#     plt.xlabel("Throughput (Mbps)")
+#     plt.ylabel("Estimated virtual time to finish one rescue (sec.)")
+#     plt.tight_layout()
+#     plt.savefig("./output/time_to_finish_rescues_mbps.pdf")

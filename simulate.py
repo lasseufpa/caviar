@@ -39,7 +39,7 @@ class runAirSim(threading.Thread):
         global airsim_simu
         airsim_simu = subprocess.Popen(
             [
-                "3d/LinuxNoEditor/central_park/Binaries/Linux/central_park-Linux-DebugGame",
+                "3d/central_park/LinuxNoEditor/central_park/Binaries/Linux/central_park-Linux-DebugGame",
                 "-WINDOWED",
                 "-ResX=640",
                 "-ResY=480",
