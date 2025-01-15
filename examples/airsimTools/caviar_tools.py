@@ -340,9 +340,6 @@ def airsim_save_external_images(client, record_path="./", cam="0"):
 
 
 def airsim_getimages(client, uav_id):
-    # image = client.simGetImage(
-    #     "bottom_center", airsim.ImageType.Scene, vehicle_name=uav_id
-    # )
     image = client.simGetImage(0, airsim.ImageType.Scene, vehicle_name=uav_id)
     return image
 
@@ -375,19 +372,15 @@ def addPedestriansOnPath(client, path):
             )
     if len(path_list) - 2 > len(caviar_config.pedestrians):
         print(
-            "The number of pedestrian objects should be lower than of number of waypoints"
+            "The number of pedestrian objects should be lower than the number of waypoints"
         )
     else:
-        # client.enableApiControl(True, uav)
         for i in range(len(caviar_config.pedestrians)):
-            # print(f'caviar_config.pedestrians[i]: {caviar_config.pedestrians[i]} | path_list[i+1]: {path_list[i+1]} | type(path_list[i+1]): {type(path_list[i+1])}')
             client.simSetObjectPose(
                 caviar_config.pedestrians[i],
                 airsim.Pose(path_list[i + 1], airsim.to_quaternion(0, 0, 0)),
                 True,
             )
             client.simSetObjectScale(
-                caviar_config.pedestrians[i], airsim.Vector3r(2, 2, 2)
+                caviar_config.pedestrians[i], airsim.Vector3r(3, 3, 3)
             )
-            # airsim.MultirotorClient.simSetObjectScale
-            # print(unreal_getpose(client, caviar_config.pedestrians[i]))

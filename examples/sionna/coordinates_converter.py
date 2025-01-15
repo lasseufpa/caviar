@@ -1,5 +1,4 @@
 import csv
-import os
 import numpy as np
 
 
@@ -20,8 +19,6 @@ def convertPositionFromSionnaToAirSim(x, y, z):
 def convertPositionFromAirSimToUnreal(x, y, z):
     # Unreal coordinates for AirSim PlayerStart position (Unreal's origin point)
     # Central Park offset
-    # offset = {"x": 2245, "y": 213, "z": 13580}
-    # offset = {"x": 0, "y": 0, "z": 0}
     offset = {"x": 0, "y": 0, "z": 14.673}
     scaled_coords = np.multiply([x, y, z], 100).tolist()
     return [
@@ -57,21 +54,6 @@ def readPaths(path):
 
     return path_list
 
-
-# current_dir = os.getcwd()
-# trajectories_files = os.path.join(
-#     current_dir,
-#     "examples",
-#     "airsimTools",
-#     "waypoints",
-#     "trajectories",
-# )
-# num_paths = 10
-# converted_paths = []
-# for path_id in range(num_paths):
-#     converted_paths.append(
-#         readPaths(os.path.join(trajectories_files, "path" + str(path_id) + ".csv"))
-#     )
 
 test_list = [
     [0, 0, 0.05],

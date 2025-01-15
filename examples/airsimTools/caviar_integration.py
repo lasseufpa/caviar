@@ -8,9 +8,12 @@ import numpy as np
 import airsim
 import caviar_tools
 import sys
+from PIL import Image
+import torch
 
 sys.path.append("./")
 import caviar_config
+from calc_rescues import get_time_for_rescue
 
 
 rng = np.random.default_rng(caviar_config.random_seed)
@@ -25,11 +28,8 @@ def convertPositionFromAirSimToSionna(x, y, z):
 
 ################################################################################
 
-## REMOVE AFTER EXPERIMENT #####################################################
-from ultralytics import YOLO
-
-model = YOLO("yolov8n.pt")
-################################################################################
+from caviar_yolo import model, transform, post_proccess, device, cfg
+from yolo import draw_bboxes
 
 is_sync = caviar_config.is_sync  # sync(true)/async(false)
 is_rescue_mission = caviar_config.is_rescue_mission
@@ -54,7 +54,6 @@ times_waited_during_rescue = []
 def applyFilter(
     image,
     packet_drop_rate,
-    output_folder="./../../output/fromBytes.png",
     rng=rng,
 ):
     height = image.shape[0]
@@ -68,40 +67,28 @@ def applyFilter(
     random_drop_kernel = np.ones(total_number_of_pixels)
     random_drop_kernel[dropped_package_indexes] = 0
     random_drop_kernel = random_drop_kernel.reshape((height, width, n_channels))
-    degraded_image = np.multiply(image, random_drop_kernel).astype("uint8")
-    cv2.imwrite(output_folder, degraded_image)
+    degraded_data = np.multiply(image, random_drop_kernel).astype("uint8")
+    degraded_image = Image.fromarray(degraded_data.astype(np.uint8))
 
-
-def get_time_for_rescue(throughput):
-    """
-    This function calculates the time to transmit rescue images and finish
-    the rescue.
-
-    The rescue will finish after transmiting 10 pictures of 4 MB
-    (4 MiB = 3.355e7 bits), representing a 4K image
-    """
-    data_to_transmit_in_bits = 3.355e7 * 10
-    time_to_tx = data_to_transmit_in_bits / (throughput)
-    return time_to_tx
+    return degraded_image
 
 
 def addNoise(image, throughput):
     if throughput < 0.09 and throughput > 0.06:
         # PSNR: ~26.3629 dB
         print(f">>>>>>>>>>>>>>>>>>>>> Noise level LOW: {throughput}")
-        applyFilter(image, packet_drop_rate=0.01)
+        degraded_image = applyFilter(image, packet_drop_rate=0.01)
     elif throughput <= 0.06 and throughput > 0.03:
         # PSNR: ~12.3902 dB
         print(f">>>>>>>>>>>>>>>>>>>>> Noise level MEDIUM: {throughput}")
-        applyFilter(image, packet_drop_rate=0.25)
+        degraded_image = applyFilter(image, packet_drop_rate=0.25)
     elif throughput <= 0.03 and throughput >= 0:
         # PSNR: ~9.376 dB
         print(f">>>>>>>>>>>>>>>>>>>>> Noise level HIGH: {throughput}")
-        applyFilter(image, packet_drop_rate=0.5)
+        degraded_image = applyFilter(image, packet_drop_rate=0.5)
     else:
         print(f">>>>>>>>>>>>>>>>>>>>> No Noise level: {throughput}")
-
-    degraded_image = cv2.imread("/../../output/fromBytes.png")
+        degraded_image = image
 
     return degraded_image
 
@@ -139,17 +126,16 @@ with NATSClient() as natsclient:
         payload = json.loads(msg.payload.decode())
         current_throughput = float(payload["throughput"])
         print(
-            f"----------------------------> CURRENT THROUGHPUT: {current_throughput} Gbps"
+            f"----------------> CURRENT THROUGHPUT: {current_throughput * int(1e3)} Mbps"
         )
 
     natsclient.subscribe(subject="communications.state", callback=callback)
     natsclient.subscribe(subject="communications.throughput", callback=updateThroughput)
 
-    # for episode in range(4, n_trajectories):
     for episode in range(n_trajectories):
         print("Episode: " + str(episode))
 
-        # Save the actual time to compute the run-time at the end of the episode
+        # Save the actual time to compute the runtime at the end of the episode
         initial_time = time.time()
 
         isFinished = False
@@ -172,7 +158,7 @@ with NATSClient() as natsclient:
             client, os.path.join(trajectories_files, "path" + str(episode) + ".csv")
         )
 
-        # Reset the airsim simulation
+        # Reset the AirSim simulation
         caviar_tools.airsim_reset(client)
 
         caviar_tools.airsim_setpose(
@@ -192,7 +178,7 @@ with NATSClient() as natsclient:
             client, caviar_config.drone_ids[0]
         )
 
-        # takeoff and start the UAV trajectory
+        # Takeoff and start the UAV trajectory
         caviar_tools.airsim_takeoff_all(client)
         time.sleep(1)
         caviar_tools.move_to_point(
@@ -209,7 +195,7 @@ with NATSClient() as natsclient:
         # Pause the simulation
         client.simPause(True)
         while not (isFinished):
-            # Continue the simulation for 100ms
+            # Continue the simulation for a time defined in "simulation_time_step"
             start_time = time.time()
 
             if is_sync:
@@ -239,21 +225,39 @@ with NATSClient() as natsclient:
                     airsim.string_to_uint8_array(rawimg), cv2.IMREAD_COLOR
                 )
 
+                img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
                 img = addNoise(img, current_throughput)
 
-                ## REMOVE AFTER EXPERIMENT
-                results = model.predict(
-                    source=img, classes=0, save=True, save_txt=True
-                )  # save predictions as labels
+                img = Image.fromarray(img_rgb)
+                image, bbox, rev_tensor = transform(img)
+                image = image.to(device)[None]
+                rev_tensor = rev_tensor.to(device)[None]
+
+                with torch.no_grad():
+                    model.eval()
+                    raw_results = model(image)
+                    results = post_proccess(raw_results, rev_tensor)
+
+                    output_image = draw_bboxes(
+                        image, results, idx2label=cfg.dataset.class_list
+                    )
+
+                    output_image.save("./output/with_bounding_box.png")
+
+                    try:
+                        pred_class = cfg.dataset.class_list[
+                            int(results[0][0].cpu().numpy()[0])
+                        ]
+                        pred_prob = results[0][0].cpu().numpy()[5]
+                    except:
+                        pred_class = None
+                        pred_prob = None
                 try:
-                    print(
-                        f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Detected class: {results[0].boxes.data[0,5]}"
-                    )
-                    print(
-                        f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Human detected probability: {results[0].boxes.data[0,4]}"
-                    )
-                    target_is_detected = results[0].boxes.data[0, 5] == 0
+                    target_is_detected = pred_class == "Person" and pred_prob >= 0.9
                     if target_is_detected:
+                        print(f"> Detected class: {pred_class}")
+                        print(f"> Human detected probability: {pred_prob}")
                         rescue_time = get_time_for_rescue(current_throughput * 1e9)
                         throughputs_during_rescue.append(current_throughput)
                         times_waited_during_rescue.append(rescue_time)
@@ -264,10 +268,7 @@ with NATSClient() as natsclient:
                             client.simDestroyObject(
                                 caviar_config.pedestrians[actualWaypoint]
                             )
-                        print(
-                            f"@@@@@@@ get_time_for_rescue(current_throughput): {rescue_time}"
-                        )
-                        # time.sleep(rescue_time)
+                        print(f"> Rescue will take: {rescue_time} sec.")
                         rescued_targets = rescued_targets + 1
                         simu_time_of_rescue.append(
                             (airsim_timestamp - initial_timestamp) * 1e-9
@@ -378,7 +379,7 @@ with NATSClient() as natsclient:
             end_time = time.time()
             print(f"CAVIAR in-loop step duration (seconds): {end_time-start_time}")
             print(
-                f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> Simulation duration (seconds): {(airsim_timestamp-initial_timestamp)*1e-9}"
+                f"> Simulation duration (seconds): {(airsim_timestamp-initial_timestamp)*1e-9}"
             )
 
         print(f"Total mission time: {(airsim_timestamp-initial_timestamp)*1e-9}")

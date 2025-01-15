@@ -28,9 +28,9 @@ def translate(
             .attrib
         )
         # Update the values in <translate> with the desired translation step
-        translation_element[
-            "value"
-        ] = f"{str(x_translation_step)} {str(y_translation_step)} {str(z_translation_step)}"
+        translation_element["value"] = (
+            f"{str(x_translation_step)} {str(y_translation_step)} {str(z_translation_step)}"
+        )
 
     except:
         # In case there is no <translate> grandchildren from a <shape> node with the desired "id"
@@ -50,7 +50,6 @@ def translate(
     xml_tree.write(mitsuba_file)
 
 
-# Currently deprecated
 def moveTo(
     mitsuba_file: str,
     obj_name: str,
@@ -65,7 +64,3 @@ def moveTo(
     object.z = z_translation_step
     params[f"{obj_name}.vertex_positions"] = dr.ravel(object)
     params.update()
-
-
-# mitsuba_file = "/home/joao/codes/caviar/examples/sionna/simple_street_canyon/simple_street_canyon.xml"
-# translate(mitsuba_file, "mesh-Cube", -741, 0, 0)

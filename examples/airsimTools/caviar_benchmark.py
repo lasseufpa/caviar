@@ -11,6 +11,7 @@ import sys
 
 sys.path.append("./")
 import caviar_config
+from calc_rescues import get_time_for_rescue
 
 
 rng = np.random.default_rng(caviar_config.random_seed)
@@ -72,19 +73,6 @@ def applyFilter(
     random_drop_kernel = random_drop_kernel.reshape((height, width, n_channels))
     degraded_image = np.multiply(image, random_drop_kernel).astype("uint8")
     cv2.imwrite(output_folder, degraded_image)
-
-
-def get_time_for_rescue(throughput):
-    """
-    This function calculates the time to transmit rescue images and finish
-    the rescue.
-
-    The rescue will finish after transmiting 10 pictures of 4 MB
-    (4 MiB = 3.355e7 bits), representing a 4K image
-    """
-    data_to_transmit_in_bits = 3.355e7 * 10
-    time_to_tx = data_to_transmit_in_bits / (throughput)
-    return time_to_tx
 
 
 def addNoise(image, throughput):

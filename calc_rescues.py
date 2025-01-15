@@ -5,11 +5,11 @@ import numpy as np
 
 def get_time_for_rescue(throughput):
     """
-    This function calculates the time to transmit rescue images and finish
-    the rescue.
+    This function calculates the time in seconds to transmit
+    rescue images and finish the rescue.
 
     The rescue will finish after transmiting 10 pictures of 4 MB
-    (4 MiB = 3.355e7 bits), representing a 4K image
+    (4 MiB = 3.355e7 bits)
     """
     data_to_transmit_in_bits = 3.355e7 * 10
     time_to_tx = data_to_transmit_in_bits / (throughput)
@@ -18,7 +18,6 @@ def get_time_for_rescue(throughput):
 
 if __name__ == "__main__":
     throughputs = np.arange(1, 100, 0.1)
-    # throughputs = np.arange(20, 100, 0.1)
     rescue_times = []
     for throughput in throughputs:
         throughput_bps = throughput * 1e6
@@ -53,6 +52,4 @@ if __name__ == "__main__":
     plt.xlabel("Throughput (Mbps)")
     plt.ylabel("Estimated virtual time to finish one rescue (sec.)")
     plt.tight_layout()
-    plt.savefig(
-        "./output/time_to_finish_rescues_mbps.pdf"
-    )
+    plt.savefig("./output/time_to_finish_rescues_mbps.pdf")

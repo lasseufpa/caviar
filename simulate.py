@@ -88,27 +88,11 @@ if __name__ == "__main__":
         threeD_thread.start()
         time.sleep(2)
         mobility_thread.start()
-        time.sleep(2)
+        time.sleep(8)
         communications_thread.start()
     except Exception as e:
         print(f"Error: {str(e)}")
 
-    # while True:
-    #     res = input("Press 'w' to close")
-    #     if res == "w":
-    #         print("The program was terminated manually!")
-    #         time.sleep(5)
-    #         airsim_simu.send_signal(signal.SIGTERM)
-    #         time.sleep(1)
-    #         airsim_simu.send_signal(signal.SIGTERM)
-    #         time.sleep(1)
-    #         airsim_simu.send_signal(signal.SIGTERM)
-    #         time.sleep(2)
-    #         nats_simu.send_signal(signal.SIGTERM)
-    #         mobility_simu.send_signal(signal.SIGTERM)
-    #         sionna_simu.send_signal(signal.SIGTERM)
-    #         print("------------------------------------------> END")
-    #         break
     def abort_simulation():
         print("The program was terminated manually!")
         time.sleep(1)
@@ -132,17 +116,11 @@ if __name__ == "__main__":
         natsclient.connect()
 
         def simulation_check(msg):
-            """Executes step on Sionna according to the current position in AirSim.
-
-            Args:
-                current_step (int): The current step index
-            """
             payload = json.loads(msg.payload.decode())
             isFinished = payload["isFinished"]
             if isFinished == "True":
                 abort_simulation()
                 sys.exit(0)
-            # natsclient.wait(count=1)
 
         natsclient.subscribe(subject="simulation.status", callback=simulation_check)
         natsclient.wait(count=1)

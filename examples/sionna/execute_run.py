@@ -5,7 +5,6 @@ import mitsuba as mi
 from sionna.rt import load_scene, Transmitter, Receiver, PlanarArray, Camera
 from sionna.channel import cir_to_ofdm_channel
 from obj_move import translate
-import mimo_channels
 from calc_time import getBitRate
 from realtime_plot import plot_throughput
 from joblib import load
@@ -13,6 +12,7 @@ from run_obj_unreal import plot_beam_interaction
 import sys
 
 sys.path.append("./")
+import examples.sionna.dsp_utils as dsp_utils
 import caviar_config
 
 mi.set_variant("cuda_ad_rgb")
@@ -50,7 +50,7 @@ rx_starting_z = caviar_config.rx_starting_z
 # Ground
 tx_x = caviar_config.tx_x
 tx_y = caviar_config.tx_y
-tx_z = caviar_config.tx_z  # 5m above roof
+tx_z = caviar_config.tx_z
 
 # Rotation parameters in radians, as defined in
 # https://nvlabs.github.io/sionna/api/rt.html#sionna.rt.Transmitter
@@ -66,8 +66,6 @@ rx_gamma = caviar_config.rx_gamma
 
 ################################# Configure camera parameters #############
 
-# cam_x = rx_x
-# cam_y = rx_y
 cam_z = caviar_config.cam_z
 
 ################################# Configure simulation parameters ##############
@@ -93,8 +91,8 @@ def getRunMIMOdata(
         for rx_index in range(rx_number):
             current_rx_mimoChannel = mimoChannel[rx_index]
 
-            equivalentChannel = mimo_channels.getDFTOperatedChannel(
-                current_rx_mimoChannel, number_Tx_antennas, number_Rx_antennas
+            equivalentChannel = dsp_utils.generate_equivalent_channel(
+                number_Rx_antennas, number_Tx_antennas, current_rx_mimoChannel
             )
 
             equivalentChannelMagnitude = np.abs(equivalentChannel)
@@ -105,8 +103,8 @@ def getRunMIMOdata(
     else:
         current_rx_mimoChannel = mimoChannel
 
-        equivalentChannel = mimo_channels.getDFTOperatedChannel(
-            current_rx_mimoChannel, number_Tx_antennas, number_Rx_antennas
+        equivalentChannel = dsp_utils.generate_equivalent_channel(
+            number_Rx_antennas, number_Tx_antennas, current_rx_mimoChannel
         )
         equivalentChannelMagnitude = np.abs(equivalentChannel)
         best_ray = np.argwhere(
@@ -159,21 +157,16 @@ def run(current_step, new_x, new_y, new_z):
     for rx_index in range(rx_number):
         rx = Receiver(
             name="rx" + str(rx_index),
-            position=[rx_current_x, rx_current_y, rx_current_z - 3 + rx_index],
+            position=[rx_current_x, rx_current_y, rx_current_z - 5 + rx_index],
             orientation=[rx_alpha, rx_beta, rx_gamma],
         )
 
         scene.add(rx)
 
-    scene.frequency = caviar_config.carrier_frequency  # Carrier frequency (Hz)
+    scene.frequency = caviar_config.carrier_frequency
 
     scene.synthetic_array = True
-    # cm = scene.coverage_map(max_depth=5,
-    #                     cm_cell_size=(3., 3.), # Grid size of coverage map cells in m
-    #                     combining_vec=None,
-    #                     precoding_vec=None,
-    #                     num_samples=int(1e2))
-    # starting_instant = time.time()
+
     # Compute propagation paths
     paths = scene.compute_paths(
         max_depth=5,
@@ -183,10 +176,8 @@ def run(current_step, new_x, new_y, new_z):
         diffraction=True,
         scattering=True,
     )
-    # ending_instant = time.time()
-    # print(f"RT duration: {ending_instant-starting_instant}")
 
-    # -------------------------------------------------------------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     path_coefficients, path_delays = paths.cir(los=False)  # Get only NLOS paths
 
@@ -194,7 +185,7 @@ def run(current_step, new_x, new_y, new_z):
 
     # Get the channel frequency response
     h_matrix = cir_to_ofdm_channel(
-        [0.0], path_coefficients, path_delays, normalize=True
+        [0.0], path_coefficients, path_delays, normalize=False
     )
 
     # -------------------------------------------------------------------------------------------------------------------------------
@@ -216,7 +207,6 @@ def run(current_step, new_x, new_y, new_z):
     # Get bit rate
     bit_rate = getBitRate(equivalentChannelMagnitude, bandwidth=40e6)
     bit_rate_Gbps = bit_rate / 1e9  # Converts to Gbps
-    # bit_rate_Gbps = bit_rate_Gbps / 10 # Divides the throughput between 10 drones in a hypothetical swarm
     best_ray_rx = best_ray[0][0]
     best_ray_tx = best_ray[0][1]
     best_bit_rate_Gbps = bit_rate_Gbps[best_ray_rx, best_ray_tx]
@@ -238,9 +228,7 @@ def run(current_step, new_x, new_y, new_z):
     figures_output_filename = os.path.join(current_dir, "runs", "figures", f"run_0.png")
 
     if number_of_paths > 0:
-        print(
-            f">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> {number_of_paths} paths obtained during this run"
-        )
+        print(f"> {number_of_paths} paths obtained during this run")
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
 
@@ -259,7 +247,6 @@ def run(current_step, new_x, new_y, new_z):
             scene.render_to_file(
                 camera="topview_cam",
                 paths=paths,
-                # coverage_map=cm,
                 show_devices=True,
                 show_paths=True,
                 filename=figures_output_filename,
@@ -305,16 +292,16 @@ def run(current_step, new_x, new_y, new_z):
                 random_bit_rate_Gbps=random_bit_rate_Gbps,
             )
     else:
-        print(
-            ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> No paths obtained during this run"
-        )
+        print("> No paths obtained during this run")
 
     del paths  # deallocation of memory
 
-    # return best_bit_rate_Gbps
+    ##### Choose which method to consider for the experiment
+    return best_bit_rate_Gbps
     # return predicted_bit_rate_Gbps
-    return random_bit_rate_Gbps
+    # return random_bit_rate_Gbps
 
 
+# The code below is for simple debbuging purposes
 if __name__ == "__main__":
     run(0, 0, 0, 0)
