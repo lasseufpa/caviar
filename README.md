@@ -76,7 +76,17 @@ Set it as an executable
 
 ### 3) Install the requirements
 
+First we should install the package below
+
+```
+    pip install msgpack-rpc-python==0.4.1
+```
+
+After this, we install the rest of the requirements
+
+```
     pip install -r requirements.txt
+```
 
 ## Executing a simulation
 

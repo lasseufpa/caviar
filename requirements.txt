@@ -1,4 +1,3 @@
-numpy
 msgpack-rpc-python==0.4.1
 airsim==1.8.1
 sionna==0.17.0
@@ -9,6 +8,8 @@ tensorflow==2.13.*
 yolo @ git+https://github.com/WongKinYiu/YOLO.git@da4f0bf711ca8c4751f101fb49634abaa10d239d
 mitsuba==3.5.0
 seaborn==0.12.2
+matplotlib==3.7.1
+numpy
 torch
 typing-extensions
 pycocotools
