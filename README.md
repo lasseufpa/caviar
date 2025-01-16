@@ -96,6 +96,24 @@ The configuration parameters used in the simulation are stored in `caviar/caviar
 
 **More documentation on the configuration soon**
 
+## Troubleshoot
+
+#### On the first run, the drone was teleported to the street, but did not started to fly
+
+Sometimes this error can happen, but just exit with `ctrl+c` and try it again.
+
+#### Got the error: "Can't find libdevice directory ${CUDA_DIR}/nvvm/libdevice. This may result in compilation or runtime failures, if the program we try to run uses routines from libdevice."
+
+This is due to not being able to file the CUDA directory. For this you can execute the following, to add it to your environment variables:
+
+##### For bash
+
+    echo -e "export CUDA_DIR=\"$(whereis cuda | cut -d ' ' -f 2)\"\nexport XLA_FLAGS=--xla_gpu_cuda_data_dir=\"\${CUDA_DIR}\"" >> ~/.bashrc
+
+##### For zsh
+
+    echo -e "export CUDA_DIR=\"$(whereis cuda | cut -d ' ' -f 2)\"\nexport XLA_FLAGS=--xla_gpu_cuda_data_dir=\"\${CUDA_DIR}\"" >> ~/.zshrc
+
 ## Citation
 
 If you benefit from this work on a publicaton, please cite using:
