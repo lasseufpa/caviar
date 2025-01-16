@@ -55,7 +55,21 @@ Unzip the file
 unzip central_park.zip
 ```
 
-### 3) Install the requirements
+### 3) Prepare the virtual environment
+
+For this we use `conda` to create the virtual environment
+
+    conda create --name caviar python=3.9.16
+
+Then activate it
+
+    conda activate caviar
+
+And then we install more prerequisites
+
+    conda install -c conda-forge cudatoolkit=11.8.0
+
+### 4) Install the requirements
 
     pip install -r requirements.txt
 
