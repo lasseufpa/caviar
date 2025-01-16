@@ -70,6 +70,10 @@ Unzip the file
 unzip central_park.zip
 ```
 
+Set it as an executable
+
+    chmod +x ./central_park/LinuxNoEditor/central_park/Binaries/Linux/central_park-Linux-DebugGame
+
 ### 3) Install the requirements
 
     pip install -r requirements.txt

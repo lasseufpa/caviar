@@ -1,3 +1,4 @@
+numpy
 msgpack-rpc-python==0.4.1
 airsim==1.8.1
 sionna==0.17.0
