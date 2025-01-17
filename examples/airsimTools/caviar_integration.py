@@ -350,7 +350,7 @@ with NATSClient() as natsclient:
 
                             print(actualWaypoint)
 
-                            if actualWaypoint == (len(path_list) - 5):
+                            if actualWaypoint == (len(path_list)):
                                 client.simPause(False)
                                 caviar_tools.airsim_land_all(client)
                                 isFinished = True
@@ -372,10 +372,7 @@ with NATSClient() as natsclient:
                 caviar_tools.airsim_save_external_images(
                     client, output_folder, "FixedCamera1"
                 )
-            # Get an write information about others objects in the simulation (cars and pedestrians). Each object is described in the configuration file (caviar_config.py)
-            for obj in caviar_config.ue_objects:
-                object_pose = caviar_tools.unreal_getpose(client, obj)
-                object_orien = caviar_tools.unreal_getorientation(client, obj)
+    
             end_time = time.time()
             print(f"CAVIAR in-loop step duration (seconds): {end_time-start_time}")
             print(
