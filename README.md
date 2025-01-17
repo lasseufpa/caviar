@@ -22,7 +22,6 @@
 
 Go to https://github.com/nats-io/nats-server/tags , download the latest `.deb` release and install it.
 
-
 ## Installing
 
 ### 1) Clone the project repository
@@ -50,7 +49,6 @@ curl https://nextcloud.lasseufpa.org/s/zdNNfM2YCmfrHsi/download/central_park.zip
 
 ```
 
-
 Unzip the file
 
 ```
@@ -61,7 +59,23 @@ Set it as an executable
 
     chmod +x ./central_park/LinuxNoEditor/central_park/Binaries/Linux/central_park-Linux-DebugGame
 
+Now, go back to the project root
+
+    cd ..
+
 ### 3) Install the requirements
+
+We use python 3.9.16\*
+
+(Optional): Create and activate a virtual environment with conda
+
+```
+conda create --name caviar python=3.9.16
+```
+
+```
+conda activate caviar
+```
 
 First we should install the package below
 
@@ -113,7 +127,7 @@ This is due to not being able to file the CUDA directory. For this you can execu
 
 ## Citation
 
-If you benefit from this work on a publicaton, please cite using:
+If you benefit from this work on a publication, please cite using:
 
 ```
 @ARTICLE{borges2024caviar,
