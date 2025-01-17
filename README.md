@@ -111,7 +111,7 @@ The configuration parameters used in the simulation are stored in `caviar/caviar
 
 #### On the first run, the drone was teleported to the street, but did not started to fly
 
-Sometimes this error can happen, but just exit with `ctrl+c` and try it again.
+Sometimes this error can happen due to the download of YOLO weights. For this case, just exit the current simulation with `ctrl+c` and try it again.
 
 #### Got the error: "Can't find libdevice directory ${CUDA_DIR}/nvvm/libdevice. This may result in compilation or runtime failures, if the program we try to run uses routines from libdevice."
 
