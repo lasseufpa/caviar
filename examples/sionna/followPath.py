@@ -2,7 +2,7 @@ from execute_run import run
 from pynats import NATSClient
 import json
 
-total_ues = 1  # + len(caviar_config.ue_objects)
+total_ues = 1
 
 
 def convertMovementFromAirSimToSionna(airsim_position):
@@ -55,7 +55,6 @@ with NATSClient() as natsclient:
             + b'"'
             + b"}",
         )
-        # natsclient.wait(count=total_ues)
 
     natsclient.subscribe(subject="3D.mobility.positions", callback=executeOneStep)
 
