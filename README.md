@@ -1,6 +1,8 @@
 # Getting started
 
-\*Currently tested on Ubuntu 22.04
+Here you find the code described in [borges2024caviar] (see below), which allows to generate the results in this paper.
+
+\*Currently tested only on Ubuntu 22.04
 
 ## Pre-requisites
 
