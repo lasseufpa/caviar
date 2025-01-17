@@ -2,7 +2,7 @@
 
 Here you find the code described in [borges2024caviar] (see below), which allows to generate the results in this paper.
 
-\*Currently tested only on Ubuntu 22.04
+\*Currently tested only on Ubuntu 22.04 and Python 3.9.16
 
 ## Pre-requisites
 
@@ -129,7 +129,7 @@ This is due to not being able to file the CUDA directory. For this you can execu
 
 ## Citation
 
-If you benefit from this work on a publication, please cite using:
+If you benefit from this work, please cite on your publications using:
 
 ```
 @ARTICLE{borges2024caviar,
