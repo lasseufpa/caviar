@@ -350,7 +350,7 @@ with NATSClient() as natsclient:
 
                             print(actualWaypoint)
 
-                            if actualWaypoint == (len(path_list)):
+                            if actualWaypoint == (len(path_list) - 4):
                                 client.simPause(False)
                                 caviar_tools.airsim_land_all(client)
                                 isFinished = True
