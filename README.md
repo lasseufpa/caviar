@@ -22,13 +22,6 @@
 
 Go to https://github.com/nats-io/nats-server/tags , download the latest `.deb` release and install it.
 
----
-
-(FOR WINDOWS):
-
-Go to https://github.com/nats-io/nats-server/tags , download the latest `.exe` and place it on the project root folder, after cloning it.
-
----
 
 ## Installing
 
@@ -57,12 +50,6 @@ curl https://nextcloud.lasseufpa.org/s/zdNNfM2YCmfrHsi/download/central_park.zip
 
 ```
 
----
-
-(FOR WINDOWS): use the following link and manually download it:
-https://nextcloud.lasseufpa.org/s/rt4YP5DxEybfYXo
-
----
 
 Unzip the file
 
@@ -79,13 +66,13 @@ Set it as an executable
 First we should install the package below
 
 ```
-    pip install msgpack-rpc-python==0.4.1
+pip install msgpack-rpc-python==0.4.1
 ```
 
 After this, we install the rest of the requirements
 
 ```
-    pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 
 ## Executing a simulation
