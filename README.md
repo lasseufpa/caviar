@@ -1,3 +1,4 @@
+[![DOI](https://zenodo.org/badge/731216583.svg)](https://zenodo.org/doi/10.5281/zenodo.10472002)
 # Getting started
 
 Here you find the code described in [borges2024caviar] (see below), which allows to generate the results in this paper.
