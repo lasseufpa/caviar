@@ -12,7 +12,7 @@ from run_obj_unreal import plot_beam_interaction
 import sys
 
 sys.path.append("./")
-import examples.sionna.dsp_utils as dsp_utils
+import modules.sionna.dsp_utils as dsp_utils
 import caviar_config
 
 mi.set_variant("cuda_ad_rgb")

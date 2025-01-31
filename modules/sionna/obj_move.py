@@ -28,9 +28,9 @@ def translate(
             .attrib
         )
         # Update the values in <translate> with the desired translation step
-        translation_element["value"] = (
-            f"{str(x_translation_step)} {str(y_translation_step)} {str(z_translation_step)}"
-        )
+        translation_element[
+            "value"
+        ] = f"{str(x_translation_step)} {str(y_translation_step)} {str(z_translation_step)}"
 
     except:
         # In case there is no <translate> grandchildren from a <shape> node with the desired "id"

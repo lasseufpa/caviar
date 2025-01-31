@@ -57,5 +57,5 @@ np.savez(
     best_ray=best_ray,
     bit_rate=bit_rate,
     best_bit_rate_Gbps=best_bit_rate_Gbps,
-    random_bit_rate_Gbps=random_bit_rate_Gbps
+    random_bit_rate_Gbps=random_bit_rate_Gbps,
 )

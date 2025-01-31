@@ -1,0 +1,32 @@
+{
+    "scheduler": {
+        "type": "parallel",
+        "time": "virtual"
+    },
+    "config": {
+        "logger": {
+            "log": true,
+            "log_level": "debug"
+        },
+        "nats": {
+            "host": "nats://localhost:4222",
+            "port": 4222
+        }
+    },
+    "modules": {
+        "airsim": {
+            "name": "airsim",
+            "id": "mobility",
+            "enabled": true,
+            "dependency": {}
+        },
+        "sionna": {
+            "name": "sionna",
+            "id": "communication",
+            "enabled": true,
+            "dependency": {
+                "module1": "airsim"
+            }
+        }
+    }
+}

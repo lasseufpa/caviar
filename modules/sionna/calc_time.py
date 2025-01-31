@@ -30,7 +30,7 @@ def getBitRate(equivalentChannelMagnitude, bandwidth=40e6):
     interference_power_Watts = dBW2Watts(interference_power_dBW)
     ###########################################################################
     tx_power_watts = 0.5  # 500 milliwatts
-    SINR = ((equivalentChannelMagnitude.A1**2) * tx_power_watts) / (
+    SINR = ((equivalentChannelMagnitude.A1 ** 2) * tx_power_watts) / (
         noise_power_Watts + interference_power_Watts
     )  # A1 used to flatten
     spectral_efficiency = np.log2(1 + SINR)

@@ -9,4 +9,3 @@ def get_time_for_rescue(throughput):
     data_to_transmit_in_bits = 3.355e7 * 10
     time_to_tx = data_to_transmit_in_bits / (throughput)
     return time_to_tx
-

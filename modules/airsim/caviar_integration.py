@@ -372,7 +372,7 @@ with NATSClient() as natsclient:
                 caviar_tools.airsim_save_external_images(
                     client, output_folder, "FixedCamera1"
                 )
-    
+
             end_time = time.time()
             print(f"CAVIAR in-loop step duration (seconds): {end_time-start_time}")
             print(
