@@ -1,39 +1,57 @@
-import os
 import json
+import os
+import threading
 from pathlib import Path
-from .logger import logging, LOGGER
-from .setup import setup
+
 from .handler import exception_handler
+from .logger import LOGGER, logging
 from .nats import nats
+from .scheduler import scheduler
+from .setup import setup
 
 CONFIG_PATH = ".config/config.json"
 SETUP = setup()
 NATS = nats()
-
-"""
-The core class is the architetor class for all other classes in the kernel.
-It handles all the actions in the simulation.
-"""
+SCHEDULER = scheduler()
 
 
 class core:
+
+    """
+    The core class is the architetor class for all other classes in the kernel.
+    It handles all the actions in the simulation.
+    """
+
     @exception_handler
     def __init__(self):
         """
         Constructor that initializes the Core object.
         """
+        self.imported_modules = {}
         self.dir = Path(__file__).resolve().parent
-        json_path = self.dir / CONFIG_PATH
-        self.settings = json.load(open(json_path))
+        self.__load_json()
 
     @exception_handler
-    def update_modules(self):
+    def __load_json(self):
         """
-        This method updates the modules section of the config.json file.
+        This method load/refreshes the settings from the config.json file.
+        """
+        LOGGER.debug(f"Refreshing config.json")
+        self.settings = json.load(open(self.dir / CONFIG_PATH))
+
+    @exception_handler
+    def __update_modules(self):
+        """
+        This method updates the modules section of the config.json file and saves
+        the module names and the order of initialization in the core object.
         """
         LOGGER.debug(f"Updating modules")
-        self.check_correct_format()
         SETUP.update_modules(root_dir=self.dir)
+        self.__load_json()
+        self.module_names = self.__check_correct_format()
+        LOGGER.debug(f"Updating order")
+        self.orders = SETUP.update_orders(root_dir=self.dir)
+        LOGGER.debug(f"Updating synchronization and clock")
 
     @exception_handler
     def get_config_json(self):
@@ -52,7 +70,7 @@ class core:
         return self.settings["modules"]
 
     @exception_handler
-    def update_logger(self):
+    def __update_logger(self):
         """
         This method sets the logger for the core object.
         """
@@ -64,40 +82,112 @@ class core:
             LOGGER.info(f"Logger set to {log_conf['log_level']}")
 
     @exception_handler
-    def init_nats(self, url, subject, message):
+    def __init_nats(self):
         """
         This method sends a message to the NATS server.
         """
         LOGGER.debug(f"Initialize NATS")
-        self.settings["config"]["nats"]
-        NATS.init(url, subject, message)
+        NATS.init()
 
     @exception_handler
-    def check_correct_format(self):
+    def __check_correct_format(self):
         """
         This method checks if the config.json file is in the correct format.
         """
         LOGGER.debug(f"Checking the modules")
-        self.check_modules()
+        self.__check_modules()
+        # @TODO: Perhaps add other checkups here?
 
     @exception_handler
-    def check_modules(self):
+    def __check_modules(self):
         """
         This method checks if the modules are correctly configured.
         It must have a name and an id. If it does not have "enabled" or "dependecy",
         we assume they are True and None, respectively.
         """
         ids = ["communication", "mobility", "AI", "3D"]
+        names = []
         for module in self.settings["modules"].items():
-            LOGGER.debug(f'module information: {module[:]}')
+            LOGGER.info(f"module information: {module[:]}")
             if "name" not in module[1] or not module[1]["name"].strip():
                 raise ValueError("Your module must have a non-empty name")
             elif "id" not in module[1] or module[1]["id"] not in ids:
                 raise ValueError(f"ID must be one of {ids}")
-            elif "enabled" not in module:
-                module["enabled"] = True
-            elif "dependency" in module:
-                path = self.dir.parent / "modules/*"
-                for dependency in module["dependency"]:
-                    if dependency not in os.listdir(path) or dependency is module[1]["name"].strip():
+            elif "enabled" not in module[1]:
+                module[1]["enabled"] = True
+            elif "dependency" in module[1]:
+                path = self.dir.parent / "modules/"
+                for dependency in module[1]["dependency"].items():
+                    if dependency[1].lower() not in [
+                        filename.lower() for filename in os.listdir(path)
+                    ]:
                         raise ValueError(f"{dependency} is not presented in modules")
+                    elif (
+                        str(dependency[1]).lower() == module[1]["name"].strip().lower()
+                    ):
+                        names.append(module[1]["name"].strip().lower())
+                        raise ValueError(
+                            f"{dependency[1]} can't be dependent on itself"
+                        )
+        return names
+
+    @exception_handler
+    def initialize(self):
+        """
+        This method initializes the core object:
+        - Updates the modules
+        - Updates the logger
+        - Sets the scheduler
+        - Initializes the NATS message exchange
+        """
+        LOGGER.debug(f"Initializing")
+        self.__update_modules()
+        self.__update_logger()
+        self.__set_scheduler()
+        self.__thread(func=self.__init_nats)
+
+        """
+        Here, we should initialize the modules based on the order of initialization.
+        This is important since some modules may depend on others. For example, the
+        airsim module must be initialized before the sionna module, for some reason.
+        """
+        """
+        """
+        LOGGER.debug(f"Initializing modules")
+        for module in sorted(self.orders.items(), key=lambda x: x[1]):
+            LOGGER.debug(f"Initializing {module[0]}")
+            self.imported_modules[module[0]] = __import__(f"modules.{module[0]}")
+            LOGGER.debug(f"{module}")
+            self.__thread(self.__init_module)
+
+    @exception_handler
+    def __set_scheduler(self):
+        """
+        This method sets the scheduler for the simulation.
+        """
+        self.sync, self.time = SETUP.update_sync(config_path=self.dir / CONFIG_PATH)
+        LOGGER.debug(f"Configured as Time: {self.time}, Sync: {self.sync}")
+        SCHEDULER.set_time_type(self.time)
+        SCHEDULER.set_sync_type(self.sync)
+
+    @exception_handler
+    def __thread(self, func, *args):
+        """
+        This method runs some object in a separated thread.
+        """
+        LOGGER.debug(f"Running {func} in a thread")
+        thread = threading.Thread(target=func, args=args, daemon=False)
+        thread.start()
+        thread.join()
+        # @TODO: Should we return the thread?
+        # return thread
+
+    @exception_handler
+    def __init_module(self, module=None):
+        """
+        This method initializes a module.
+        """
+        LOGGER.debug(f"Initializing {module}")
+        print(f"modules.{module}")
+        module.do_init()
+        LOGGER.debug(f"{module} initialized")
