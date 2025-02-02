@@ -1,0 +1,11 @@
+#! /usr/bin/env python3
+
+import signal
+
+from kernel import core
+
+settings = core()
+settings.initialize()
+signal.pause()
+
+# settings.update_modules()
