@@ -1,3 +1,5 @@
+from pynats import NATSClient
+
 from .process import PROCESS, subprocess
 
 
@@ -18,7 +20,7 @@ class nats:
     def send(self):
         pass
 
-    def init(self):
+    def init(self, ip="127.0.0.1"):
         """
         This method initializes the NATS server.
         """
@@ -31,9 +33,13 @@ class nats:
         elif self.verbose:
             command.append("-DV")
         PROCESS.create_process(command, stdout=stdout, stderr=stderr)
+        NATSClient().connect()
 
     def receive(self):
         pass
 
-    def decode(self):
+    def __decode(self):
+        pass
+
+    def __encode(self):
         pass
