@@ -42,8 +42,8 @@ def __destroy():
     """
     This method destroys all threads.
     """
-    PROCESS.kill_processes()
     LOGGER.debug("Destroying threads and subprocesses")
+    PROCESS.kill_processes()
     for thread in threading.enumerate():
         if thread is not threading.current_thread():
             LOGGER.debug(f"Joining thread {thread.name}")
