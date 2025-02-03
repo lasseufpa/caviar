@@ -161,9 +161,9 @@ class core:
         for module_name, _ in sorted(self.orders.items(), key=lambda x: x[1]):
             if self.enable[module_name]:
                 self.__init_module(module_name)
-                # @BUG: The front module is being initialized before the previous module
+                # @BUG: The form module is being initialized before the finalization of previous module
                 # while not self.imported_modules[module_name].is_init():
-                #    time.sleep(.1)
+                #    self.__wait(timeout=.2)
                 #    pass
         LOGGER.debug(f"{self.imported_modules}")
 
@@ -205,3 +205,12 @@ class core:
         if not isinstance(self.imported_modules[module_name], module):
             raise ValueError(f"{module_name} is not a module instance")
         self.__thread(func=self.imported_modules[module_name].initialize)
+
+    @exception_handler
+    def __wait(self, timeout=0.2):
+        """
+        This method waits for a certain amount of time.
+
+        @param timeout: The amount of time to wait.
+        """
+        time.sleep(timeout)
