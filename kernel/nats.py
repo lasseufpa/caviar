@@ -30,7 +30,7 @@ class nats:
             stderr = subprocess.DEVNULL
         elif self.verbose:
             command.append("-DV")
-        PROCESS.create_process(command, stdout, stderr)
+        PROCESS.create_process(command, stdout=stdout, stderr=stderr)
 
     def receive(self):
         pass
