@@ -1,10 +1,12 @@
 import json
 import os
 import threading
+import time
 from pathlib import Path
 
 from .handler import exception_handler
 from .logger import LOGGER, logging
+from .module import module
 from .nats import nats
 from .scheduler import scheduler
 from .setup import setup
@@ -27,6 +29,7 @@ class core:
         """
         Constructor that initializes the Core object.
         """
+        self.enable = {}
         self.imported_modules = {}
         self.dir = Path(__file__).resolve().parent
         self.__load_json()
@@ -114,7 +117,9 @@ class core:
             elif "id" not in module[1] or module[1]["id"] not in ids:
                 raise ValueError(f"ID must be one of {ids}")
             elif "enabled" not in module[1]:
-                module[1]["enabled"] = True
+                self.enable[module[1]["name"].strip().lower()] = True
+            elif "enabled" in module[1]:
+                self.enable[module[1]["name"].strip().lower()] = module[1]["enabled"]
             elif "dependency" in module[1]:
                 path = self.dir.parent / "modules/"
                 for dependency in module[1]["dependency"].items():
@@ -138,7 +143,8 @@ class core:
         - Updates the modules
         - Updates the logger
         - Sets the scheduler
-        - Initializes the NATS message exchange
+        - Initializes the NATS message exchanger
+        - Do initialize all installed modules
         """
         LOGGER.debug(f"Initializing")
         self.__update_modules()
@@ -151,14 +157,15 @@ class core:
         This is important since some modules may depend on others. For example, the
         airsim module must be initialized before the sionna module, for some reason.
         """
-        """
-        """
         LOGGER.debug(f"Initializing modules")
-        for module in sorted(self.orders.items(), key=lambda x: x[1]):
-            LOGGER.debug(f"Initializing {module[0]}")
-            self.imported_modules[module[0]] = __import__(f"modules.{module[0]}")
-            LOGGER.debug(f"{module}")
-            self.__thread(self.__init_module)
+        for module_name, _ in sorted(self.orders.items(), key=lambda x: x[1]):
+            if self.enable[module_name]:
+                self.__init_module(module_name)
+                # @BUG: The front module is being initialized before the previous module
+                # while not self.imported_modules[module_name].is_init():
+                #    time.sleep(.1)
+                #    pass
+        LOGGER.debug(f"{self.imported_modules}")
 
     @exception_handler
     def __set_scheduler(self):
@@ -175,19 +182,26 @@ class core:
         """
         This method runs some object in a separated thread.
         """
-        LOGGER.debug(f"Running {func} in a thread")
         thread = threading.Thread(target=func, args=args, daemon=False)
+        LOGGER.debug(f"Running {func} in a thread {thread.name}")
         thread.start()
         thread.join()
+
         # @TODO: Should we return the thread?
         # return thread
 
     @exception_handler
-    def __init_module(self, module=None):
+    def __init_module(self, module_name=""):
         """
         This method initializes a module.
+
+        @param module_name: The name of the module to be initialized.
         """
-        LOGGER.debug(f"Initializing {module}")
-        print(f"modules.{module}")
-        module.do_init()
-        LOGGER.debug(f"{module} initialized")
+        LOGGER.debug(f"Initializing {module_name}")
+        module_class = getattr(
+            __import__(f"modules.{module_name}", fromlist=[module_name]), module_name
+        )
+        self.imported_modules[module_name] = module_class()
+        if not isinstance(self.imported_modules[module_name], module):
+            raise ValueError(f"{module_name} is not a module instance")
+        self.__thread(func=self.imported_modules[module_name].initialize)
