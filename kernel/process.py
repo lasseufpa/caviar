@@ -1,4 +1,5 @@
 import subprocess
+from multiprocessing import Process
 
 from .logger import LOGGER
 
@@ -14,7 +15,9 @@ class process:
         """
         self.processes = []
 
-    def create_process(self, command, stdout=subprocess.PIPE, stderr=subprocess.PIPE):
+    def create_process(
+        self, command, *args, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+    ):
         """
         This method creates a new process.
 
@@ -22,10 +25,16 @@ class process:
         @param stdout: The stdout of the process
         @param stderr: The stderr of the process
         """
-        LOGGER.debug(
-            f"Creating process: {command} with stdout={stdout} and stderr={stderr}"
-        )
-        process = subprocess.Popen(command, stdout=stdout, stderr=stderr)
+        process = None
+        if callable(command):
+            LOGGER.debug(f"Creating process: {command} with args={args}")
+            process = Process(target=command, args=args, name=command.__name__)
+            process.start()
+        else:
+            LOGGER.debug(
+                f"Creating process: {command} with stdout={stdout} and stderr={stderr}"
+            )
+            process = subprocess.Popen(command, stdout=stdout, stderr=stderr)
         self.processes.append(process)
 
     def kill_processes(self):
@@ -34,6 +43,7 @@ class process:
         """
         for process in self.processes:
             self.kill_process(process)
+        self.processes.clear()
 
     def kill_process(self, process):
         """
@@ -43,7 +53,10 @@ class process:
         """
         LOGGER.debug(f"Killing process: {process}")
         process.kill()
-        process.wait()
+        if isinstance(process, Process):
+            process.join()
+        else:
+            process.wait()
 
 
 PROCESS = process()
