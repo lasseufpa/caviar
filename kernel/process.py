@@ -16,7 +16,7 @@ class process:
         self.processes = []
 
     def create_process(
-        self, command, *args, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        self, command, *args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, wait=False
     ):
         """
         This method creates a new process.
@@ -30,11 +30,15 @@ class process:
             LOGGER.debug(f"Creating process: {command} with args={args}")
             process = Process(target=command, args=args, name=command.__name__)
             process.start()
+            if wait:
+                process.join()
         else:
             LOGGER.debug(
                 f"Creating process: {command} with stdout={stdout} and stderr={stderr}"
             )
             process = subprocess.Popen(command, stdout=stdout, stderr=stderr)
+            if wait:
+                process.wait()
         self.processes.append(process)
 
     def kill_processes(self):
