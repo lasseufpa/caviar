@@ -4,6 +4,18 @@
         "id": "mobility",
         "enabled": true,
         "dependency":{
+        },
+        "order": 0,
+        "message": {
+            "topic": "mobility",
+            "format": "json",
+            "message": {
+                "x-pos": 0.0,
+                "y-pos": 0.0,
+                "z-pos": 0.0,
+                "speed": 0.0,
+                "state": ""
+            }
         }
     }
 }
