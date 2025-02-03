@@ -32,4 +32,4 @@ class module(ABC):
         """
         This method initializes the module.
         """
-        PROCESS.create_process(command=self.do_init)
+        PROCESS.create_process(command=self.do_init, wait=True)
