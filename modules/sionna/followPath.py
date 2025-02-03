@@ -1,6 +1,7 @@
+import json
+
 from execute_run import run
 from pynats import NATSClient
-import json
 
 total_ues = 1
 

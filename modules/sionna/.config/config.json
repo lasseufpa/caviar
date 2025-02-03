@@ -6,6 +6,7 @@
         "enabled": true,
         "dependency": {
             "module1": "airsim"
-        }
+        },
+        "order": 1
     }
 }

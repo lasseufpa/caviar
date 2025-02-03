@@ -1,6 +1,7 @@
-import numpy as np
 import os
 from os import listdir
+
+import numpy as np
 
 current_dir = os.getcwd()
 dataset_dir = os.path.join(current_dir, "runs")

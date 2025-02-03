@@ -1,19 +1,20 @@
 import os
-import time
-import numpy as np
-import mitsuba as mi
-from sionna.rt import load_scene, Transmitter, Receiver, PlanarArray, Camera
-from sionna.channel import cir_to_ofdm_channel
-from obj_move import translate
-from calc_time import getBitRate
-from realtime_plot import plot_throughput
-from joblib import load
-from run_obj_unreal import plot_beam_interaction
 import sys
+import time
+
+import mitsuba as mi
+import numpy as np
+from calc_time import getBitRate
+from joblib import load
+from obj_move import translate
+from realtime_plot import plot_throughput
+from run_obj_unreal import plot_beam_interaction
+from sionna.channel import cir_to_ofdm_channel
+from sionna.rt import Camera, PlanarArray, Receiver, Transmitter, load_scene
 
 sys.path.append("./")
-import modules.sionna.dsp_utils as dsp_utils
 import caviar_config
+import modules.sionna.dsp_utils as dsp_utils
 
 mi.set_variant("cuda_ad_rgb")
 
