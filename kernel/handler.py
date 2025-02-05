@@ -1,10 +1,12 @@
 import signal
 import sys
 import threading
+import asyncio
 from functools import wraps
 
 from .logger import LOGGER
 from .process import PROCESS
+from .nats import NATS
 
 SHT = threading.Event()
 
@@ -43,6 +45,7 @@ def __destroy():
     This method destroys all threads.
     """
     LOGGER.debug("Destroying threads and subprocesses")
+    #asyncio.run(NATS.close_clients())
     PROCESS.kill_processes()
     for thread in threading.enumerate():
         if thread is not threading.current_thread():

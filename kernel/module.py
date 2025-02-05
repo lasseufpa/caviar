@@ -1,5 +1,10 @@
+import json
+import asyncio
 from abc import ABC, abstractmethod
+from pathlib import Path
 
+from .logger import LOGGER
+from .nats import NATS
 from .process import PROCESS
 
 
@@ -11,7 +16,7 @@ class module(ABC):
     """
 
     @abstractmethod
-    def do_init(self):
+    def _do_init(self):
         """
         This method initializes all the necessary module's configuration.
         """
@@ -32,4 +37,33 @@ class module(ABC):
         """
         This method initializes the module.
         """
-        PROCESS.create_process(command=self.do_init, wait=True)
+        PROCESS.create_process(command=self._do_init, wait=True)
+        LOGGER.debug(f"Initializing {self.__class__.__name__} subscription")
+        self.__init_subscription()
+
+    def __init_subscription(self):
+        """
+        This method initializes the module's subscription.
+        """
+        g_json = json.load(
+            open(Path(__file__).resolve().parent / ".config/config.json")
+        )
+        for ids in g_json["modules"][self.__class__.__name__.lower()][
+            "dependency"
+        ].items():
+            if not ids:
+                LOGGER.debug(f"Empty module: {ids}")
+                continue
+            else:
+                LOGGER.debug(f"Subscripting to {ids}")
+                for module in ids[1]:
+                    LOGGER.debug(f"Subscripting to {module}")
+                    asyncio.run(NATS.init_subscription((ids[0], module, self.__class__.__name__), self._callback))
+
+    @abstractmethod
+    async def _callback(self, msg):
+        """
+        This method is the callback for the subscription.
+        Here, the user can define the behavior of the module when a message is received.
+        """
+        pass

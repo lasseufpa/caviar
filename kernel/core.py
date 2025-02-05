@@ -7,13 +7,12 @@ from pathlib import Path
 from .handler import exception_handler
 from .logger import LOGGER, logging
 from .module import module
-from .nats import nats
+from .nats import NATS
 from .scheduler import scheduler
 from .setup import setup
 
 CONFIG_PATH = ".config/config.json"
 SETUP = setup()
-NATS = nats()
 SCHEDULER = scheduler()
 
 
@@ -105,36 +104,46 @@ class core:
     def __check_modules(self):
         """
         This method checks if the modules are correctly configured.
-        It must have a name and an id. If it does not have "enabled" or "dependecy",
+        It must have a name and an id. If it does not have "enabled" or "dependency",
         we assume they are True and None, respectively.
         """
-        ids = ["communication", "mobility", "AI", "3D"]
-        names = []
-        for module in self.settings["modules"].items():
-            LOGGER.info(f"module information: {module[:]}")
-            if "name" not in module[1] or not module[1]["name"].strip():
-                raise ValueError("Your module must have a non-empty name")
-            elif "id" not in module[1] or module[1]["id"] not in ids:
-                raise ValueError(f"ID must be one of {ids}")
-            elif "enabled" not in module[1]:
-                self.enable[module[1]["name"].strip().lower()] = True
-            elif "enabled" in module[1]:
-                self.enable[module[1]["name"].strip().lower()] = module[1]["enabled"]
-            elif "dependency" in module[1]:
-                path = self.dir.parent / "modules/"
-                for dependency in module[1]["dependency"].items():
-                    if dependency[1].lower() not in [
-                        filename.lower() for filename in os.listdir(path)
-                    ]:
-                        raise ValueError(f"{dependency} is not presented in modules")
-                    elif (
-                        str(dependency[1]).lower() == module[1]["name"].strip().lower()
-                    ):
-                        names.append(module[1]["name"].strip().lower())
-                        raise ValueError(
-                            f"{dependency[1]} can't be dependent on itself"
-                        )
-        return names
+        ids = {"communication", "mobility", "AI", "3D"}
+        path = self.dir.parent / "modules/"
+        available_modules = {filename.lower() for filename in os.listdir(path)}
+
+        for _, module_info in self.settings["modules"].items():
+            enabled = module_info.get("enabled", True)
+            if not isinstance(enabled, bool):
+                raise ValueError("The 'enabled' field must be a boolean")
+
+            self.enable[module_info["name"].strip().lower()] = enabled
+
+            if enabled:
+                LOGGER.info(f"Module information: {module_info}")
+
+                name = module_info.get("name", "").strip()
+                if not name:
+                    raise ValueError("Your module must have a non-empty name")
+
+                module_id = module_info.get("id")
+                if module_id not in ids:
+                    raise ValueError(f"ID must be one of {ids}")
+
+                dependencies = module_info.get("dependency", {})
+                for _, dep_list in dependencies.items():
+                    LOGGER.debug(f"Checking dependencies {dep_list}")
+                    for dependency in dep_list:
+                        dependency_lower = dependency.lower()
+                        if dependency_lower not in available_modules:
+                            raise ValueError(f"{dependency} is not present in modules")
+                        if dependency_lower == name.lower():
+                            raise ValueError(
+                                f"{dependency} can't be dependent on itself"
+                            )
+                        if not self.enable.get(dependency_lower, False):
+                            raise ValueError(
+                                f"{dependency} is not enabled, can't be dependent on a not enabled module"
+                            )
 
     @exception_handler
     def initialize(self):
@@ -161,11 +170,7 @@ class core:
         for module_name, _ in sorted(self.orders.items(), key=lambda x: x[1]):
             if self.enable[module_name]:
                 self.__init_module(module_name)
-                # @BUG: The form module is being initialized before the finalization of previous module
-                # while not self.imported_modules[module_name].is_init():
-                #    self.__wait(timeout=.2)
-                #    pass
-        LOGGER.debug(f"{self.imported_modules}")
+        LOGGER.debug(f"Modules initialized: {self.imported_modules}")
 
     @exception_handler
     def __set_scheduler(self):
@@ -182,13 +187,14 @@ class core:
         """
         This method runs some object in a separated thread.
         """
-        thread = threading.Thread(target=func, args=args, daemon=False)
+        thread = threading.Thread(target=func, args=args, daemon=False, name=func.__name__.upper())
         LOGGER.debug(f"Running {func} in a thread {thread.name}")
         thread.start()
         thread.join()
 
-        # @TODO: Should we return the thread?
-        # return thread
+        # @BUG: Basically, when a subprocess raises an exception, the main thread is not
+        # able to catch it. This is a problem because the main thread will continue to run,
+        # even if some module breaks.
 
     @exception_handler
     def __init_module(self, module_name=""):
