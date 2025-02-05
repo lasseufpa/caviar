@@ -14,19 +14,50 @@
         }
     },
     "modules": {
+        "street_canyon": {
+            "name": "street_canyon",
+            "id": "3D",
+            "enabled": false,
+            "dependency": {},
+            "order": 0,
+            "message": {}
+        },
         "airsim": {
             "name": "airsim",
             "id": "mobility",
             "enabled": true,
-            "dependency": {}
+            "dependency": {},
+            "order": 0,
+            "message": {
+                "topic": "mobility",
+                "format": "json",
+                "message": {
+                    "x-pos": 0.0,
+                    "y-pos": 0.0,
+                    "z-pos": 0.0,
+                    "speed": 0.0,
+                    "state": ""
+                }
+            }
+        },
+        "yolo": {
+            "name": "yolo",
+            "id": "AI",
+            "enabled": false,
+            "dependency": {},
+            "order": 3,
+            "message": {}
         },
         "sionna": {
             "name": "sionna",
             "id": "communication",
             "enabled": true,
             "dependency": {
-                "module1": "airsim"
-            }
+                "mobility": [
+                    "airsim"
+                ]
+            },
+            "order": 1
         }
     }
 }

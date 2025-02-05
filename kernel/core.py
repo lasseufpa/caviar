@@ -7,6 +7,7 @@ from pathlib import Path
 from .handler import exception_handler
 from .logger import LOGGER, logging
 from .module import module
+from .process import PROCESS
 from .nats import NATS
 from .scheduler import scheduler
 from .setup import setup
@@ -28,6 +29,7 @@ class core:
         """
         Constructor that initializes the Core object.
         """
+        self.orders = {}
         self.enable = {}
         self.imported_modules = {}
         self.dir = Path(__file__).resolve().parent
@@ -51,8 +53,8 @@ class core:
         SETUP.update_modules(root_dir=self.dir)
         self.__load_json()
         self.module_names = self.__check_correct_format()
-        LOGGER.debug(f"Updating order")
-        self.orders = SETUP.update_orders(root_dir=self.dir)
+        #LOGGER.debug(f"Updating order")
+        #self.orders = SETUP.update_orders(root_dir=self.dir)
         LOGGER.debug(f"Updating synchronization and clock")
 
     @exception_handler
@@ -144,6 +146,15 @@ class core:
                             raise ValueError(
                                 f"{dependency} is not enabled, can't be dependent on a not enabled module"
                             )
+                
+                order = module_info.get("order")
+                if order is None:
+                    raise ValueError("Your module must have an order of initialization")
+                
+                """
+                @TODO: Although it works great to call it here, it shouldn't be here
+                """
+                self.__update_order(name, order)
 
     @exception_handler
     def initialize(self):
@@ -155,7 +166,7 @@ class core:
         - Initializes the NATS message exchanger
         - Do initialize all installed modules
         """
-        LOGGER.debug(f"Initializing")
+        LOGGER.debug(f"Starting...")
         self.__update_modules()
         self.__update_logger()
         self.__set_scheduler()
@@ -183,11 +194,12 @@ class core:
         SCHEDULER.set_sync_type(self.sync)
 
     @exception_handler
-    def __thread(self, func, *args):
+    def __thread(self, func, *args, name = ""):
         """
         This method runs some object in a separated thread.
         """
-        thread = threading.Thread(target=func, args=args, daemon=False, name=func.__name__.upper())
+
+        thread = threading.Thread(target=func, args=args, daemon=False, name=name)
         LOGGER.debug(f"Running {func} in a thread {thread.name}")
         thread.start()
         thread.join()
@@ -210,7 +222,10 @@ class core:
         self.imported_modules[module_name] = module_class()
         if not isinstance(self.imported_modules[module_name], module):
             raise ValueError(f"{module_name} is not a module instance")
-        self.__thread(func=self.imported_modules[module_name].initialize)
+        """
+        The module initialization must start a new thread and subprocess. In the same thread, the 
+        """
+        self.__thread(func=PROCESS.create_process(self.imported_modules[module_name].initialize), name=module_name)
 
     @exception_handler
     def __wait(self, timeout=0.2):
@@ -220,3 +235,13 @@ class core:
         @param timeout: The amount of time to wait.
         """
         time.sleep(timeout)
+
+    @exception_handler
+    def __update_order(self, name, order):
+        """
+        This method updates the order of initialization of the modules.
+
+        @param name: The name of the module.
+        @param order: The order of initialization.
+        """
+        self.orders[name] = order

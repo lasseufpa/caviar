@@ -7,6 +7,7 @@ from .logger import LOGGER
 from .nats import NATS
 from .process import PROCESS
 
+LOOP = asyncio.get_event_loop()
 
 class module(ABC):
     """
@@ -37,7 +38,7 @@ class module(ABC):
         """
         This method initializes the module.
         """
-        PROCESS.create_process(command=self._do_init, wait=True)
+        self._do_init()
         LOGGER.debug(f"Initializing {self.__class__.__name__} subscription")
         self.__init_subscription()
 
@@ -58,7 +59,10 @@ class module(ABC):
                 LOGGER.debug(f"Subscripting to {ids}")
                 for module in ids[1]:
                     LOGGER.debug(f"Subscripting to {module}")
-                    asyncio.run(NATS.init_subscription((ids[0], module, self.__class__.__name__), self._callback))
+                    LOOP.run_until_complete(NATS.init_subscription((ids[0], module, self.__class__.__name__), self._callback))
+        # Use run_forever here is not a big deal, since this is a subprocess and when 
+        # it is killed, it will be destroyed too.
+        LOOP.run_forever()
 
     @abstractmethod
     async def _callback(self, msg):

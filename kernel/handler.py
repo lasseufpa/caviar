@@ -9,7 +9,7 @@ from .process import PROCESS
 from .nats import NATS
 
 SHT = threading.Event()
-
+IS_HANDLED = False
 
 def exception_handler(func):
     """
@@ -58,3 +58,4 @@ def __destroy():
 
 
 signal.signal(signal.SIGINT, __signal_handler)
+signal.signal(signal.SIGTERM, __signal_handler)

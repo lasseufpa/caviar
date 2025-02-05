@@ -20,8 +20,8 @@ class nats:
         """
         Constructor that initializes the NATS object.
         """
-        self.supress = False
-        self.verbose = True
+        self.supress = True
+        self.verbose = False
         pass
 
     def send(self):
@@ -56,23 +56,21 @@ class nats:
         This method sets a NATS subscription to a specific module.
 
         @param subscription: The subscription to be set.
+        @param callback: The callback to be called when a message is received.
         """
         LOGGER.debug(f"Subscribing to {subscription[2]}:{subscription[0]}.{subscription[1]}")
         nc = None
-        await asyncio.sleep(.5)
+        await asyncio.sleep(.5) # __Really ugly__ hack to wait for the NATS server to start
         if str(subscription[2]) in self.clients:
             LOGGER.debug(f"Using existing client")
             nc = self.clients[str(subscription[2])]
         else:
             nc = await Nats.connect()
-            await nc.flush()
-        self.clients[str(subscription[2])] = nc
-        await nc.subscribe(f"{subscription[2]}:{subscription[0]}.{subscription[1]}", cb=callback
-                                 )
-        await asyncio.sleep(2)
-        LOGGER.debug(f"Publishing to {subscription[2]}:{subscription[0]}.{subscription[1]}")
-        await nc.publish(f"{subscription[2]}:{subscription[0]}.{subscription[1]}", b'Hello')
-        LOGGER.debug(f"Published to {subscription[2]}:{subscription[0]}.{subscription[1]}")
+            self.clients[str(subscription[2])] = nc
+        
+        await nc.subscribe(f"{subscription[2]}:{subscription[0]}.{subscription[1]}", cb=callback)
+        await nc.flush()
+
 
     async def close_clients(self):
         """

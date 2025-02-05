@@ -1,4 +1,5 @@
 import subprocess
+import os
 from multiprocessing import Process
 
 from .logger import LOGGER
@@ -45,6 +46,8 @@ class process:
         """
         This method kills all the processes.
         """
+        if not self.processes:
+            return
         for process in self.processes:
             self.kill_process(process)
         self.processes.clear()
@@ -58,7 +61,9 @@ class process:
         LOGGER.debug(f"Killing process: {process}")
         process.kill()
         if isinstance(process, Process):
-            process.join()
+            # Ensure is a child process
+            if process._parent_pid == os.getpid():
+                process.join()
         else:
             process.wait()
 
