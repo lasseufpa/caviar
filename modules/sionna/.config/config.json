@@ -5,7 +5,9 @@
         "id": "communication",
         "enabled": true,
         "dependency": {
-            "module1": "airsim"
+            "mobility": [
+                "airsim"
+            ]
         },
         "order": 1
     }

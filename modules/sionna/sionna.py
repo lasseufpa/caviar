@@ -13,15 +13,20 @@ class sionna(module):
         """
         pass
 
-    def do_init(self):
+    def _do_init(self):
         """
         This method initializes all the necessary Sionna configuration.
         """
         LOGGER.debug(f"Sionna Do Init")
-        pass
 
     def execute_step(self):
         """
         This method executes the Sionna step.
         """
         pass
+
+    async def _callback(self, msg):
+        """
+        This method handles the Sionna callback.
+        """
+        print(msg)

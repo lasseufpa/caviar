@@ -15,16 +15,20 @@ class airsim(module):
         """
         pass
 
-    def do_init(self):
+    def _do_init(self):
         """
         This method initializes all the necessary AirSim configuration.
         """
         LOGGER.debug(f"AirSim Do Init")
-        time.sleep(5)
-        pass
 
     def execute_step(self):
         """
         This method executes the AirSim step.
         """
         pass
+
+    async def _callback(self, msg):
+        """
+        This method handles the AirSim callback.
+        """
+        LOGGER.debug(f"AirSim Callback")
