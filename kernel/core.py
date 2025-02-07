@@ -4,11 +4,11 @@ import threading
 import time
 from pathlib import Path
 
-from .handler import exception_handler
+from .handler import handler
 from .logger import LOGGER, logging
 from .module import module
-from .process import PROCESS
 from .nats import NATS
+from .process import PROCESS
 from .scheduler import scheduler
 from .setup import setup
 
@@ -24,7 +24,7 @@ class core:
     It handles all the actions in the simulation.
     """
 
-    @exception_handler
+    @handler.exception_handler
     def __init__(self):
         """
         Constructor that initializes the Core object.
@@ -35,7 +35,7 @@ class core:
         self.dir = Path(__file__).resolve().parent
         self.__load_json()
 
-    @exception_handler
+    @handler.exception_handler
     def __load_json(self):
         """
         This method load/refreshes the settings from the config.json file.
@@ -43,7 +43,7 @@ class core:
         LOGGER.debug(f"Refreshing config.json")
         self.settings = json.load(open(self.dir / CONFIG_PATH))
 
-    @exception_handler
+    @handler.exception_handler
     def __update_modules(self):
         """
         This method updates the modules section of the config.json file and saves
@@ -53,11 +53,8 @@ class core:
         SETUP.update_modules(root_dir=self.dir)
         self.__load_json()
         self.module_names = self.__check_correct_format()
-        #LOGGER.debug(f"Updating order")
-        #self.orders = SETUP.update_orders(root_dir=self.dir)
-        LOGGER.debug(f"Updating synchronization and clock")
 
-    @exception_handler
+    @handler.exception_handler
     def get_config_json(self):
         """
         This method returns the settings from the config.json file.
@@ -65,7 +62,7 @@ class core:
         LOGGER.debug(f"Getting config.json")
         return self.settings
 
-    @exception_handler
+    @handler.exception_handler
     def get_modules(self):
         """
         This method returns all the modules configuration from the config.json file.
@@ -73,7 +70,7 @@ class core:
         LOGGER.debug(f"Getting modules")
         return self.settings["modules"]
 
-    @exception_handler
+    @handler.exception_handler
     def __update_logger(self):
         """
         This method sets the logger for the core object.
@@ -85,7 +82,7 @@ class core:
             LOGGER.setLevel(log_level)
             LOGGER.info(f"Logger set to {log_conf['log_level']}")
 
-    @exception_handler
+    @handler.exception_handler
     def __init_nats(self):
         """
         This method sends a message to the NATS server.
@@ -93,7 +90,7 @@ class core:
         LOGGER.debug(f"Initialize NATS")
         NATS.init()
 
-    @exception_handler
+    @handler.exception_handler
     def __check_correct_format(self):
         """
         This method checks if the config.json file is in the correct format.
@@ -102,7 +99,7 @@ class core:
         self.__check_modules()
         # @TODO: Perhaps add other checkups here?
 
-    @exception_handler
+    @handler.exception_handler
     def __check_modules(self):
         """
         This method checks if the modules are correctly configured.
@@ -146,17 +143,17 @@ class core:
                             raise ValueError(
                                 f"{dependency} is not enabled, can't be dependent on a not enabled module"
                             )
-                
+
                 order = module_info.get("order")
                 if order is None:
                     raise ValueError("Your module must have an order of initialization")
-                
+
                 """
                 @TODO: Although it works great to call it here, it shouldn't be here
                 """
                 self.__update_order(name, order)
 
-    @exception_handler
+    @handler.exception_handler
     def initialize(self):
         """
         This method initializes the core object:
@@ -167,8 +164,9 @@ class core:
         - Do initialize all installed modules
         """
         LOGGER.debug(f"Starting...")
-        self.__update_modules()
         self.__update_logger()
+        self.__update_modules()
+        LOGGER.debug(f"Updating synchronization and clock")
         self.__set_scheduler()
         self.__thread(func=self.__init_nats)
 
@@ -183,7 +181,7 @@ class core:
                 self.__init_module(module_name)
         LOGGER.debug(f"Modules initialized: {self.imported_modules}")
 
-    @exception_handler
+    @handler.exception_handler
     def __set_scheduler(self):
         """
         This method sets the scheduler for the simulation.
@@ -193,29 +191,25 @@ class core:
         SCHEDULER.set_time_type(self.time)
         SCHEDULER.set_sync_type(self.sync)
 
-    @exception_handler
-    def __thread(self, func, *args, name = ""):
+    @handler.exception_handler
+    def __thread(self, func, *args, name=""):
         """
         This method runs some object in a separated thread.
         """
 
         thread = threading.Thread(target=func, args=args, daemon=False, name=name)
-        LOGGER.debug(f"Running {func} in a thread {thread.name}")
+        LOGGER.debug(f"Running in a thread {thread.name.upper()}")
         thread.start()
         thread.join()
 
-        # @BUG: Basically, when a subprocess raises an exception, the main thread is not
-        # able to catch it. This is a problem because the main thread will continue to run,
-        # even if some module breaks.
-
-    @exception_handler
+    @handler.exception_handler
     def __init_module(self, module_name=""):
         """
         This method initializes a module.
 
         @param module_name: The name of the module to be initialized.
         """
-        LOGGER.debug(f"Initializing {module_name}")
+        LOGGER.debug(f"Initializing {module_name.upper()}")
         module_class = getattr(
             __import__(f"modules.{module_name}", fromlist=[module_name]), module_name
         )
@@ -225,9 +219,14 @@ class core:
         """
         The module initialization must start a new thread and subprocess. In the same thread, the 
         """
-        self.__thread(func=PROCESS.create_process(self.imported_modules[module_name].initialize), name=module_name)
+        self.__thread(
+            func=PROCESS.create_process(
+                self.imported_modules[module_name].initialize, wait=True
+            ),
+            name=module_name,
+        )
 
-    @exception_handler
+    @handler.exception_handler
     def __wait(self, timeout=0.2):
         """
         This method waits for a certain amount of time.
@@ -236,7 +235,7 @@ class core:
         """
         time.sleep(timeout)
 
-    @exception_handler
+    @handler.exception_handler
     def __update_order(self, name, order):
         """
         This method updates the order of initialization of the modules.

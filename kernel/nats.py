@@ -1,8 +1,10 @@
-import nats as Nats
 import asyncio
+
+import nats as Nats
 
 from .logger import LOGGER
 from .process import PROCESS, subprocess
+
 
 class nats:
     """
@@ -41,7 +43,6 @@ class nats:
             command.append("-DV")
         PROCESS.create_process(command, stdout=stdout, stderr=stderr)
 
-
     def receive(self):
         pass
 
@@ -58,19 +59,24 @@ class nats:
         @param subscription: The subscription to be set.
         @param callback: The callback to be called when a message is received.
         """
-        LOGGER.debug(f"Subscribing to {subscription[2]}:{subscription[0]}.{subscription[1]}")
+        LOGGER.debug(
+            f"Subscribing to {subscription[2]}:{subscription[0]}.{subscription[1]}"
+        )
         nc = None
-        await asyncio.sleep(.5) # __Really ugly__ hack to wait for the NATS server to start
+        await asyncio.sleep(
+            0.5
+        )  # __Really ugly__ hack to wait for the NATS server to start
         if str(subscription[2]) in self.clients:
             LOGGER.debug(f"Using existing client")
             nc = self.clients[str(subscription[2])]
         else:
             nc = await Nats.connect()
             self.clients[str(subscription[2])] = nc
-        
-        await nc.subscribe(f"{subscription[2]}:{subscription[0]}.{subscription[1]}", cb=callback)
-        await nc.flush()
 
+        await nc.subscribe(
+            f"{subscription[2]}:{subscription[0]}.{subscription[1]}", cb=callback
+        )
+        await nc.flush()
 
     async def close_clients(self):
         """
@@ -89,5 +95,6 @@ class nats:
             LOGGER.debug(f"Closing client {client}")
             await client.close()
         pass
+
 
 NATS = nats()

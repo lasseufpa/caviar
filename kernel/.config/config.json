@@ -14,14 +14,6 @@
         }
     },
     "modules": {
-        "street_canyon": {
-            "name": "street_canyon",
-            "id": "3D",
-            "enabled": false,
-            "dependency": {},
-            "order": 0,
-            "message": {}
-        },
         "airsim": {
             "name": "airsim",
             "id": "mobility",
@@ -39,14 +31,6 @@
                     "state": ""
                 }
             }
-        },
-        "yolo": {
-            "name": "yolo",
-            "id": "AI",
-            "enabled": false,
-            "dependency": {},
-            "order": 3,
-            "message": {}
         },
         "sionna": {
             "name": "sionna",

@@ -1,5 +1,5 @@
-import json
 import asyncio
+import json
 from abc import ABC, abstractmethod
 from pathlib import Path
 
@@ -8,6 +8,7 @@ from .nats import NATS
 from .process import PROCESS
 
 LOOP = asyncio.get_event_loop()
+
 
 class module(ABC):
     """
@@ -38,6 +39,12 @@ class module(ABC):
         """
         This method initializes the module.
         """
+
+        """
+        @TODO: I think subscribing should be done first, since, for some reason, the module
+        may need to send some message to be initialized. This is kind of a _async_ dependency, I think
+        but yeah I need to think more about this.
+        """
         self._do_init()
         LOGGER.debug(f"Initializing {self.__class__.__name__} subscription")
         self.__init_subscription()
@@ -56,11 +63,15 @@ class module(ABC):
                 LOGGER.debug(f"Empty module: {ids}")
                 continue
             else:
-                LOGGER.debug(f"Subscripting to {ids}")
                 for module in ids[1]:
                     LOGGER.debug(f"Subscripting to {module}")
-                    LOOP.run_until_complete(NATS.init_subscription((ids[0], module, self.__class__.__name__), self._callback))
-        # Use run_forever here is not a big deal, since this is a subprocess and when 
+                    LOOP.run_until_complete(
+                        NATS.init_subscription(
+                            (ids[0], module, self.__class__.__name__), self._callback
+                        )
+                    )
+        PROCESS._child_conn.send("subscribed")
+        # Use run_forever here is not a big deal, since this is a subprocess and when
         # it is killed, it will be destroyed too.
         LOOP.run_forever()
 
