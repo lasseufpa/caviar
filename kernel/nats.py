@@ -81,15 +81,6 @@ class nats:
     async def close_clients(self):
         """
         This method closes all the NATS clients.
-        for client in self.clients.values():
-            LOGGER.debug(f"Closing client {client}")
-            try:
-                await client.drain()
-            except Exception as e:
-                LOGGER.error(f"Error draining client {client}: {e}")
-            finally:
-                await client.close()
-
         """
         for client in self.clients.values():
             LOGGER.debug(f"Closing client {client}")
