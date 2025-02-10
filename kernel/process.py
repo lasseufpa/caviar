@@ -1,7 +1,7 @@
 import os
 import signal
 import subprocess
-from multiprocessing import Pipe, Process
+from multiprocessing import Pipe, Process, active_children, Queue, Value, Manager
 
 from .logger import LOGGER
 
@@ -14,6 +14,9 @@ class process(Process):
     We are using the subprocess module to >create< and >manage< processes.
     """
 
+    QUEUE = Queue()
+    MANAGER = Manager()
+
     def __init__(self, *args, **kwargs):
         """
         Constructor that initializes the Process object.
@@ -23,7 +26,13 @@ class process(Process):
         self.processes = []
 
     def create_process(
-        self, command, *args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, wait=False
+        self,
+        command,
+        *args,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        wait=False,
+        process_name="",
     ):
         """
         This method creates a new shell or python process.
@@ -34,8 +43,9 @@ class process(Process):
         @param wait: Whether to wait for the process to finish
         """
 
-        from .handler import \
-            handler  # __Really ugly__ import to avoid circular dependency
+        from .handler import (
+            handler,
+        )  # __Really ugly__ import to avoid circular dependency
 
         #
         @handler.subprocess_handler
@@ -51,9 +61,9 @@ class process(Process):
         process = None
         if callable(command):
             LOGGER.debug(f"Creating process: {command} with args={args}")
-            process = Process(
-                target=__run, args=(command, *args), name=command.__name__
-            )
+            if not process_name:
+                process_name = command.__name__
+            process = Process(target=__run, args=(command, *args), name=process_name)
             # process = Process(target=command, args=args, name=command.__name__)
             self.processes.append(process)
             process.start()
@@ -95,6 +105,34 @@ class process(Process):
                 process.join()
         else:
             process.wait()
+
+    def __get_process_by_name(self, name):
+        """
+        This method retrieves the (sub)process given a name
+
+        @param name: The name of the process
+        """
+        for process in active_children():
+            if process.name.lower() == name.lower():
+                LOGGER.debug(f"Accessing (sub)process {process}")
+                return process
+
+    def check_state(self, module_name):
+        """
+        This method checks the state of the _enabled variable in the given module.
+
+        @param module_name: The name of the module to check
+        @return: The state of the _enabled variable (True or False)
+        """
+        module = self.__get_process_by_name(module_name)
+        #print(dir(module))
+        if module and hasattr(module, "_enabled"):
+            return module._enabled
+        else:
+            LOGGER.debug(
+                f"Module {module_name} not found or does not have _enabled attribute"
+            )
+            return False
 
 
 PROCESS = process()
