@@ -19,14 +19,11 @@ class module(ABC):
     The module class can't have an __init__ method, since the orchestrator initializes it.
     Use do_init instead, to intialize your module.
     """
-
     _available = False
-
     def __init__(self):
         """
         Constructor that initializes the module object.
         """
-        # self._available.set_available(self.__class__.__name__, False)
         LOGGER.debug(
             f"Module {self.__class__.__name__} created with instance ID: {id(self)}"
         )
@@ -49,6 +46,18 @@ class module(ABC):
         * 3D: Render, update, etc.
         """
         pass
+
+    def __execute_step(self):
+        """
+        This method executes the module's step.
+        * Mobility: Move, rotate, etc.
+        * Communication: Calculate, send, receive, etc.
+        * AI: Think, decide, process, etc.
+        * 3D: Render, update, etc.
+        """
+        pass
+
+
 
     def initialize(self):
         """
@@ -102,8 +111,7 @@ class module(ABC):
         LOGGER.debug(
             f"Module {self.__class__.__name__} received message: {msg} in subprocess {os.getpid()}"
         )
-        self._available = True
-        PROCESS._child_conn.send((self.__class__.__name__, self._available))
+        PROCESS.QUEUE.put([self.__class__.__name__, True])
         await self._callback(msg)
 
     @abstractmethod

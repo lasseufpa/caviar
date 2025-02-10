@@ -16,7 +16,7 @@ class process(Process):
 
     QUEUE = Queue()
     MANAGER = Manager()
-
+    
     def __init__(self, *args, **kwargs):
         """
         Constructor that initializes the Process object.
@@ -53,6 +53,7 @@ class process(Process):
             """
             Simple alias function to avoid missuse of SIGTERMs and SIGINTS in multiple subprocess.
             """
+            LOGGER.debug(f"Subprocess ___{os.getpid()}___ created")
             signal.signal(signal.SIGTERM, signal.SIG_IGN)
             signal.signal(signal.SIGINT, signal.SIG_IGN)
             command(*args)
@@ -88,9 +89,9 @@ class process(Process):
             return
         while self.processes:
             process = self.processes.pop()
-            self.kill_process(process)
+            self.__kill_process(process)
 
-    def kill_process(self, process):
+    def __kill_process(self, process):
         """
         This method kills a specific process.
 
@@ -117,22 +118,18 @@ class process(Process):
                 LOGGER.debug(f"Accessing (sub)process {process}")
                 return process
 
-    def check_state(self, module_name):
+    def check_state(self):
         """
-        This method checks the state of the _enabled variable in the given module.
-
-        @param module_name: The name of the module to check
-        @return: The state of the _enabled variable (True or False)
+        This method checks the state of the availability to execute steps in the given module (subprocess).
+        It should be called ONLY in scheduler class
         """
-        module = self.__get_process_by_name(module_name)
-        #print(dir(module))
-        if module and hasattr(module, "_enabled"):
-            return module._enabled
-        else:
-            LOGGER.debug(
-                f"Module {module_name} not found or does not have _enabled attribute"
-            )
-            return False
-
+        all_available_modules = []
+        while not self.QUEUE.empty():
+            LOGGER.debug("Checking state...")
+            module_state = self.QUEUE.get()
+            LOGGER.debug(f"Module state: {module_state}")
+            if module_state[1]:
+                all_available_modules.append(module_state[0])
+        return all_available_modules
 
 PROCESS = process()

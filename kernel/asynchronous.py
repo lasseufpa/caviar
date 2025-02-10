@@ -9,12 +9,12 @@ class Async(Scheduler):
     """
     This class represents the asynchronous simulation.
     +---------+
-    | Event 1 |
+    | Step 1 |
     | +-----+
     | | s1  |
     | +-----+
     | +-----+
-    | | s2  |
+    | | s2  | -> Skipped
     | +-----+
     | +-----+
     | | s3  |
@@ -43,15 +43,18 @@ class Async(Scheduler):
         This method checks if there is available input in all enabled modules
         """
         LOGGER.debug("Checking allowance...")
+        available_modules = PROCESS.check_state()
         for module_dict in self._modules:
-            for module_name, _ in module_dict.items():
+            for module_name, dependency in module_dict.items():
+                if not dependency:
+                    continue
                 LOGGER.debug(f"Checking module {module_name}...")
-                if PROCESS.check_state(module_name):
+                if available_modules and module_name in available_modules:
                     """
                     If the module is not allowed, the execute step will be skipped
                     """
                     LOGGER.debug(f"Module {module_name} is allowed.")
-                    # self.__allowed_substeps.append(Substep())
+                    self.__allowed_substeps.append(Substep(module_name))
         LOGGER.debug(f"Allowed modules to run in Event: {self.__allowed_substeps}")
 
     def _execute_step(self):

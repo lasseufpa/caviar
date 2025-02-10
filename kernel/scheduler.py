@@ -10,10 +10,9 @@ class Scheduler(ABC):
     This class represents the scheduler for the simulation.
     """
 
-    _modules = None
     _event = 0
-    """
-    The enabled modules of the simulation."""
+    _modules = None
+    """The enabled modules of the simulation."""
 
     def __init__(self):
         """
@@ -50,11 +49,11 @@ class Scheduler(ABC):
         This method executes the steps in a loop.
         """
         # while True:
-        LOGGER.info("Executing step...")
+        LOGGER.info("Executing steps...")
         while True:
             LOGGER.debug(f"Event_id: {self._event}")
             self._execute_step()
-            self.__wait(15)
+            self.__wait(5)
             # if self._stop_condition():
             #    break
             self._event += 1
