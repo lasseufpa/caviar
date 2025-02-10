@@ -1,20 +1,19 @@
 import json
 import os
 import threading
-import time
 from pathlib import Path
 
+from .asynchronous import Async
 from .handler import handler
 from .logger import LOGGER, logging
 from .module import module
 from .nats import NATS
 from .process import PROCESS
-from .scheduler import scheduler
 from .setup import setup
+from .synchronous import Sync
 
 CONFIG_PATH = ".config/config.json"
 SETUP = setup()
-SCHEDULER = scheduler()
 
 
 class core:
@@ -24,16 +23,26 @@ class core:
     It handles all the actions in the simulation.
     """
 
+    __scheduler = None
+    __orders = None
+    __enable = None
+    __dependencies = None
+    __imported_modules = None
+    __dir = None
+    __settings = None
+
     @handler.exception_handler
     def __init__(self):
         """
         Constructor that initializes the Core object.
         """
-        self.orders = {}
-        self.enable = {}
-        self.imported_modules = {}
-        self.dir = Path(__file__).resolve().parent
+        self.__orders = {}
+        self.__enable = {}
+        self.__dependencies = {}
+        self.__imported_modules = {}
+        self.__dir = Path(__file__).resolve().parent
         self.__load_json()
+        handler.register_signals()
 
     @handler.exception_handler
     def __load_json(self):
@@ -41,7 +50,7 @@ class core:
         This method load/refreshes the settings from the config.json file.
         """
         LOGGER.debug(f"Refreshing config.json")
-        self.settings = json.load(open(self.dir / CONFIG_PATH))
+        self.__settings = json.load(open(self.__dir / CONFIG_PATH))
 
     @handler.exception_handler
     def __update_modules(self):
@@ -50,7 +59,7 @@ class core:
         the module names and the order of initialization in the core object.
         """
         LOGGER.debug(f"Updating modules")
-        SETUP.update_modules(root_dir=self.dir)
+        SETUP.update_modules(root_dir=self.__dir)
         self.__load_json()
         self.module_names = self.__check_correct_format()
 
@@ -60,7 +69,7 @@ class core:
         This method returns the settings from the config.json file.
         """
         LOGGER.debug(f"Getting config.json")
-        return self.settings
+        return self.__settings
 
     @handler.exception_handler
     def get_modules(self):
@@ -68,14 +77,14 @@ class core:
         This method returns all the modules configuration from the config.json file.
         """
         LOGGER.debug(f"Getting modules")
-        return self.settings["modules"]
+        return self.__settings["modules"]
 
     @handler.exception_handler
     def __update_logger(self):
         """
         This method sets the logger for the core object.
         """
-        log_conf = self.settings["config"]["logger"]
+        log_conf = self.__settings["config"]["logger"]
         if log_conf["log"]:
             log_level = getattr(logging, log_conf["log_level"].upper())
             # @TODO: Fix update to debug level (for some reason it is not working)
@@ -97,6 +106,7 @@ class core:
         """
         LOGGER.debug(f"Checking the modules")
         self.__check_modules()
+        self.__check_inter_module_circular_dependencies()
         # @TODO: Perhaps add other checkups here?
 
     @handler.exception_handler
@@ -107,15 +117,15 @@ class core:
         we assume they are True and None, respectively.
         """
         ids = {"communication", "mobility", "AI", "3D"}
-        path = self.dir.parent / "modules/"
+        path = self.__dir.parent / "modules/"
         available_modules = {filename.lower() for filename in os.listdir(path)}
 
-        for _, module_info in self.settings["modules"].items():
+        for _, module_info in self.__settings["modules"].items():
             enabled = module_info.get("enabled", True)
             if not isinstance(enabled, bool):
                 raise ValueError("The 'enabled' field must be a boolean")
 
-            self.enable[module_info["name"].strip().lower()] = enabled
+            self.__enable[module_info["name"].strip().lower()] = enabled
 
             if enabled:
                 LOGGER.info(f"Module information: {module_info}")
@@ -129,6 +139,7 @@ class core:
                     raise ValueError(f"ID must be one of {ids}")
 
                 dependencies = module_info.get("dependency", {})
+                deps = []
                 for _, dep_list in dependencies.items():
                     LOGGER.debug(f"Checking dependencies {dep_list}")
                     for dependency in dep_list:
@@ -139,10 +150,16 @@ class core:
                             raise ValueError(
                                 f"{dependency} can't be dependent on itself"
                             )
-                        if not self.enable.get(dependency_lower, False):
+                        if (
+                            not self.__settings["modules"]
+                            .get(dependency_lower, {})
+                            .get("enabled", True)
+                        ):
                             raise ValueError(
                                 f"{dependency} is not enabled, can't be dependent on a not enabled module"
                             )
+                        deps.append(dependency_lower)
+                self.__dependencies[name] = deps
 
                 order = module_info.get("order")
                 if order is None:
@@ -176,20 +193,27 @@ class core:
         airsim module must be initialized before the sionna module, for some reason.
         """
         LOGGER.debug(f"Initializing modules")
-        for module_name, _ in sorted(self.orders.items(), key=lambda x: x[1]):
-            if self.enable[module_name]:
+        for module_name, _ in sorted(self.__orders.items(), key=lambda x: x[1]):
+            if self.__enable[module_name]:
                 self.__init_module(module_name)
-        LOGGER.debug(f"Modules initialized: {self.imported_modules}")
+        LOGGER.debug(f"Modules initialized: {self.__imported_modules}")
+
+        self.__execute_steps_in_loop()
 
     @handler.exception_handler
     def __set_scheduler(self):
         """
         This method sets the scheduler for the simulation.
         """
-        self.sync, self.time = SETUP.update_sync(config_path=self.dir / CONFIG_PATH)
-        LOGGER.debug(f"Configured as Time: {self.time}, Sync: {self.sync}")
-        SCHEDULER.set_time_type(self.time)
-        SCHEDULER.set_sync_type(self.sync)
+        s_type, t_type = SETUP.update_sync(config_path=self.__dir / CONFIG_PATH)
+        LOGGER.debug(f"Configured as Time: {t_type}, Sync: {s_type}")
+        if s_type.lower() == "async":
+            self.__scheduler = Async()
+        elif s_type.lower() == "sync":
+            raise ValueError("Sync scheduler not implemented yet")
+            self.__scheduler = Sync()
+        else:
+            raise ValueError(f"Scheduler type {s_type} not recognized")
 
     @handler.exception_handler
     def __thread(self, func, *args, name=""):
@@ -213,27 +237,20 @@ class core:
         module_class = getattr(
             __import__(f"modules.{module_name}", fromlist=[module_name]), module_name
         )
-        self.imported_modules[module_name] = module_class()
-        if not isinstance(self.imported_modules[module_name], module):
+        self.__imported_modules[module_name] = module_class()
+        if not isinstance(self.__imported_modules[module_name], module):
             raise ValueError(f"{module_name} is not a module instance")
         """
         The module initialization must start a new thread and subprocess. In the same thread, the 
         """
         self.__thread(
             func=PROCESS.create_process(
-                self.imported_modules[module_name].initialize, wait=True
+                self.__imported_modules[module_name].initialize,
+                wait=True,
+                process_name=module_name.upper(),
             ),
             name=module_name,
         )
-
-    @handler.exception_handler
-    def __wait(self, timeout=0.2):
-        """
-        This method waits for a certain amount of time.
-
-        @param timeout: The amount of time to wait.
-        """
-        time.sleep(timeout)
 
     @handler.exception_handler
     def __update_order(self, name, order):
@@ -243,4 +260,32 @@ class core:
         @param name: The name of the module.
         @param order: The order of initialization.
         """
-        self.orders[name] = order
+        self.__orders[name] = order
+
+    @handler.exception_handler
+    def __execute_steps_in_loop(self):
+        """
+        This method executes the steps of the modules in a loop.
+        """
+        LOGGER.debug(f"Executing steps in loop")
+        LOGGER.debug(f"Updating modules in scheduler")
+        self.__scheduler.update_modules(self.__imported_modules)
+        LOGGER.debug(f"Starting loop execution...")
+        self.__scheduler.execute_steps_in_loop()
+
+    @handler.exception_handler
+    def __check_inter_module_circular_dependencies(self):
+        """
+        This method checks if there are circular dependencies between modules.
+        E.g., Sionna depends on Airsim, and Airsim depends on Sionna.
+        """
+        LOGGER.debug(f"Checking circular dependencies")
+        for module_name, deps in self.__dependencies.items():
+            for dep in deps:
+                if dep in self.__dependencies:
+                    if module_name in self.__dependencies[dep]:
+                        raise ValueError(
+                            f"Circular dependency between {module_name} and {dep}"
+                        )
+
+        pass
