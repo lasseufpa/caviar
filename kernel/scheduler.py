@@ -1,10 +1,19 @@
 import time
+from abc import ABC, abstractmethod
+
+from .handler import handler
+from .logger import LOGGER
 
 
-class scheduler:
+class Scheduler(ABC):
     """
     This class represents the scheduler for the simulation.
     """
+
+    _modules = None
+    _event = 0
+    """
+    The enabled modules of the simulation."""
 
     def __init__(self):
         """
@@ -12,14 +21,47 @@ class scheduler:
         """
         pass
 
-    def set_time_type(self, time_type):
+    @handler.exception_handler
+    def __wait(self, timeout=0.2):
         """
-        This method sets the time type for the simulation.
-        """
-        self.time_type = time_type
+        This method waits for a certain amount of time.
 
-    def set_sync_type(self, sync):
+        @param timeout: The amount of time to wait.
         """
-        This method sets the synchronization type for the simulation.
+        time.sleep(timeout)
+
+    @abstractmethod
+    def _encapsulate(self):
         """
-        self.sync = sync
+        This method encapsulates the substeps of the simulation.
+        """
+        pass
+
+    @abstractmethod
+    def _execute_step(self):
+        """
+        This method executes the step of the simulation.
+        """
+        pass
+
+    @handler.exception_handler
+    def execute_steps_in_loop(self):
+        """
+        This method executes the steps in a loop.
+        """
+        # while True:
+        LOGGER.info("Executing step...")
+        while True:
+            LOGGER.debug(f"Event_id: {self._event}")
+            self._execute_step()
+            self.__wait(15)
+            # if self._stop_condition():
+            #    break
+            self._event += 1
+
+    # @handler.exception_handler
+    def update_modules(self, *modules):
+        """
+        This method updates the enabled modules of the simulation.
+        """
+        self._modules = modules
