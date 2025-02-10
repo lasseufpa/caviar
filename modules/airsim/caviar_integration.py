@@ -28,9 +28,8 @@ def convertPositionFromAirSimToSionna(x, y, z):
 
 ################################################################################
 
-from yolo import draw_bboxes
-
 from caviar_yolo import cfg, device, model, post_proccess, transform
+from yolo import draw_bboxes
 
 is_sync = caviar_config.is_sync  # sync(true)/async(false)
 is_rescue_mission = caviar_config.is_rescue_mission

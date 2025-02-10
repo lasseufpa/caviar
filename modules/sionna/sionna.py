@@ -7,12 +7,6 @@ class sionna(module):
     The Sionna module is the class that handles all the Sionna setup
     """
 
-    def __init__(self):
-        """
-        Constructor that initializes the Sionna object.
-        """
-        pass
-
     def _do_init(self):
         """
         This method initializes all the necessary Sionna configuration.
@@ -29,4 +23,4 @@ class sionna(module):
         """
         This method handles the Sionna callback.
         """
-        print(msg)
+        pass

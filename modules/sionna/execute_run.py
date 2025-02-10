@@ -14,6 +14,7 @@ from sionna.rt import Camera, PlanarArray, Receiver, Transmitter, load_scene
 
 sys.path.append("./")
 import caviar_config
+
 import modules.sionna.dsp_utils as dsp_utils
 
 mi.set_variant("cuda_ad_rgb")

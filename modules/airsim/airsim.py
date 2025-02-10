@@ -9,12 +9,6 @@ class airsim(module):
     The AirSim module is the class that handles all the AirSim setup
     """
 
-    def __init__(self):
-        """
-        Constructor that initializes the AirSim object.
-        """
-        pass
-
     def _do_init(self):
         """
         This method initializes all the necessary AirSim configuration.
