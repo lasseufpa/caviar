@@ -1,6 +1,7 @@
 import signal
 import sys
 import threading
+import os
 from functools import wraps
 
 from .logger import LOGGER
@@ -39,7 +40,8 @@ class handler:
         if getattr(handler.__signal_handler, "called", False):
             return
         handler.__signal_handler.called = True
-        LOGGER.warning(f"SIGTERM received in {frame}")
+        # LOGGER.warning(f"SIGTERM received in {frame}")
+        LOGGER.warning(f"SIGTERM received")
         handler.__destroy()
         sys.exit(1)
 
@@ -108,3 +110,23 @@ class handler:
             # Since, we are working with multiple threads and subprocesses, we need to block the SIGCHLD
             # signal to avoid the creation of zombie processes.
             signal.signal(signal.SIGCHLD, handler.__subprocess_handler)
+
+    @staticmethod
+    def callback_handler(func):
+        """
+        This decorator handles exceptions (errors) in the functions.
+        """
+
+        @wraps(func)
+        async def async_wrapper(*args, **kwargs):
+            try:
+                LOGGER.debug(f"Running {func.__name__}")
+                return await func(*args, **kwargs)
+            except Exception as e:
+                LOGGER.error(f"An error occurred in {func.__name__}: {e}")
+                # Since the callback possible errors will not occur in the main thread, we need to kill
+                # all the processes using the SIGTERM signal to avoid zombie processes.
+                os.kill(os.getpid(), signal.SIGTERM)
+                sys.exit(1)
+
+        return async_wrapper
