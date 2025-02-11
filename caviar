@@ -1,8 +1,6 @@
 #! /usr/bin/env python3
 
 from kernel import core
-from kernel.handler import handler
 
-handler.register_signals()
 settings = core()
 settings.initialize()
