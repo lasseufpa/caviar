@@ -53,12 +53,18 @@ class module(ABC):
         It works as a wrapper for the execute_step method, acting as a bridge between the
         asyncio event loop and the module's step. This will continue being executed, since
         the module is alive and the run_forever method is being called.
-        """
 
+        Basically, to execute the entire event, each enabled module's execute_step method must be called.
+        Since the orchestrator is the one that calls the execute_step method, the module must have
+        a way to expose (bind as an API) this method to the orchestrator. We, indeed, use subprocessing
+        pipes to do this. 
+        """
         LOGGER.debug(f"---> Executing step in subprocess {os.getpid()}")
-        reference = await LOOP.run_in_executor(None, PROCESS.QUEUE_2.get)
-        if reference:  # in self.__class__.__name__:
-            await self.execute_step()
+        PROCESS._child_conn.recv()
+        
+        #reference = await LOOP.run_in_executor(None, PROCESS.QUEUE_2.get)
+        #if reference:  # in self.__class__.__name__:
+        #    await self.execute_step()
 
     def initialize(self):
         """
@@ -75,6 +81,13 @@ class module(ABC):
         )
         self._do_init()
         self.__init_subscription()
+
+        PROCESS._child_conn.send("") # empty string just to flag the process as ready
+
+        # Use run_forever here is not a big deal, since this is a subprocess and when
+        # it is killed, it will be destroyed too.
+        LOOP.run_forever()
+
 
     def __init_subscription(self):
         """
@@ -98,11 +111,10 @@ class module(ABC):
                             (ids[0], module, self.__class__.__name__), self.__callback
                         )
                     )
-        PROCESS._child_conn.send("subscribed")
-        LOOP.call_soon_threadsafe(self.__execute_step)
-        # Use run_forever here is not a big deal, since this is a subprocess and when
-        # it is killed, it will be destroyed too.
-        LOOP.run_forever()
+        """
+        This is the default subscription for the kernel. It is used to execute control messages to the module itself.
+        """
+        LOOP.run_until_complete(NATS.init_subscription(("core", "kernel", "."), self.__execute_step))
 
     @handler.callback_handler
     async def __callback(self, msg):
@@ -124,3 +136,4 @@ class module(ABC):
         Here, the user can define the behavior of the module when a message is received.
         """
         pass
+

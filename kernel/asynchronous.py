@@ -70,8 +70,7 @@ class Async(Scheduler):
         if self.__allowed_substeps:
             self._encapsulate()
             # ExecuteStep(self.__encapsulated)
-            LOGGER.debug("Doing: EXEC")
-            PROCESS.QUEUE_2.put("EXEC")
+            #PROCESS._parent_conn.send("")
             self.__clean__allowed_substeps()
         # ExecuteStep()
 

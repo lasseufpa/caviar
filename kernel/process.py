@@ -25,7 +25,7 @@ class process(Process):
 
     def __init__(self, *args, **kwargs):
         """
-        Constructor that initializes the Process object.
+        Constructor that initializes the Process manager object.
         """
         # super().__init__(*args, **kwargs)
         self._parent_conn, self._child_conn = Pipe()

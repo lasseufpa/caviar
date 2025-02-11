@@ -60,7 +60,7 @@ class nats:
         @param callback: The callback to be called when a message is received.
         """
         LOGGER.debug(
-            f"Subscribing to {subscription[2]}:{subscription[0]}.{subscription[1]}"
+            f"Subscribing to \033[1m {subscription[2]}:{subscription[0]}.{subscription[1]} \033[0m"
         )
         nc = None
         await asyncio.sleep(
