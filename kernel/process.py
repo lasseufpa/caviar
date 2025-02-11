@@ -1,7 +1,8 @@
 import os
 import signal
 import subprocess
-from multiprocessing import Pipe, Process, active_children, Queue, Value, Manager
+from multiprocessing import (Lock, Manager, Pipe, Process, Queue,
+                             active_children)
 
 from .logger import LOGGER
 
@@ -14,9 +15,14 @@ class process(Process):
     We are using the subprocess module to >create< and >manage< processes.
     """
 
-    QUEUE = Queue()
+    QUEUE, QUEUE_2 = Queue(), Queue()
+    """
+    This queue is used to store the state of the modules.
+    @TODO: Check if it is necessary to have >>two<< queues."""
+
+    LOCK = Lock()
     MANAGER = Manager()
-    
+
     def __init__(self, *args, **kwargs):
         """
         Constructor that initializes the Process object.
@@ -43,9 +49,8 @@ class process(Process):
         @param wait: Whether to wait for the process to finish
         """
 
-        from .handler import (
-            handler,
-        )  # __Really ugly__ import to avoid circular dependency
+        from .handler import \
+            handler  # __Really ugly__ import to avoid circular dependency
 
         #
         @handler.subprocess_handler
@@ -131,5 +136,6 @@ class process(Process):
             if module_state[1]:
                 all_available_modules.append(module_state[0])
         return all_available_modules
+
 
 PROCESS = process()

@@ -1,7 +1,7 @@
+import os
 import signal
 import sys
 import threading
-import os
 from functools import wraps
 
 from .logger import LOGGER
@@ -60,7 +60,9 @@ class handler:
                 LOGGER.debug(f"Joining thread {thread.name}")
                 thread.join(timeout=5)
                 if thread.is_alive():
-                    LOGGER.warning(f"Thread {thread.name} did not terminate")
+                    LOGGER.warning(
+                        f"Perhaps, Thread {thread.name} did not terminate but it was joined"
+                    )
         LOGGER.debug("All threads terminated")
         sys.exit(0)
 

@@ -10,7 +10,8 @@ from .module import module
 from .nats import NATS
 from .process import PROCESS
 from .setup import setup
-#from .synchronous import Sync
+
+# from .synchronous import Sync
 
 CONFIG_PATH = ".config/config.json"
 SETUP = setup()
@@ -198,6 +199,9 @@ class core:
                 self.__init_module(module_name)
         LOGGER.debug(f"Modules initialized: {self.__imported_modules}")
 
+        # Since the module is already duplicated in a subprocess, we can remove all references
+        del self.__imported_modules[module_name]
+
         self.__execute_steps_in_loop()
 
     @handler.exception_handler
@@ -269,7 +273,6 @@ class core:
         """
         LOGGER.debug(f"Executing steps in loop")
         LOGGER.debug(f"Updating modules in scheduler")
-        #self.__scheduler.update_modules(self.__imported_modules)
         self.__scheduler.update_modules(self.__dependencies)
         LOGGER.debug(f"Starting loop execution...")
         self.__scheduler.execute_steps_in_loop()

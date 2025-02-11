@@ -37,3 +37,9 @@ class Step:
         """
         instance = cls(*substeps)
         return {"ID": instance._id, "substeps": instance._substeps}
+
+    def get_substeps(self):
+        """
+        Method to return the substeps of the step.
+        """
+        return self._substeps

@@ -1,3 +1,4 @@
+from .execute import ExecuteStep
 from .logger import LOGGER
 from .process import PROCESS
 from .scheduler import Scheduler
@@ -14,10 +15,10 @@ class Async(Scheduler):
     | | s1  |
     | +-----+
     | +-----+
-    | | s2  | -> Skipped
+    | | s2x |
     | +-----+
     | +-----+
-    | | s3  |
+    | | s3x |
     | +-----+
     +---------+
     """
@@ -45,16 +46,20 @@ class Async(Scheduler):
         LOGGER.debug("Checking allowance...")
         available_modules = PROCESS.check_state()
         for module_dict in self._modules:
-            for module_name, dependency in module_dict.items():
+            for reference, dependency in module_dict.items():
                 if not dependency:
+                    """
+                    If the module has no dependencies, it is allowed to run
+                    """
+                    self.__allowed_substeps.append(Substep(reference))
                     continue
-                LOGGER.debug(f"Checking module {module_name}...")
-                if available_modules and module_name in available_modules:
+                LOGGER.debug(f"Checking module {reference}...")
+                if available_modules and reference in available_modules:
                     """
                     If the module is not allowed, the execute step will be skipped
                     """
-                    LOGGER.debug(f"Module {module_name} is allowed.")
-                    self.__allowed_substeps.append(Substep(module_name))
+                    LOGGER.debug(f"Module {reference} is allowed.")
+                    self.__allowed_substeps.append(Substep(reference))
         LOGGER.debug(f"Allowed modules to run in Event: {self.__allowed_substeps}")
 
     def _execute_step(self):
@@ -64,6 +69,9 @@ class Async(Scheduler):
         self.__check__allowance()
         if self.__allowed_substeps:
             self._encapsulate()
+            # ExecuteStep(self.__encapsulated)
+            LOGGER.debug("Doing: EXEC")
+            PROCESS.QUEUE_2.put("EXEC")
             self.__clean__allowed_substeps()
         # ExecuteStep()
 

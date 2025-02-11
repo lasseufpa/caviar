@@ -2,13 +2,12 @@ import asyncio
 import json
 import os
 from abc import ABC, abstractmethod
-
 from pathlib import Path
 
+from .handler import handler
 from .logger import LOGGER
 from .nats import NATS
 from .process import PROCESS
-from .handler import handler
 
 LOOP = asyncio.get_event_loop()
 
@@ -19,7 +18,7 @@ class module(ABC):
     The module class can't have an __init__ method, since the orchestrator initializes it.
     Use do_init instead, to intialize your module.
     """
-    _available = False
+
     def __init__(self):
         """
         Constructor that initializes the module object.
@@ -37,7 +36,7 @@ class module(ABC):
         pass
 
     @abstractmethod
-    def execute_step(self):
+    async def execute_step(self):
         """
         This method executes the module's step.
         * Mobility: Move, rotate, etc.
@@ -47,17 +46,19 @@ class module(ABC):
         """
         pass
 
-    def __execute_step(self):
+    # @handler.callback_handler
+    async def __execute_step(self):
         """
-        This method executes the module's step.
-        * Mobility: Move, rotate, etc.
-        * Communication: Calculate, send, receive, etc.
-        * AI: Think, decide, process, etc.
-        * 3D: Render, update, etc.
+        This method exposes the execute_step process to the event loop.
+        It works as a wrapper for the execute_step method, acting as a bridge between the
+        asyncio event loop and the module's step. This will continue being executed, since
+        the module is alive and the run_forever method is being called.
         """
-        pass
 
-
+        LOGGER.debug(f"---> Executing step in subprocess {os.getpid()}")
+        reference = await LOOP.run_in_executor(None, PROCESS.QUEUE_2.get)
+        if reference:  # in self.__class__.__name__:
+            await self.execute_step()
 
     def initialize(self):
         """
@@ -69,10 +70,10 @@ class module(ABC):
         may need to send some message to be initialized. This is kind of a _async_ dependency
         but yeah I need to think more about this.
         """
-        self._do_init()
         LOGGER.debug(
             f"Initializing {self.__class__.__name__} subscription in subprocess {os.getpid()}"
         )
+        self._do_init()
         self.__init_subscription()
 
     def __init_subscription(self):
@@ -98,6 +99,7 @@ class module(ABC):
                         )
                     )
         PROCESS._child_conn.send("subscribed")
+        LOOP.call_soon_threadsafe(self.__execute_step)
         # Use run_forever here is not a big deal, since this is a subprocess and when
         # it is killed, it will be destroyed too.
         LOOP.run_forever()
@@ -108,6 +110,7 @@ class module(ABC):
         This method is the internal message callback.
         It is responsible for calling the user-defined callback and setting the available flag.
         """
+        # msg = NATS.decode(msg)
         LOGGER.debug(
             f"Module {self.__class__.__name__} received message: {msg} in subprocess {os.getpid()}"
         )
