@@ -1,4 +1,5 @@
 from .logger import LOGGER
+from .nats import NATS
 
 
 class ExecuteStep:
@@ -34,3 +35,4 @@ class ExecuteStep:
 
         @param references: A list of references to _module.execute_step_
         """
+        # NATS.send()

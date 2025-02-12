@@ -46,26 +46,6 @@ class module(ABC):
         """
         pass
 
-    # @handler.callback_handler
-    async def __execute_step(self):
-        """
-        This method exposes the execute_step process to the event loop.
-        It works as a wrapper for the execute_step method, acting as a bridge between the
-        asyncio event loop and the module's step. This will continue being executed, since
-        the module is alive and the run_forever method is being called.
-
-        Basically, to execute the entire event, each enabled module's execute_step method must be called.
-        Since the orchestrator is the one that calls the execute_step method, the module must have
-        a way to expose (bind as an API) this method to the orchestrator. We, indeed, use subprocessing
-        pipes to do this. 
-        """
-        LOGGER.debug(f"---> Executing step in subprocess {os.getpid()}")
-        PROCESS._child_conn.recv()
-        
-        #reference = await LOOP.run_in_executor(None, PROCESS.QUEUE_2.get)
-        #if reference:  # in self.__class__.__name__:
-        #    await self.execute_step()
-
     def initialize(self):
         """
         This method initializes the module.
@@ -82,17 +62,18 @@ class module(ABC):
         self._do_init()
         self.__init_subscription()
 
-        PROCESS._child_conn.send("") # empty string just to flag the process as ready
+        PROCESS._child_conn.send("")  # empty string just to flag the process as ready
 
         # Use run_forever here is not a big deal, since this is a subprocess and when
         # it is killed, it will be destroyed too.
         LOOP.run_forever()
 
-
     def __init_subscription(self):
         """
         This method initializes the module's subscription.
         """
+        """
+        @TODO: Use SETUP TO LOAD THE JSON CONFIGURATION"""
         g_json = json.load(
             open(Path(__file__).resolve().parent / ".config/config.json")
         )
@@ -105,16 +86,13 @@ class module(ABC):
                 continue
             else:
                 for module in ids[1]:
+                    subscription = (
+                        "kernel." + self.__class__.__name__ + "." + str(ids[0])
+                    )  # kernel.module_name.context
                     LOGGER.debug(f"Subscripting to {module}")
                     LOOP.run_until_complete(
-                        NATS.init_subscription(
-                            (ids[0], module, self.__class__.__name__), self.__callback
-                        )
+                        NATS.init_subscription(subscription, self.__callback)
                     )
-        """
-        This is the default subscription for the kernel. It is used to execute control messages to the module itself.
-        """
-        LOOP.run_until_complete(NATS.init_subscription(("core", "kernel", "."), self.__execute_step))
 
     @handler.callback_handler
     async def __callback(self, msg):
@@ -122,7 +100,7 @@ class module(ABC):
         This method is the internal message callback.
         It is responsible for calling the user-defined callback and setting the available flag.
         """
-        # msg = NATS.decode(msg)
+        msg = NATS.decode(msg, self.__class__.__name__)
         LOGGER.debug(
             f"Module {self.__class__.__name__} received message: {msg} in subprocess {os.getpid()}"
         )
@@ -136,4 +114,3 @@ class module(ABC):
         Here, the user can define the behavior of the module when a message is received.
         """
         pass
-

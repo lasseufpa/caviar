@@ -69,10 +69,8 @@ class Async(Scheduler):
         self.__check__allowance()
         if self.__allowed_substeps:
             self._encapsulate()
-            # ExecuteStep(self.__encapsulated)
-            #PROCESS._parent_conn.send("")
+            ExecuteStep(self.__encapsulated)
             self.__clean__allowed_substeps()
-        # ExecuteStep()
 
     def __clean__allowed_substeps(self):
         """

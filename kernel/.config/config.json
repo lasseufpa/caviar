@@ -14,14 +14,6 @@
         }
     },
     "modules": {
-        "street_canyon": {
-            "name": "street_canyon",
-            "id": "3D",
-            "enabled": false,
-            "dependency": {},
-            "order": 0,
-            "message": {}
-        },
         "airsim": {
             "name": "airsim",
             "id": "mobility",
@@ -30,15 +22,14 @@
             "order": 0,
             "message": {
                 "topic": "mobility",
-                "format": "json",
-                "message": {
+                "message_type": {
                     "x-pos": 0.0,
                     "y-pos": 0.0,
                     "z-pos": 0.0,
                     "speed": 0.0,
                     "state": ""
                 },
-                "time": 0.0
+                "timeout": 50.0
             }
         },
         "sionna": {
