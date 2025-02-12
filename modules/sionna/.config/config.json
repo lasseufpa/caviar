@@ -5,9 +5,17 @@
         "id": "communication",
         "enabled": true,
         "dependency": {
-            "mobility": [
-                "airsim"
-            ]
+            "mobility":
+            {
+                "airsim":
+                [
+                "x-pos",
+                "y-pos",
+                "z-pos",
+                "speed"
+                ]
+            }
+            
         },
         "order": 1
     }

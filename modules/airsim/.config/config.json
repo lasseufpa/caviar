@@ -5,17 +5,6 @@
         "enabled": true,
         "dependency":{
         },
-        "order": 0,
-        "message": {
-            "topic": "mobility",
-            "message_type": {
-                "x-pos": 0.0,
-                "y-pos": 0.0,
-                "z-pos": 0.0,
-                "speed": 0.0,
-                "state": ""
-            },
-            "timeout": 50.0
-        }
+        "order": 0
     }
 }
