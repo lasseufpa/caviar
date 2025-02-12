@@ -58,10 +58,10 @@ class handler:
         for thread in threading.enumerate():
             if thread is not threading.current_thread():
                 LOGGER.debug(f"Joining thread {thread.name}")
-                thread.join(timeout=5)
+                thread.join(timeout=1)
                 if thread.is_alive():
                     LOGGER.warning(
-                        f"Perhaps, Thread {thread.name} did not terminate but it was joined"
+                        f"Perhaps, {thread.name} did not terminate"
                     )
         LOGGER.debug("All threads terminated")
         sys.exit(0)

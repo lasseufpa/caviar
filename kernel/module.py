@@ -56,12 +56,14 @@ class module(ABC):
         may need to send some message to be initialized. This is kind of a _async_ dependency
         but yeah I need to think more about this.
         """
-        LOGGER.debug(
-            f"Initializing {self.__class__.__name__} subscription in subprocess {os.getpid()}"
-        )
         self._do_init()
+        LOGGER.debug(
+            f"Initializing {self.__class__.__name__.upper()} subscription"
+        )
         self.__init_subscription()
 
+        """
+        @TODO: Maybe (and just maybe) we should use NATS to check if the module is ready"""
         PROCESS._child_conn.send("")  # empty string just to flag the process as ready
 
         # Use run_forever here is not a big deal, since this is a subprocess and when
@@ -72,28 +74,8 @@ class module(ABC):
         """
         This method initializes the module's subscription.
         """
-        """
-        @TODO: Use SETUP TO LOAD THE JSON CONFIGURATION"""
-        g_json = json.load(
-            open(Path(__file__).resolve().parent / ".config/config.json")
-        )
-        for ids in g_json["modules"][self.__class__.__name__.lower()][
-            "dependency"
-        ].items():
-            LOGGER.debug(f"ids: {ids}")
-            if not ids:
-                LOGGER.debug(f"Empty module: {ids}")
-                continue
-            else:
-                for module in ids[1]:
-                    subscription = (
-                        "kernel." + self.__class__.__name__ + "." + str(ids[0])
-                    )  # kernel.module_name.context
-                    LOGGER.debug(f"Subscripting to {module}")
-                    LOOP.run_until_complete(
-                        NATS.init_subscription(subscription, self.__callback)
-                    )
-
+        LOOP.run_until_complete(NATS.init_subscription(callback=self.__callback, module_name=self.__class__.__name__))
+    
     @handler.callback_handler
     async def __callback(self, msg):
         """

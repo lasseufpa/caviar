@@ -14,32 +14,34 @@
         }
     },
     "modules": {
+        "street_canyon": {
+            "name": "street_canyon",
+            "id": "3D",
+            "enabled": false,
+            "dependency": {},
+            "order": 0,
+            "message": {}
+        },
         "airsim": {
             "name": "airsim",
             "id": "mobility",
             "enabled": true,
             "dependency": {},
-            "order": 0,
-            "message": {
-                "topic": "mobility",
-                "message_type": {
-                    "x-pos": 0.0,
-                    "y-pos": 0.0,
-                    "z-pos": 0.0,
-                    "speed": 0.0,
-                    "state": ""
-                },
-                "timeout": 50.0
-            }
+            "order": 0
         },
         "sionna": {
             "name": "sionna",
             "id": "communication",
             "enabled": true,
             "dependency": {
-                "mobility": [
-                    "airsim"
-                ]
+                "mobility": {
+                    "airsim": [
+                        "x-pos",
+                        "y-pos",
+                        "z-pos",
+                        "speed"
+                    ]
+                }
             },
             "order": 1
         }

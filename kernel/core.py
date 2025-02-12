@@ -68,6 +68,8 @@ class core:
     def get_config_json(self):
         """
         This method returns the settings from the config.json file.
+
+        @return: The settings from the config.json file.
         """
         LOGGER.debug(f"Getting config.json")
         return self.__settings
@@ -76,6 +78,8 @@ class core:
     def get_modules(self):
         """
         This method returns all the modules configuration from the config.json file.
+
+        @return: The modules configuration from the config.json file.
         """
         LOGGER.debug(f"Getting modules")
         return self.__settings["modules"]
@@ -99,6 +103,7 @@ class core:
         """
         LOGGER.debug(f"Initialize NATS")
         NATS.init()
+        SETUP.set_allowed_messages(config_path=self.__dir / CONFIG_PATH)
 
     @handler.exception_handler
     def __check_correct_format(self):

@@ -13,7 +13,7 @@ class nats:
     """
 
     __clients = {}
-    __subscriptions = []
+    __subscriptions = {}
     __allowed_messages = []
     """
     All the NATS clients object.
@@ -88,36 +88,37 @@ class nats:
 
         @return: True if the message is valid, False otherwise.
         """
+        LOGGER.debug(f"Checking message")
         return message in self.__allowed_messages[module_name]
 
-    async def init_subscription(self, subscription, callback):
+    async def init_subscription(self, callback, module_name=""):
         """
         This method sets a NATS subscription to a specific module.
 
         @param subscription: The subscription to be set.
 
-        * -> Prefix will be always `kernel`.
-        * -> Afix will be the `module name`.
-        * -> Sufix will be the `context` (mobility, AI, communications or 3D).
+        * -> Prefix will be always `kernel`
+        * -> Afix will be the `module name`
 
         @param callback: The callback to be called when a message is received.
         """
-        self.__subscriptions.append(subscription)
+        subscription = "kernel." + module_name
         LOGGER.debug(f"Subscribing to \033[1m {subscription} \033[0m")
-        nc = None
+
         await asyncio.sleep(
             0.5
         )  # __Really ugly__ hack to wait for the NATS server to start
-        if str(subscription[2]) in self.__clients:
+
+        nc = None
+        #self.__subscriptions[module_name].append(subscription)
+        if module_name in self.__clients:
             LOGGER.debug(f"Using existing client")
-            nc = self.__clients[str(subscription[2])]
+            nc = self.__clients[module_name]
         else:
             nc = await Nats.connect()
-            self.__clients[str(subscription[2])] = nc
-
-        await nc.subscribe(
-            f"{subscription[2]}:{subscription[0]}.{subscription[1]}", cb=callback
-        )
+            self.__clients[module_name] = nc
+            
+        await nc.subscribe(subscription, cb=callback)
         await nc.flush()
 
     async def close_clients(self):
@@ -140,11 +141,13 @@ class nats:
         """
         self.__allowed_messages = messages
 
-    async def multicast(self, reference):
+    async def multicast(self, references, message=""):
         nc = await Nats.connect()
-
-        subjects = ["app.service1", "app.service2", "app.service3"]
-        await asyncio.gather(*(nc.publish(subj, "EXECUTE") for subj in subjects))
+        LOGGER.debug(f"Multicasting to {references}")
+        subjects = [f"kernel.{reference}" for reference in references]
+        await asyncio.gather(
+            *(nc.publish(subj, self.__encode(message)) for subj in subjects)
+        )
         await nc.drain()
 
 

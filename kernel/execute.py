@@ -1,5 +1,6 @@
 from .logger import LOGGER
 from .nats import NATS
+import asyncio
 
 
 class ExecuteStep:
@@ -12,6 +13,8 @@ class ExecuteStep:
         Constructor that initializes the ExecuteStep object.
         """
         deserialized_references = self.__deserialize(step)
+        """
+        @TODO: Right now the references are strings, but I think its not efficient to do this"""
         self.__execute_step(deserialized_references)
 
     def __deserialize(self, step):
@@ -32,7 +35,8 @@ class ExecuteStep:
     def __execute_step(self, references):
         """
         This method executes the step of the simulation.
+        In this case, it triggers the module.__execute_step, using a NATS multicast.
 
         @param references: A list of references to _module.execute_step_
         """
-        # NATS.send()
+        asyncio.run(NATS.multicast(references))
