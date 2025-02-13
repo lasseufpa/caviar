@@ -5,7 +5,7 @@ import sys
 import time
 
 import airsim
-import caviar_tools
+import modules.airsim.airsim_tools as airsim_tools
 import cv2
 import numpy as np
 import torch
@@ -112,7 +112,7 @@ with NATSClient() as natsclient:
     except OSError as error:
         print(error)
 
-    client = caviar_tools.airsim_connect(ip="127.0.0.1")
+    client = airsim_tools.airsim_connect(ip="127.0.0.1")
 
     #  Socket to talk to server
     natsclient.connect()
@@ -154,14 +154,14 @@ with NATSClient() as natsclient:
         # Delay between episodes to avoid crashs
         time.sleep(1)
 
-        caviar_tools.addPedestriansOnPath(
+        airsim_tools.addPedestriansOnPath(
             client, os.path.join(trajectories_files, "path" + str(episode) + ".csv")
         )
 
         # Reset the AirSim simulation
-        caviar_tools.airsim_reset(client)
+        airsim_tools.airsim_reset(client)
 
-        caviar_tools.airsim_setpose(
+        airsim_tools.airsim_setpose(
             client,
             caviar_config.drone_ids[0],
             float(path_list[0][0]),
@@ -174,14 +174,14 @@ with NATSClient() as natsclient:
         )
         time.sleep(0.5)
 
-        initial_timestamp = caviar_tools.airsim_gettimestamp(
+        initial_timestamp = airsim_tools.airsim_gettimestamp(
             client, caviar_config.drone_ids[0]
         )
 
         # Takeoff and start the UAV trajectory
-        caviar_tools.airsim_takeoff_all(client)
+        airsim_tools.airsim_takeoff_all(client)
         time.sleep(1)
-        caviar_tools.move_to_point(
+        airsim_tools.move_to_point(
             client,
             caviar_config.drone_ids[0],
             float(path_list[0][0]),
@@ -209,16 +209,16 @@ with NATSClient() as natsclient:
 
             # Get information about each UAV in the configuration file (caviar_config.py)
             for uav in caviar_config.drone_ids:
-                uav_pose = caviar_tools.airsim_getpose(client, uav)
-                uav_orien = caviar_tools.airsim_getorientation(client, uav)
-                uav_linear_acc = caviar_tools.airsim_getlinearacc(client, uav)
-                uav_linear_vel = caviar_tools.airsim_getlinearvel(client, uav)
-                uav_angular_acc = caviar_tools.airsim_getangularacc(client, uav)
-                uav_angular_vel = caviar_tools.airsim_getangularvel(client, uav)
-                airsim_timestamp = caviar_tools.airsim_gettimestamp(client, uav)
+                uav_pose = airsim_tools.airsim_getpose(client, uav)
+                uav_orien = airsim_tools.airsim_getorientation(client, uav)
+                uav_linear_acc = airsim_tools.airsim_getlinearacc(client, uav)
+                uav_linear_vel = airsim_tools.airsim_getlinearvel(client, uav)
+                uav_angular_acc = airsim_tools.airsim_getangularacc(client, uav)
+                uav_angular_vel = airsim_tools.airsim_getangularvel(client, uav)
+                airsim_timestamp = airsim_tools.airsim_gettimestamp(client, uav)
 
                 # Get frames
-                rawimg = caviar_tools.airsim_getimages(
+                rawimg = airsim_tools.airsim_getimages(
                     client, caviar_config.drone_ids[0]
                 )
                 img = cv2.imdecode(
@@ -304,7 +304,7 @@ with NATSClient() as natsclient:
                 )
 
                 # Check if the UAV is landed or has collided and finish the episode
-                if caviar_tools.airsim_getcollision(client, uav):
+                if airsim_tools.airsim_getcollision(client, uav):
                     client.simPause(False)
                     isFinished = True
                     print(
@@ -316,7 +316,7 @@ with NATSClient() as natsclient:
                     )
                 # Check if is reaching or already reached a waypoint
                 if (
-                    caviar_tools.has_uav_arrived(
+                    airsim_tools.has_uav_arrived(
                         client,
                         uav,
                         path_list[actualWaypoint][0],
@@ -338,7 +338,7 @@ with NATSClient() as natsclient:
                         # No one to rescue. Must go to the next waypoint
                         else:
                             actualWaypoint = actualWaypoint + 1
-                            caviar_tools.move_to_point(
+                            airsim_tools.move_to_point(
                                 client,
                                 uav,
                                 path_list[actualWaypoint][0],
@@ -352,7 +352,7 @@ with NATSClient() as natsclient:
 
                             if actualWaypoint == (len(path_list) - 4):
                                 client.simPause(False)
-                                caviar_tools.airsim_land_all(client)
+                                airsim_tools.airsim_land_all(client)
                                 isFinished = True
                                 print(
                                     "Episode "
@@ -369,7 +369,7 @@ with NATSClient() as natsclient:
 
             output_folder = os.path.join(os.getcwd(), "runs")
             if save_multimodal:
-                caviar_tools.airsim_save_external_images(
+                airsim_tools.airsim_save_external_images(
                     client, output_folder, "FixedCamera1"
                 )
 
