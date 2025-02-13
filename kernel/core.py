@@ -271,6 +271,9 @@ class core:
         @param name: The name of the module.
         @param order: The order of initialization.
         """
+        if order in self.__orders.values():
+            raise ValueError(f"Order {order} already in use")
+        LOGGER.debug(f"Updating order of {name} to {order}")
         self.__orders[name] = order
 
     @handler.exception_handler

@@ -1,8 +1,9 @@
 import os
 import signal
 import subprocess
-from multiprocessing import (Lock, Manager, Pipe, Process, Queue,
-                             active_children)
+import time
+
+from multiprocessing import Lock, Manager, Pipe, Process, Queue, active_children
 
 from .logger import LOGGER
 
@@ -45,8 +46,9 @@ class process(Process):
         @param wait: Whether to wait for the process to finish
         """
 
-        from .handler import \
-            handler  # __Really ugly__ import to avoid circular dependency
+        from .handler import (
+            handler,
+        )  # __Really ugly__ import to avoid circular dependency
 
         #
         @handler.subprocess_handler

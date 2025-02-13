@@ -2,11 +2,12 @@ import os
 import signal
 import sys
 import threading
+import asyncio
 from functools import wraps
 
 from .logger import LOGGER
 from .process import PROCESS
-
+from .nats import NATS
 
 class handler:
 
@@ -52,6 +53,7 @@ class handler:
         """
         if getattr(handler.__destroy, "called", False):
             return
+        asyncio.run(NATS.close_clients())
         handler.__destroy.called = True
         LOGGER.debug(f"Destroying subprocess: {PROCESS.processes}")
         PROCESS.kill_processes()
