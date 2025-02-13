@@ -13,14 +13,16 @@ class sionna(module):
         """
         LOGGER.debug(f"Sionna Do Init")
 
-    def execute_step(self):
+    async def _execute_step(self):
         """
         This method executes the Sionna step.
         """
+        LOGGER.debug(f"------> Sionna Execute Step")
         pass
 
     async def _callback(self, msg):
         """
         This method handles the Sionna callback.
         """
+        LOGGER.debug(f"Sionna Callback")
         pass

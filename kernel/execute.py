@@ -1,6 +1,7 @@
+import asyncio
+
 from .logger import LOGGER
 from .nats import NATS
-import asyncio
 
 
 class ExecuteStep:

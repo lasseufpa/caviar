@@ -2,6 +2,7 @@ import time
 
 from kernel.logger import LOGGER
 from kernel.module import module
+from kernel.nats import NATS
 
 
 class airsim(module):
@@ -15,11 +16,13 @@ class airsim(module):
         """
         LOGGER.debug(f"AirSim Do Init")
 
-    def execute_step(self):
+    async def _execute_step(self):
         """
         This method executes the AirSim step.
         """
-        pass
+        LOGGER.debug(f"AirSim Execute Step")
+        message = {"x-pos": 32.0, "y-pos": 32.0, "z-pos": 20, "speed": 2.0}
+        await NATS.send(self.__class__.__name__, message, "sionna")
 
     async def _callback(self, msg):
         """

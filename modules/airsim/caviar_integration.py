@@ -14,6 +14,7 @@ from pynats import NATSClient
 
 sys.path.append("./")
 import caviar_config
+
 from calc_rescues import get_time_for_rescue
 
 rng = np.random.default_rng(caviar_config.random_seed)

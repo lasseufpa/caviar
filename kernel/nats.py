@@ -1,12 +1,10 @@
 import asyncio
+import json
 
 import nats as Nats
 
 from .logger import LOGGER
 from .process import PROCESS, subprocess
-
-
-FLAG = False
 
 
 class nats:
@@ -29,12 +27,19 @@ class nats:
         self.verbose = False
         pass
 
-    async def send(self, module_name, msg, subject=""):
-        encoded_msg = self.__encode(msg)
-        if subject == "":  # <- IS_BROADCAST()
-            nc = (await Nats.connect()).new_inbox()
-        self.__clients[module_name].publish(subject, encoded_msg)
-        pass
+    async def send(self, module_name, msg, subject):
+        """
+        This method sends a message to the NATS server in a specific subject.
+
+        @param module_name: The name of the module that sends the message.
+        @param msg: The message to be sent.
+        @param subject: The subject to send the message (mostly the module's name which will receive the message).
+        """
+        message = {module_name: msg}
+        encoded_msg = self.__encode(message)
+        full_subject = "kernel." + subject
+        LOGGER.debug(f"Sending message: {message} to {full_subject}")
+        await self.__clients[module_name].publish(full_subject, encoded_msg)
 
     def init(self):
         """
@@ -58,45 +63,52 @@ class nats:
         This method decodes a message received from the NATS server.
 
         @param msg: The message to be decoded.
+        @return: The decoded information.
         """
         return self.__decode(msg, module_name)
 
     def __encode(self, msg):
         """
-        This method encodes a message to be sent to the NATS server."""
-        return str(msg).encode()
+        This method encodes a message to be sent to the NATS server.
+        Here, always use JSON to serialize the message."""
+        return json.dumps(msg).encode()
 
     def __decode(self, msg, module_name):
         """
         Basically, __decodes to retrieve the deserialized information, in format:
-        [module_name, subject, message]. It also checks if the message is valid.
+        [subject, message]. It also checks if the message is valid.
         Moreover, control messages are also decoded and returned.
 
         @param msg: The message to be decoded.
         @param module_name: The module name to be decoded.
-
         @return: The deserialized information.
         """
         LOGGER.debug(f"Decoding message: {msg}")
         message = msg.data
         if message == b"\00":
             return
-        message_decoded = message.decode()
+        message_decoded = json.loads(message.decode())
         LOGGER.debug(f"Decoded message: {message_decoded}")
-        if self.__check_message(message, module_name):
-            return [module_name, msg.subject, message]
+        if self.__check_message(message_decoded, module_name):
+            return [msg.subject, message_decoded]
+        else:
+            raise ValueError(
+                f"Message {message_decoded} is not an allowed message for {module_name}"
+            )
 
     def __check_message(self, message, module_name):
         """
         This method checks if the message is a valid message.
+        Here it checks if the message has the same keys as the allowed messages.
 
-        @param message: The message to be checked.
-        @param module_name: The module name to be checked.
-
+        @param message: The message to be checked in JSON format.
+        @param module_name: The receiver module name.
         @return: True if the message is valid, False otherwise.
         """
-        LOGGER.debug(f"Checking message: {message} for {module_name}")
-        return message in self.__allowed_messages[module_name]
+        LOGGER.debug(
+            f"Checking message: {message} for {module_name} in {self.__allowed_messages[module_name]}"
+        )
+        return set(message.keys()) == set(self.__allowed_messages[module_name])
 
     async def init_subscription(self, callback, module_name=""):
         """
@@ -104,9 +116,8 @@ class nats:
 
         @param subscription: The subscription to be set.
 
-        * -> Prefix will be always `kernel`
-        * -> Afix will be the `module name`
-
+        * Prefix will be always `kernel`
+        * Afix will be the `module name`
         @param callback: The callback to be called when a message is received.
         """
         subscription = "kernel." + module_name

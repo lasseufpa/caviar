@@ -46,6 +46,7 @@ class module(ABC):
         """
         pass
 
+    @handler.exception_handler
     def __execute_step(self):
         """
         This method executes the module's step.
@@ -99,7 +100,7 @@ class module(ABC):
             f"Module {self.__class__.__name__} received message: {msg} in subprocess {os.getpid()}"
         )
         PROCESS.QUEUE.put([self.__class__.__name__, True])
-        await self._callback(msg)
+        asyncio.create_task(self._callback(msg))
 
     @abstractmethod
     async def _callback(self, msg):

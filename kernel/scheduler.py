@@ -53,7 +53,7 @@ class Scheduler(ABC):
         while True:
             LOGGER.debug(f"Event_id: {self._event}")
             self._execute_step()
-            self.__wait(5)
+            self.__wait(15)
             # if self._stop_condition():
             #    break
             self._event += 1
