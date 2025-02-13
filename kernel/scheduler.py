@@ -62,5 +62,7 @@ class Scheduler(ABC):
     def update_modules(self, *modules):
         """
         This method updates the enabled modules of the simulation.
+
+        @param modules: The enabled modules of the simulation.
         """
         self._modules = modules

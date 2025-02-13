@@ -60,9 +60,7 @@ class handler:
                 LOGGER.debug(f"Joining thread {thread.name}")
                 thread.join(timeout=1)
                 if thread.is_alive():
-                    LOGGER.warning(
-                        f"Perhaps, {thread.name} did not terminate"
-                    )
+                    LOGGER.warning(f"Perhaps, {thread.name} did not terminate")
         LOGGER.debug("All threads terminated")
         sys.exit(0)
 

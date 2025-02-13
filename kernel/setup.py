@@ -65,15 +65,15 @@ class setup:
                     )
                 new_orders[name] = order
         return new_orders
-    
+
     def set_allowed_messages(self, path):
         """
         This method set the allowed messages that NATS will leave in peace.
-        
+
         @param path: The path to the config.json file.
 
         @return: a dictionary with the allowed messages, in format:
-        
+
         {module_name0: [allowed_messages],
          module_name1: [allowed_messages]...}
         """
@@ -81,7 +81,9 @@ class setup:
             config_json = json.load(file)
             allowed_messages = {}
             for module in config_json["modules"]:
-                allowed_messages[module] = config_json["modules"][module]["allowed_messages"]
+                allowed_messages[module] = config_json["modules"][module][
+                    "allowed_messages"
+                ]
         pass
 
     def update_sync(self, config_path):

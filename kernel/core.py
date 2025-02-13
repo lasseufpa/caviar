@@ -31,6 +31,7 @@ class core:
     __imported_modules = None
     __dir = None
     __settings = None
+    __allowed_messages = None
 
     @handler.exception_handler
     def __init__(self):
@@ -43,6 +44,7 @@ class core:
         self.__imported_modules = {}
         self.__dir = Path(__file__).resolve().parent
         self.__load_json()
+        self.__allowed_messages = {}
         handler.register_signals()
 
     @handler.exception_handler
@@ -103,7 +105,7 @@ class core:
         """
         LOGGER.debug(f"Initialize NATS")
         NATS.init()
-        SETUP.set_allowed_messages(config_path=self.__dir / CONFIG_PATH)
+        NATS.allowed_messages(self.__allowed_messages)
 
     @handler.exception_handler
     def __check_correct_format(self):
@@ -165,8 +167,8 @@ class core:
                                 f"{dependency} is not enabled, can't be dependent on a not enabled module"
                             )
                         deps.append(dependency_lower)
+                    self.__allowed_messages[name] = dep_list
                 self.__dependencies[name] = deps
-
                 order = module_info.get("order")
                 if order is None:
                     raise ValueError("Your module must have an order of initialization")

@@ -6,6 +6,9 @@ from .logger import LOGGER
 from .process import PROCESS, subprocess
 
 
+FLAG = False
+
+
 class nats:
     """
     This class is the NATS wrapper/do class.
@@ -13,7 +16,6 @@ class nats:
     """
 
     __clients = {}
-    __subscriptions = {}
     __allowed_messages = []
     """
     All the NATS clients object.
@@ -68,6 +70,7 @@ class nats:
         """
         Basically, __decodes to retrieve the deserialized information, in format:
         [module_name, subject, message]. It also checks if the message is valid.
+        Moreover, control messages are also decoded and returned.
 
         @param msg: The message to be decoded.
         @param module_name: The module name to be decoded.
@@ -75,7 +78,11 @@ class nats:
         @return: The deserialized information.
         """
         LOGGER.debug(f"Decoding message: {msg}")
-        message = msg.data.decode()
+        message = msg.data
+        if message == b"\00":
+            return
+        message_decoded = message.decode()
+        LOGGER.debug(f"Decoded message: {message_decoded}")
         if self.__check_message(message, module_name):
             return [module_name, msg.subject, message]
 
@@ -88,7 +95,7 @@ class nats:
 
         @return: True if the message is valid, False otherwise.
         """
-        LOGGER.debug(f"Checking message")
+        LOGGER.debug(f"Checking message: {message} for {module_name}")
         return message in self.__allowed_messages[module_name]
 
     async def init_subscription(self, callback, module_name=""):
@@ -110,14 +117,13 @@ class nats:
         )  # __Really ugly__ hack to wait for the NATS server to start
 
         nc = None
-        #self.__subscriptions[module_name].append(subscription)
         if module_name in self.__clients:
             LOGGER.debug(f"Using existing client")
             nc = self.__clients[module_name]
         else:
             nc = await Nats.connect()
             self.__clients[module_name] = nc
-            
+
         await nc.subscribe(subscription, cb=callback)
         await nc.flush()
 
@@ -130,7 +136,7 @@ class nats:
             await client.close()
         pass
 
-    def allowed_messages(self, *messages):
+    def allowed_messages(self, messages):
         """
         This method sets the allowed messages for each module.
         So:
@@ -139,15 +145,16 @@ class nats:
 
         @param messages: The messages to be allowed.
         """
+        LOGGER.debug(f"Setting allowed messages: {messages}")
         self.__allowed_messages = messages
 
     async def multicast(self, references, message=""):
         nc = await Nats.connect()
         LOGGER.debug(f"Multicasting to {references}")
         subjects = [f"kernel.{reference}" for reference in references]
-        await asyncio.gather(
-            *(nc.publish(subj, self.__encode(message)) for subj in subjects)
-        )
+        if not message:
+            message = b"\00"
+        await asyncio.gather(*(nc.publish(subj, message) for subj in subjects))
         await nc.drain()
 
 

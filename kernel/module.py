@@ -36,7 +36,7 @@ class module(ABC):
         pass
 
     @abstractmethod
-    async def execute_step(self):
+    async def _execute_step(self):
         """
         This method executes the module's step.
         * Mobility: Move, rotate, etc.
@@ -45,6 +45,13 @@ class module(ABC):
         * 3D: Render, update, etc.
         """
         pass
+
+    def __execute_step(self):
+        """
+        This method executes the module's step.
+        """
+        asyncio.create_task(self._execute_step())
+        LOGGER.debug(f"Module {self.__class__.__name__} executed step")
 
     def initialize(self):
         """
@@ -57,9 +64,7 @@ class module(ABC):
         but yeah I need to think more about this.
         """
         self._do_init()
-        LOGGER.debug(
-            f"Initializing {self.__class__.__name__.upper()} subscription"
-        )
+        LOGGER.debug(f"Initializing {self.__class__.__name__.upper()} subscription")
         self.__init_subscription()
 
         """
@@ -74,8 +79,12 @@ class module(ABC):
         """
         This method initializes the module's subscription.
         """
-        LOOP.run_until_complete(NATS.init_subscription(callback=self.__callback, module_name=self.__class__.__name__))
-    
+        LOOP.run_until_complete(
+            NATS.init_subscription(
+                callback=self.__callback, module_name=self.__class__.__name__
+            )
+        )
+
     @handler.callback_handler
     async def __callback(self, msg):
         """
@@ -83,6 +92,9 @@ class module(ABC):
         It is responsible for calling the user-defined callback and setting the available flag.
         """
         msg = NATS.decode(msg, self.__class__.__name__)
+        if msg is None:
+            self.__execute_step()
+            return
         LOGGER.debug(
             f"Module {self.__class__.__name__} received message: {msg} in subprocess {os.getpid()}"
         )
