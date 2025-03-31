@@ -46,12 +46,11 @@ class module(ABC):
         """
         pass
 
-    @handler.exception_handler
-    def __execute_step(self):
+    async def __execute_step(self):
         """
         This method executes the module's step.
         """
-        asyncio.create_task(self._execute_step())
+        await self._execute_step()
         LOGGER.debug(f"Module {self.__class__.__name__} executed step")
 
     def initialize(self):
@@ -86,7 +85,7 @@ class module(ABC):
             )
         )
 
-    @handler.callback_handler
+    @handler.async_exception_handler
     async def __callback(self, msg):
         """
         This method is the internal message callback.
@@ -94,13 +93,13 @@ class module(ABC):
         """
         msg = NATS.decode(msg, self.__class__.__name__)
         if msg is None:
-            self.__execute_step()
+            await self.__execute_step()
             return
         LOGGER.debug(
             f"Module {self.__class__.__name__} received message: {msg} in subprocess {os.getpid()}"
         )
         PROCESS.QUEUE.put([self.__class__.__name__, True])
-        asyncio.create_task(self._callback(msg))
+        await self._callback(msg)
 
     @abstractmethod
     async def _callback(self, msg):
