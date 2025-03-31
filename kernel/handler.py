@@ -2,12 +2,11 @@ import os
 import signal
 import sys
 import threading
-import asyncio
 from functools import wraps
 
 from .logger import LOGGER
 from .process import PROCESS
-from .nats import NATS
+
 
 class handler:
 
@@ -41,7 +40,6 @@ class handler:
         if getattr(handler.__signal_handler, "called", False):
             return
         handler.__signal_handler.called = True
-        # LOGGER.warning(f"SIGTERM received in {frame}")
         LOGGER.warning(f"SIGTERM received")
         handler.__destroy()
         sys.exit(1)
@@ -53,7 +51,6 @@ class handler:
         """
         if getattr(handler.__destroy, "called", False):
             return
-        asyncio.run(NATS.close_clients())
         handler.__destroy.called = True
         LOGGER.debug(f"Destroying subprocess: {PROCESS.processes}")
         PROCESS.kill_processes()
@@ -94,8 +91,25 @@ class handler:
             try:
                 return func(*args, **kwargs)
             except Exception as e:
-                LOGGER.error(f"An error occurred in {func.__name__}: {e}")
+                LOGGER.warning(
+                    f"In SUBPROCESS [{os.getpid()}], an error occurred {func.__name__}: {e}"
+                )
 
+        return wrapper
+
+    @staticmethod
+    def async_exception_handler(func):
+        """
+        This decorator handles exceptions (errors) in async functions.
+        """
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            try:
+                return await func(*args, **kwargs)
+            except Exception as e:
+                LOGGER.error(f"An error occurred in {func.__name__}: {e}")
+                handler.__destroy()
+                sys.exit(1)
         return wrapper
 
     @staticmethod
