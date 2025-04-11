@@ -1,4 +1,5 @@
 import csv
+import logging
 import math
 import os
 import sys
@@ -7,29 +8,42 @@ import time
 import airsim
 import numpy as np
 
-from kernel.logger import LOGGER
+from kernel.logger import LOGGER, logging
 
+logging.getLogger("tornado.general").setLevel(logging.ERROR)
 sys.path.append("./")
-import caviar_config
 
 
 class AirSimTools:
+    client = None
 
-    def airsim_connect(self, ip="127.0.0.1", timeout=20.0):
-        # For some reason, timeout is not working as expected
-        return airsim.MultirotorClient(ip=ip, timeout_value=timeout)
+    def airsim_connect(self, ip: str = "127.0.0.1", timeout: float = 20.0):
+        start_time = time.time()
+        while True:
+            try:
+                if timeout > time.time() - start_time:
+                    self.client = airsim.MultirotorClient(ip=ip, timeout_value=timeout)
+                    self.client.confirmConnection()
+                    time.sleep(1)
+                break
+            except Exception as e:
+                time.sleep(1)
+                if timeout < time.time() - start_time:
+                    break
 
     def airsim_moveToInitialPosition(self, client):
         client.moveToPositionAsync(0, 0, 0, 1).join()
 
-    def airsim_takeoff(self, client, uav_id):
-        client.enableApiControl(True, uav_id)
-        client.armDisarm(True, uav_id)
-        client.takeoffAsync(vehicle_name=uav_id).join()
-
+    def airsim_takeoff(self):
+        if self.client:
+            self.client.enableApiControl(True)
+            self.client.armDisarm(True)
+            self.client.takeoffAsync().join()
+    '''
     def airsim_takeoff_all(self, client):
         for uav in caviar_config.drone_ids:
             airsim(client, uav)
+    '''
 
     def airsim_reset(self, client):
         client.reset()
@@ -41,10 +55,11 @@ class AirSimTools:
         else:
             client.armDisarm(False, uav_id)
         client.enableApiControl(False, uav_id)
-
+    '''
     def airsim_land_all(self, client):
         for uav in caviar_config.drone_ids:
             self.airsim_land(client, uav)
+    '''
 
     def move_on_path(self, client, uav, path, speed=5):
         path_list = []
@@ -89,9 +104,9 @@ class AirSimTools:
                     output.append(xyz)
         return iter(output)
 
-    def move_to_point(self, client, x, y, z, uav=0, speed=5.0):
-        client.enableApiControl(True)
-        client.moveToPositionAsync(
+    def move_to_point(self, x: float, y: float, z: float, speed: float = 5.0):
+        self.client.enableApiControl(True)
+        self.client.moveToPositionAsync(
             x,
             y,
             z,
@@ -99,7 +114,6 @@ class AirSimTools:
             3e38,
             airsim.DrivetrainType.ForwardOnly,
             airsim.YawMode(False, 0),
-            vehicle_name=uav,
         )
 
     def has_uav_arrived(self, client, uav, x, y, z):
@@ -113,18 +127,20 @@ class AirSimTools:
         else:
             return False
 
-    def airsim_getpose(self, client, uav_id):
-        coordinates = client.getMultirotorState(
-            vehicle_name=uav_id
+    def airsim_getpose(self):  # uav_id):
+        coordinates = self.client.getMultirotorState(
+            # vehicle_name=uav_id
         ).kinematics_estimated.position.to_numpy_array()
         return coordinates
 
+    '''
     def airsim_getpose_offset(self, client, uav_id):
         coordinates = client.getMultirotorState(
             vehicle_name=uav_id
         ).kinematics_estimated.position.to_numpy_array()
         coordinates_offset = np.add(coordinates, caviar_config.initial_pose_offset)
         return coordinates_offset
+    '''
 
     def airsim_getorientation(self, client, uav_id):
         orientation = client.getMultirotorState(
@@ -150,9 +166,9 @@ class AirSimTools:
         ).kinematics_estimated.linear_acceleration.to_numpy_array()
         return acc
 
-    def airsim_getlinearvel(self, client, uav_id):
-        vel = client.getMultirotorState(
-            vehicle_name=uav_id
+    def airsim_getlinearvel(self):  # , client, uav_id
+        vel = self.client.getMultirotorState(
+            # vehicle_name=uav_id
         ).kinematics_estimated.linear_velocity.to_numpy_array()
         return vel
 
@@ -160,11 +176,28 @@ class AirSimTools:
         timestamp = client.getMultirotorState(vehicle_name=uav_id).timestamp
         return timestamp
 
-    def airsim_getcollision(self, client, uav_id):
-        collision = client.getMultirotorState(
-            vehicle_name=uav_id
+    def airsim_getcollision(
+        self,  # client, uav_id
+    ):
+        collision = self.client.getMultirotorState(
+            # vehicle_name=uav_id
         ).collision.has_collided
         return collision
+
+    def is_drone_moving(self, threshold=0.5):
+        """
+        Checks if the drone is moving by analyzing its linear velocity.
+
+        @param client: The AirSim client instance.
+        @param uav_id: The ID of the drone to check.
+        @param threshold: The velocity threshold below which the drone is considered stationary.
+        @return: True if the drone is moving, False otherwise.
+        """
+        linear_velocity = self.airsim_getlinearvel()  # self.client, uav_id
+        speed = np.linalg.norm(
+            linear_velocity
+        )  # Calculate the magnitude of the velocity vector
+        return speed > threshold
 
     def airsim_setpose(
         self, client, uav_id, x, y, z, orien_x, orien_y, orien_z, orien_w
@@ -181,6 +214,7 @@ class AirSimTools:
         )
         return success
 
+    '''
     def airsim_setpose_offset(
         self, client, uav_id, x, y, z, orien_x, orien_y, orien_z, orien_w
     ):
@@ -198,6 +232,7 @@ class AirSimTools:
             vehicle_name=uav_id,
         )
         return success
+    '''
 
     def unreal_getpose(self, client, obj_id):
         coordinates = client.simGetObjectPose(obj_id).position.to_numpy_array()
@@ -256,6 +291,7 @@ class AirSimTools:
         )
         return success
 
+    '''
     def airsim_save_images(self, client, record_path="./"):
         for uav in caviar_config.drone_ids:
             png_image = client.simGetImage(
@@ -329,6 +365,7 @@ class AirSimTools:
                     os.path.normpath(record_file),
                     png_image,
                 )
+    '''
 
     def airsim_getimages(self, client, uav_id):
         image = client.simGetImage(0, airsim.ImageType.Scene, vehicle_name=uav_id)
@@ -348,7 +385,8 @@ class AirSimTools:
                     count += 1
             episode_file.close()
         return count
-
+    
+    '''
     def addPedestriansOnPath(self, client, path):
         path_list = []
 
@@ -373,3 +411,4 @@ class AirSimTools:
                 client.simSetObjectScale(
                     caviar_config.pedestrians[i], airsim.Vector3r(3, 3, 3)
                 )
+    '''

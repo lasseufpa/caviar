@@ -5,16 +5,16 @@ import sys
 import time
 
 import airsim
-import modules.airsim.airsim_tools as airsim_tools
 import cv2
 import numpy as np
 import torch
 from PIL import Image
 from pynats import NATSClient
 
+import modules.airsim.airsim_tools as airsim_tools
+
 sys.path.append("./")
 import caviar_config
-
 from calc_rescues import get_time_for_rescue
 
 rng = np.random.default_rng(caviar_config.random_seed)
@@ -29,8 +29,9 @@ def convertPositionFromAirSimToSionna(x, y, z):
 
 ################################################################################
 
-from caviar_yolo import cfg, device, model, post_proccess, transform
 from yolo import draw_bboxes
+
+from caviar_yolo import cfg, device, model, post_proccess, transform
 
 is_sync = caviar_config.is_sync  # sync(true)/async(false)
 is_rescue_mission = caviar_config.is_rescue_mission
