@@ -3,7 +3,7 @@ import os
 import threading
 from pathlib import Path
 
-from .asynchronous import Async
+from .asynchronous import Async, Scheduler
 from .handler import handler
 from .logger import LOGGER, logging
 from .module import module
@@ -24,27 +24,22 @@ class core:
     It handles all the actions in the simulation.
     """
 
-    __scheduler = None
-    __orders = None
-    __enable = None
-    __dependencies = None
-    __imported_modules = None
-    __dir = None
-    __settings = None
-    __allowed_messages = None
+    __scheduler: Scheduler = None  #!< The scheduler object
+    __orders: dict = {}  #!< The order of initialization of the modules
+    __enable: dict = {}  #!< The enabled modules
+    __dependencies: dict = {}  #!< The dependencies of all the modules
+    __imported_modules: dict = {}  #!< The imported modules
+    __dir: str = ""  #!< The root directory of the project
+    __settings: dict = {}  #!< The settings from the config.json file
+    __allowed_messages: dict = {}  #!< The allowed messages for the NATS orchestrator
 
     @handler.exception_handler
     def __init__(self):
         """
         Constructor that initializes the Core object.
         """
-        self.__orders = {}
-        self.__enable = {}
-        self.__dependencies = {}
-        self.__imported_modules = {}
         self.__dir = Path(__file__).resolve().parent
         self.__load_json()
-        self.__allowed_messages = {}
         handler.register_signals()
 
     @handler.exception_handler
