@@ -3,8 +3,10 @@ import json
 
 import nats as Nats
 
-from .logger import LOGGER
+from .logger import LOGGER, logging
 from .process import PROCESS, subprocess
+
+logging.getLogger("nats").setLevel(logging.CRITICAL)  # Suppress NATS logs
 
 
 class nats:
@@ -14,7 +16,7 @@ class nats:
     """
 
     __clients = {}
-    __allowed_messages = []
+    __allowed_messages = {}
     """
     All the NATS clients object.
     """
@@ -108,7 +110,21 @@ class nats:
         LOGGER.debug(
             f"Checking message: {message} for {module_name} in {self.__allowed_messages[module_name]}"
         )
-        return set(message.keys()) == set(self.__allowed_messages[module_name])
+        if module_name not in self.__allowed_messages:
+            LOGGER.debug(
+                f"Module {module_name} not in allowed messages: {self.__allowed_messages}"
+            )
+            return False
+        else:
+            for key in message.keys():
+                message_keys = set(message[key].keys())
+                allowed_keys = set(self.__allowed_messages[module_name][key])
+                if not message_keys.issubset(allowed_keys):
+                    LOGGER.debug(
+                        f"Key {key} not in allowed messages: {self.__allowed_messages[module_name][key]}"
+                    )
+                    return False
+        return True
 
     async def init_subscription(self, callback, module_name=""):
         """
@@ -147,24 +163,38 @@ class nats:
             await client.close()
         pass
 
-    def allowed_messages(self, messages):
+    def allowed_messages(self, messages: dict):
         """
         This method sets the allowed messages for each module.
         So:
 
         module_name: [message_format1, message_format2, message_format3]
 
-        @param messages: The messages to be allowed.
+        @param messages: The expected messages for each module.
         """
         LOGGER.debug(f"Setting allowed messages: {messages}")
         self.__allowed_messages = messages
 
     async def multicast(self, references, message=""):
+        """
+        This method multicasts a message to all the references.
+        The multicast is done by sending the message to all the subjects
+        that are in the references list.
+        The subjects are in the format kernel.<reference>.
+        The multicast will perform concurrently the send to all the references.
+        This is done by using asyncio.gather to execute the send in parallel.
+
+        @param references: The references to be sent.
+        @param message: The message to be sent.
+        """
         nc = await Nats.connect()
         LOGGER.debug(f"Multicasting to {references}")
         subjects = [f"kernel.{reference}" for reference in references]
         if not message:
             message = b"\00"
+        """
+        Executes it in parallel, almost in the same time (concurrently)
+        """
         await asyncio.gather(*(nc.publish(subj, message) for subj in subjects))
         await nc.drain()
 
