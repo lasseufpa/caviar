@@ -1,8 +1,6 @@
 import asyncio
-import json
 import os
 from abc import ABC, abstractmethod
-from pathlib import Path
 
 from .handler import handler
 from .logger import LOGGER
