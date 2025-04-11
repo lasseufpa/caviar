@@ -1,9 +1,10 @@
 import os
 import signal
 import subprocess
-import time
+from multiprocessing import (Lock, Manager, Pipe, Process, Queue,
+                             active_children)
 
-from multiprocessing import Lock, Manager, Pipe, Process, Queue, active_children
+import psutil
 
 from .logger import LOGGER
 
@@ -46,19 +47,20 @@ class process(Process):
         @param wait: Whether to wait for the process to finish
         """
 
-        from .handler import (
-            handler,
-        )  # __Really ugly__ import to avoid circular dependency
+        from .handler import \
+            handler  # __Really ugly__ import to avoid circular dependency
 
-        #
         @handler.subprocess_handler
         def __run(command, *args):
             """
             Simple alias function to avoid missuse of SIGTERMs and SIGINTS in multiple subprocess.
             """
             LOGGER.debug(f"Subprocess ___{os.getpid()}___ created")
-            signal.signal(signal.SIGTERM, signal.SIG_IGN)
-            signal.signal(signal.SIGINT, signal.SIG_IGN)
+            signal.signal(signal.SIGTERM, signal.default_int_handler)
+            signal.signal(signal.SIGINT, signal.default_int_handler)
+            signal.signal(
+                signal.SIGCHLD, signal.SIG_IGN
+            )  # Ignore SIGCHLD signal since only the main thread/process must handle it
             command(*args)
 
         # assert self.__check_errors() # Perhaps, add this check function
@@ -68,7 +70,6 @@ class process(Process):
             if not process_name:
                 process_name = command.__name__
             process = Process(target=__run, args=(command, *args), name=process_name)
-            # process = Process(target=command, args=args, name=command.__name__)
             self.processes.append(process)
             process.start()
             if wait:
@@ -91,7 +92,7 @@ class process(Process):
         if not self.processes:
             return
         while self.processes:
-            process = self.processes.pop()
+            process = self.processes.pop(0)
             self.__kill_process(process)
 
     def __kill_process(self, process):
@@ -100,15 +101,8 @@ class process(Process):
 
         @param process: The process to be killed
         """
-        LOGGER.debug(f"Killing process: {process}")
-        # pid, status = os.waitpid(-1, os.WNOHANG)
-        process.kill()
-        if isinstance(process, Process):
-            # Ensure is a child process
-            if process._parent_pid == os.getpid():
-                process.join()
-        else:
-            process.wait()
+        # Kill childreen processes first; To be honest, maybe using terminate here is better, since kill can produce zombie processes
+        os.killpg(os.getpgid(process.pid), signal.SIGKILL)
 
     def __get_process_by_name(self, name):
         """
