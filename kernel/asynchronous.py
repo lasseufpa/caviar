@@ -9,18 +9,25 @@ from .substep import Substep
 class Async(Scheduler):
     """
     This class represents the asynchronous simulation.
+    In a asynchronous simulation, the modules are executed in
+    parallel where all are encapsulated in a substep, and consequently in a step.
+    Since, the message passing is done in a asynchronous way, the modules will always
+    execute with (t-1) messages.
+
     +---------+
-    | Step 1 |
+    | Step 1
     | +-----+
     | | s1  |
     | +-----+
     | +-----+
-    | | s2x |
+    | | s2  |
     | +-----+
     | +-----+
-    | | s3x |
+    | | s3  |
     | +-----+
     +---------+
+
+
     """
 
     __allowed_substeps = []
