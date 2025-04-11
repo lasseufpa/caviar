@@ -102,6 +102,7 @@ class handler:
         """
         This decorator handles exceptions (errors) in async functions.
         """
+
         @wraps(func)
         async def wrapper(*args, **kwargs):
             try:
@@ -110,6 +111,7 @@ class handler:
                 LOGGER.error(f"An error occurred in {func.__name__}: {e}")
                 handler.__destroy()
                 sys.exit(1)
+
         return wrapper
 
     @staticmethod
