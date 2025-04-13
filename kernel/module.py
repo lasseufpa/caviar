@@ -2,6 +2,7 @@ import asyncio
 import os
 from abc import ABC, abstractmethod
 
+from .buffer import Buffer
 from .handler import handler
 from .logger import LOGGER
 from .nats import NATS
@@ -24,7 +25,7 @@ class module(ABC):
         LOGGER.debug(
             f"Module {self.__class__.__name__} created with instance ID: {id(self)}"
         )
-        pass
+        self.buffer = Buffer(100)  # !< Buffer of the module (using size equal to 100)
 
     @abstractmethod
     def _do_init(self):
@@ -97,6 +98,8 @@ class module(ABC):
             f"Module {self.__class__.__name__} received message: {msg} in subprocess {os.getpid()}"
         )
         PROCESS.QUEUE.put([self.__class__.__name__, True])
+        self.buffer.add(msg)
+        # @TODO: I think callback shouldn't be available to user...
         await self._callback(msg)
 
     @abstractmethod
