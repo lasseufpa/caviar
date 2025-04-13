@@ -1,3 +1,4 @@
+import glob
 import json
 import os
 import threading
@@ -9,12 +10,10 @@ from .logger import LOGGER, logging
 from .module import module
 from .nats import NATS
 from .process import PROCESS
-from .setup import setup
 
 # from .synchronous import Sync
 
 CONFIG_PATH = ".config/config.json"
-SETUP = setup()
 
 
 class core:
@@ -29,9 +28,10 @@ class core:
     __enable: dict = {}  #!< The enabled modules
     __dependencies: dict = {}  #!< The dependencies of all the modules
     __imported_modules: dict = {}  #!< The imported modules
-    __dir: str = ""  #!< The root directory of the project
+    __dir: Path = ""  #!< The root directory of the project
     __settings: dict = {}  #!< The settings from the config.json file
     __allowed_messages: dict = {}  #!< The allowed messages for the NATS orchestrator
+    __modules: dict = {}  #!< The modules to be used in the co-simulation
 
     @handler.exception_handler
     def __init__(self):
@@ -57,8 +57,15 @@ class core:
         the module names and the order of initialization in the core object.
         """
         LOGGER.debug(f"Updating modules")
-        SETUP.update_modules(root_dir=self.__dir)
-        self.__load_json()
+
+        module_paths = glob.glob(
+            str(self.__dir.parent / "modules/*/.config/config.json")
+        )  # Assuming all modules are in modules dir
+        for path in module_paths:
+            with open(path, "r") as file:
+                module_config = json.load(file)
+                module_name = module_config["module"]["name"]
+                self.__modules[module_name] = module_config["module"]
         self.module_names = self.__check_correct_format()
 
     @handler.exception_handler
@@ -79,7 +86,7 @@ class core:
         @return: The modules configuration from the config.json file.
         """
         LOGGER.debug(f"Getting modules")
-        return self.__settings["modules"]
+        return self.__modules
 
     @handler.exception_handler
     def __update_logger(self):
@@ -109,7 +116,8 @@ class core:
         """
         LOGGER.debug(f"Checking the modules")
         self.__check_modules()
-        self.__check_inter_module_circular_dependencies()
+        if isinstance(self.__scheduler, Async):
+            self.__check_inter_module_circular_dependencies()  # This should be checked only if the scheduler is async
         # @TODO: Perhaps add other checkups here?
 
     @handler.exception_handler
@@ -123,7 +131,7 @@ class core:
         path = self.__dir.parent / "modules/"
         available_modules = {filename.lower() for filename in os.listdir(path)}
 
-        for _, module_info in self.__settings["modules"].items():
+        for _, module_info in self.__modules.items():
             enabled = module_info.get("enabled", True)
             if not isinstance(enabled, bool):
                 raise ValueError("The 'enabled' field must be a boolean")
@@ -153,10 +161,8 @@ class core:
                             raise ValueError(
                                 f"{dependency} can't be dependent on itself"
                             )
-                        if (
-                            not self.__settings["modules"]
-                            .get(dependency_lower, {})
-                            .get("enabled", True)
+                        if not self.__modules.get(dependency_lower, {}).get(
+                            "enabled", True
                         ):
                             raise ValueError(
                                 f"{dependency} is not enabled, can't be dependent on a not enabled module"
@@ -185,9 +191,10 @@ class core:
         """
         LOGGER.debug(f"Starting...")
         self.__update_logger()
-        self.__update_modules()
         LOGGER.debug(f"Updating synchronization and clock")
         self.__set_scheduler()
+        # self.__set_manager()
+        self.__update_modules()
         self.__thread(func=self.__init_nats)
 
         """
@@ -211,7 +218,7 @@ class core:
         """
         This method sets the scheduler for the simulation.
         """
-        s_type, t_type = SETUP.update_sync(config_path=self.__dir / CONFIG_PATH)
+        s_type, t_type = self.__update_sync()
         LOGGER.debug(f"Configured as Time: {t_type}, Sync: {s_type}")
         if s_type.lower() == "async":
             self.__scheduler = Async()
@@ -258,6 +265,16 @@ class core:
             name=module_name,
         )
 
+    '''
+    @handler.exception_handler
+    def __set_manager(self):
+        """
+        This method sets the manager for the simulation.
+        """
+        LOGGER.debug(f"Setting buffer manager")
+        self.__manager = BufferManager()
+    '''
+
     @handler.exception_handler
     def __update_order(self, name, order):
         """
@@ -297,4 +314,20 @@ class core:
                             f"Circular dependency between {module_name} and {dep}"
                         )
 
-        pass
+    @handler.exception_handler
+    def __update_sync(self):
+        """
+        This method updates the synchronization and clock of the scheduler.
+
+        __Syncronization__:
+        * SYNC: In this case, the events are scheduled based on a sequence queue, where the third module only starts after the first and second modules have finished.
+        * ASYNC: In this case, the events are scheduled based on a independent queue, where the third module can start at any time, since the necessary information is available.
+
+        __Clock__:
+        * Virtual-time: In this case, the events are scheduled based on a virtual time, where the time is controlled by the simulation.
+        * Real-time: In this case, the events are scheduled based on the real time, where the time is controlled by the system clock.
+
+        """
+        sync_type = str(self.__settings["scheduler"]["type"])
+        time_type = str(self.__settings["scheduler"]["time"])
+        return sync_type, time_type
