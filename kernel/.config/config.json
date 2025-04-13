@@ -12,50 +12,5 @@
             "host": "nats://localhost:4222",
             "port": 4222
         }
-    },
-    "modules": {
-        "street_canyon": {
-            "name": "street_canyon",
-            "id": "3D",
-            "enabled": false,
-            "dependency": {},
-            "order": 0
-        },
-        "beach_street": {
-            "name": "beach_street",
-            "id": "3D",
-            "enabled": false,
-            "dependency": {},
-            "order": 0
-        },
-        "rural": {
-            "name": "rural",
-            "id": "3D",
-            "enabled": true,
-            "order": 0
-        },
-        "airsim": {
-            "name": "airsim",
-            "id": "mobility",
-            "enabled": true,
-            "dependency": {},
-            "order": 1
-        },
-        "sionna": {
-            "name": "sionna",
-            "id": "communication",
-            "enabled": true,
-            "dependency": {
-                "mobility": {
-                    "airsim": [
-                        "x-pos",
-                        "y-pos",
-                        "z-pos",
-                        "speed"
-                    ]
-                }
-            },
-            "order": 2
-        }
     }
 }
