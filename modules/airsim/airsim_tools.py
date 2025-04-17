@@ -39,11 +39,12 @@ class AirSimTools:
             self.client.enableApiControl(True)
             self.client.armDisarm(True)
             self.client.takeoffAsync().join()
-    '''
+
+    """
     def airsim_takeoff_all(self, client):
         for uav in caviar_config.drone_ids:
             airsim(client, uav)
-    '''
+    """
 
     def airsim_reset(self, client):
         client.reset()
@@ -55,33 +56,44 @@ class AirSimTools:
         else:
             client.armDisarm(False, uav_id)
         client.enableApiControl(False, uav_id)
-    '''
+
+    """
     def airsim_land_all(self, client):
         for uav in caviar_config.drone_ids:
             self.airsim_land(client, uav)
-    '''
+    """
 
-    def move_on_path(self, client, uav, path, speed=5):
+    def move_on_path(self, paths: list, speed=5):
         path_list = []
+        for path in paths:
+            path_list.append(
+                airsim.Vector3r(float(path[0]), float(path[1]), float(path[2]))
+            )
 
-        with open(path) as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=",")
-            csv_reader.__next__()
-
-            for row in csv_reader:
-                path_list.append(
-                    airsim.Vector3r(float(row[0]), float(row[1]), float(row[2]))
-                )
-
-        client.enableApiControl(True, uav)
-        client.moveOnPathAsync(
+        self.client.enableApiControl(True)
+        time.sleep(
+            0.5
+        )  # @TODO: I don't know why but drone only works after adding this delay
+        self.client.moveOnPathAsync(
             path_list,
             speed,
             3e38,
             airsim.DrivetrainType.ForwardOnly,
             airsim.YawMode(False, 0),
-            vehicle_name=uav,
+            # vehicle_name=uav,
         )
+
+    def pause(self):
+        """
+        Pauses the execution for a specified time.
+        """
+        self.client.simPause(True)
+
+    def resume(self):
+        """
+        Resumes the execution
+        """
+        self.client.simPause(False)
 
     def info_csv(self, user_id, episode):
         with open("./episodes/ep{}.csv".format(episode)) as cs:
@@ -133,14 +145,14 @@ class AirSimTools:
         ).kinematics_estimated.position.to_numpy_array()
         return coordinates
 
-    '''
+    """
     def airsim_getpose_offset(self, client, uav_id):
         coordinates = client.getMultirotorState(
             vehicle_name=uav_id
         ).kinematics_estimated.position.to_numpy_array()
         coordinates_offset = np.add(coordinates, caviar_config.initial_pose_offset)
         return coordinates_offset
-    '''
+    """
 
     def airsim_getorientation(self, client, uav_id):
         orientation = client.getMultirotorState(
@@ -160,9 +172,9 @@ class AirSimTools:
         ).kinematics_estimated.angular_velocity.to_numpy_array()
         return vel
 
-    def airsim_getlinearacc(self, client, uav_id):
-        acc = client.getMultirotorState(
-            vehicle_name=uav_id
+    def airsim_getlinearacc(self):  # , uav_id
+        acc = self.client.getMultirotorState(
+            # vehicle_name=uav_id
         ).kinematics_estimated.linear_acceleration.to_numpy_array()
         return acc
 
@@ -184,7 +196,7 @@ class AirSimTools:
         ).collision.has_collided
         return collision
 
-    def is_drone_moving(self, threshold=0.5):
+    def is_drone_moving(self, threshold=0.15):
         """
         Checks if the drone is moving by analyzing its linear velocity.
 
@@ -200,9 +212,16 @@ class AirSimTools:
         return speed > threshold
 
     def airsim_setpose(
-        self, client, uav_id, x, y, z, orien_x, orien_y, orien_z, orien_w
+        self,
+        x,
+        y,
+        z,
+        orien_x=0,
+        orien_y=0,
+        orien_z=0,
+        orien_w=0,  # uav_id,
     ):
-        success = client.simSetVehiclePose(
+        success = self.client.simSetVehiclePose(
             airsim.Pose(
                 airsim.Vector3r(x, y, z),
                 airsim.Quaternionr(
@@ -210,11 +229,11 @@ class AirSimTools:
                 ),
             ),
             True,
-            vehicle_name=uav_id,
+            # vehicle_name=uav_id,
         )
         return success
 
-    '''
+    """
     def airsim_setpose_offset(
         self, client, uav_id, x, y, z, orien_x, orien_y, orien_z, orien_w
     ):
@@ -232,7 +251,7 @@ class AirSimTools:
             vehicle_name=uav_id,
         )
         return success
-    '''
+    """
 
     def unreal_getpose(self, client, obj_id):
         coordinates = client.simGetObjectPose(obj_id).position.to_numpy_array()
@@ -291,7 +310,7 @@ class AirSimTools:
         )
         return success
 
-    '''
+    """
     def airsim_save_images(self, client, record_path="./"):
         for uav in caviar_config.drone_ids:
             png_image = client.simGetImage(
@@ -365,7 +384,7 @@ class AirSimTools:
                     os.path.normpath(record_file),
                     png_image,
                 )
-    '''
+    """
 
     def airsim_getimages(self, client, uav_id):
         image = client.simGetImage(0, airsim.ImageType.Scene, vehicle_name=uav_id)
@@ -385,8 +404,8 @@ class AirSimTools:
                     count += 1
             episode_file.close()
         return count
-    
-    '''
+
+    """
     def addPedestriansOnPath(self, client, path):
         path_list = []
 
@@ -411,4 +430,4 @@ class AirSimTools:
                 client.simSetObjectScale(
                     caviar_config.pedestrians[i], airsim.Vector3r(3, 3, 3)
                 )
-    '''
+    """
