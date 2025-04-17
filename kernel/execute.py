@@ -6,7 +6,7 @@ from .nats import NATS
 
 class ExecuteStep:
     """
-    This class is responsible for executing the step of the simulation.
+    This static class is responsible for executing the step of the simulation.
     """
 
     def __init__(self, step):
