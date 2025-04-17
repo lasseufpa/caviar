@@ -12,6 +12,9 @@ class process(Process):
 
     @TODO: Check if it is necessary to be a subclass of Process. Because this class is not being used as a _Process_ subclass.
     We are using the _process_ module to `create` and `manage` processes.
+
+    ALSO, WE SHOULD HAVE ONLY ONE PROCESS VARIABLE (EITHER PROCESSES:LIST OR PROCESS:DICT), THE CODE NOW IS REALLY UGLY
+    BECAUSE OF THIS.
     """
 
     QUEUE = Queue()
@@ -25,11 +28,13 @@ class process(Process):
         # super().__init__(*args, **kwargs)
         self._parent_conn, self._child_conn = Pipe()
         self.processes = []
+        self.process_names = {}
 
     def create_process(
         self,
         command,
         *args,
+        stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         wait=False,
@@ -39,9 +44,12 @@ class process(Process):
         This method creates a new shell or python process.
 
         @param command: The command to be executed
+        @param args: The arguments to be passed to the command (in case use a python Process)
+        @param stdin: The stdin of the process
         @param stdout: The stdout of the process
         @param stderr: The stderr of the process
         @param wait: Whether to wait for the process to finish
+        @param process_name: The name of the process
         """
 
         from .handler import (
@@ -69,6 +77,7 @@ class process(Process):
                 process_name = command.__name__
             process = Process(target=__run, args=(command, *args), name=process_name)
             self.processes.append(process)
+            self.process_names[process_name] = process
             process.start()
             if wait:
                 LOGGER.debug(f"Waiting for process: {process} using _parent_conn")
@@ -78,8 +87,11 @@ class process(Process):
             LOGGER.debug(
                 f"Creating process: {command} with stdout={stdout} and stderr={stderr}"
             )
-            process = subprocess.Popen(command, stdout=stdout, stderr=stderr)
+            process = subprocess.Popen(
+                command, stdin=stdin, stdout=stdout, stderr=stderr
+            )
             self.processes.append(process)
+            self.process_names[process_name] = process
             if wait:
                 process.wait()
 
@@ -99,19 +111,17 @@ class process(Process):
 
         @param process: The process to be killed
         """
-        # Kill childreen processes first; To be honest, maybe using terminate here is better, since kill can produce zombie processes
+        # Kill all processes; To be honest, perhaps use terminate here is better, since kill can produce zombie processes
         os.killpg(os.getpgid(process.pid), signal.SIGKILL)
 
-    def __get_process_by_name(self, name):
+    def get_process_by_name(self, name: str):
         """
         This method retrieves the (sub)process given a name
 
         @param name: The name of the process
+        @return: The process object, or None if not found
         """
-        for process in active_children():
-            if process.name.lower() == name.lower():
-                LOGGER.debug(f"Accessing (sub)process {process}")
-                return process
+        return self.process_names.get(name, None)
 
     def check_state(self):
         """
