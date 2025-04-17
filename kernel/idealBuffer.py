@@ -11,7 +11,9 @@ class IdealBuffer(Buffer):
     never be blocked by the previous items. This is achieved by
     performing a granularity check before adding other item to the buffer.
 
-    In the Ideal buffer, it is assumed that the data is correlated
+    In the _Ideal_ buffer, it is assumed that the data is correlated in TIME
+    and not exactly in space. I.e., the buffer performs
+
     """
 
     __cursor: int = (
@@ -126,9 +128,10 @@ class IdealBuffer(Buffer):
         @param N_max: The maximum number of windows
         @return: The number of windows
         """
-        intervals = np.diff(
-            [item[1] for item in list(self.buffer.queue)[self.__cursor :]]
-        )  / 1e9 # Get intervals only in non-processed data
+        intervals = (
+            np.diff([item[1] for item in list(self.buffer.queue)[self.__cursor :]])
+            / 1e9
+        )  # Get intervals only in non-processed data
         mean_grn = np.mean(intervals)
         ref_grn = np.median(intervals)
         n_windows = int(k * ref_grn / mean_grn)
