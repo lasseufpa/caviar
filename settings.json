@@ -1,5 +1,24 @@
 {
   "SeeDocsAt": "https://github.com/Microsoft/AirSim/blob/main/docs/settings.md",
+  "SimMode": "Multirotor",
   "SettingsVersion": 1.2,
-  "SimMode": "Multirotor"
+  "Vehicles": {
+    "uav1": {
+      "VehicleType": "SimpleFlight",
+      "AutoCreate": true,
+      "Cameras": {
+        "front_center": {
+          "CaptureSettings": [
+            {
+              "ImageType": 0,
+              "Width": 256, 
+              "Height": 144
+            }
+          ],
+          "X": 0.5, "Y": 0, "Z": -0.1,
+          "Pitch": 0, "Roll": 0, "Yaw": 0
+        }
+        }
+      }
+    }
 }
