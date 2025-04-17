@@ -76,7 +76,7 @@ class Async(Scheduler):
         self.__check__allowance()
         if self.__allowed_substeps:
             self._encapsulate()
-            LOGGER.info(f"Allowed to walk {self.__allowed_substeps}")
+            LOGGER.debug(f"Allowed to walk {self.__allowed_substeps}")
             ExecuteStep(self.__encapsulated)
             self.__clean__allowed_substeps()
 
