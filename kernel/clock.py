@@ -1,0 +1,20 @@
+import time
+
+
+class Clock:
+    """
+    Clock class that handles the simulation time.
+    """
+
+    def __init__(self):
+        """
+        Constructor that initializes the Clock object.
+        """
+        self._start_time = 0
+        self.__time_stamp = 0.1
+
+    def get_step_time(self):
+        """
+        This method returns the time stamp of the simulation.
+        """
+        return self.__time_stamp
