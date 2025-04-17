@@ -25,7 +25,9 @@ class module(ABC):
         LOGGER.debug(
             f"Module {self.__class__.__name__} created with instance ID: {id(self)}"
         )
-        self.buffer = Buffer(100)  # !< Buffer of the module (using size equal to 100)
+        self.buffer: Buffer = Buffer(
+            100
+        )  # !< Buffer of the module (using size equal to 100 as default)
 
     @abstractmethod
     def _do_init(self):
@@ -45,6 +47,7 @@ class module(ABC):
         """
         pass
 
+    @handler.async_exception_handler
     async def __execute_step(self):
         """
         This method executes the module's step.
@@ -98,14 +101,21 @@ class module(ABC):
             f"Module {self.__class__.__name__} received message: {msg} in subprocess {os.getpid()}"
         )
         PROCESS.QUEUE.put([self.__class__.__name__, True])
-        self.buffer.add(msg)
-        # @TODO: I think callback shouldn't be available to user...
-        await self._callback(msg)
+        self.buffer.add(self.__transform_to_buffer_item(msg))
 
-    @abstractmethod
-    async def _callback(self, msg):
+    def __transform_to_buffer_item(self, msg):
         """
-        This method is the callback for the subscription.
-        Here, the user can define the behavior of the module when a message is received.
+        This method transforms the message to a buffer item.
+
+        item is only the parameters of the message, without the _header_.
+        The item is a list.
+
+        @param msg: The message to be transformed.
+        @return: The transformed message.
+
+        @TODO: MAKE THIS ROBUST or crash the system if the message is not in the expected format.
         """
-        pass
+        if not isinstance(msg, list):
+            raise TypeError(f"Message is not a list. It is {type(msg)}")
+        if isinstance(msg[1], dict):
+            return list(list(msg[1].values())[0].values())
