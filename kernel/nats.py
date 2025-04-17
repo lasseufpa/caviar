@@ -55,12 +55,14 @@ class nats:
             stderr = subprocess.DEVNULL
         elif self.verbose:
             command.append("-DV")
-        PROCESS.create_process(command, stdout=stdout, stderr=stderr)
+        PROCESS.create_process(
+            command, stdout=stdout, stderr=stderr, process_name="nats"
+        )
 
     def receive(self):
         pass
 
-    def decode(self, msg, module_name=""):
+    def decode(self, msg, module_name: str = ""):
         """
         This method decodes a message received from the NATS server.
 
@@ -75,7 +77,7 @@ class nats:
         Here, always use JSON to serialize the message."""
         return json.dumps(msg).encode()
 
-    def __decode(self, msg, module_name):
+    def __decode(self, msg, module_name: str):
         """
         Basically, __decodes to retrieve the deserialized information, in format:
         [subject, message]. It also checks if the message is valid.
