@@ -1,6 +1,7 @@
 import time
 from abc import ABC, abstractmethod
 
+from .clock import Clock
 from .handler import handler
 from .logger import LOGGER
 
@@ -10,8 +11,9 @@ class Scheduler(ABC):
     This class represents the scheduler for the simulation.
     """
 
-    _event = 0
-    _modules = None
+    _event = 0  # !< The event id of the simulation.
+    _modules = None  # !< The enabled modules of the simulation.
+    __clock = Clock()  # !< Clock object
     """The enabled modules of the simulation."""
 
     def __init__(self):
@@ -53,9 +55,7 @@ class Scheduler(ABC):
         while True:
             LOGGER.debug(f"Event_id: {self._event}")
             self._execute_step()
-            # self.__wait(0.1)
-            # if self._stop_condition():
-            #    break
+            self.__wait(self.__clock.get_step_time())
             self._event += 1
 
     # @handler.exception_handler
