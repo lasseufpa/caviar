@@ -51,9 +51,7 @@ class AirSimTools:
 
     def airsim_land(self, client, uav_id):
         landed = client.getMultirotorState(vehicle_name=uav_id).landed_state
-        if landed == airsim.LandedState.Landed:
-            print("already landed...")
-        else:
+        if not landed == airsim.LandedState.Landed:
             client.armDisarm(False, uav_id)
         client.enableApiControl(False, uav_id)
 
@@ -94,6 +92,12 @@ class AirSimTools:
         Resumes the execution
         """
         self.client.simPause(False)
+
+    def isPaused(self):
+        """
+        Checks if the simulation is paused.
+        """
+        return self.client.simIsPause()
 
     def info_csv(self, user_id, episode):
         with open("./episodes/ep{}.csv".format(episode)) as cs:

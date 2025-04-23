@@ -32,6 +32,20 @@ class airsim(module):
     """
     The path that the drone will follow.
     """
+    RESOLUTION = {
+        "144p": [256, 144],
+        "240p": [426, 240],
+        "360p": [640, 360],
+        "480p": [854, 480],
+        "720p": [1280, 720],
+        "1080p": [1920, 1080],
+        "1440p": [2560, 1440],
+        "2160p": [3840, 2160],
+        "4320p": [7680, 4320],
+    }
+    """
+    The resolution of the video stream.
+    """
 
     def _do_init(self):
         """
@@ -43,7 +57,12 @@ class airsim(module):
         HELPER.airsim_setpose(x=-320.34, y=-206.58, z=135)
         HELPER.airsim_takeoff()
         HELPER.move_on_path(paths=self.PATH, speed=0.80)  # speed = 0.8 m/s
+        HELPER.pause()  # Pause the simulation and resume only in __execute_step
 
+        """
+        Prepare here the ffmpeg process to stream the drone
+        video streaming. First, start the mediamtx server.
+        """
         # Start media MTX server
         mtx = os.path.dirname(os.path.realpath(__file__)) + "/mediamtx/mediamtx"
         mtx_conf = (
@@ -53,6 +72,9 @@ class airsim(module):
         PROCESS.create_process(args, wait=False, process_name="mediamtx")
 
         # Start ffmpeg process to stream video
+        resolution = (
+            str(self.RESOLUTION["144p"][0]) + "x" + str(self.RESOLUTION["144p"][1])
+        )
         ffmpeg_command = [
             "ffmpeg",
             "-probesize",
@@ -62,7 +84,7 @@ class airsim(module):
             "-framerate",
             "10",
             "-video_size",
-            "256x144",
+            resolution,
             "-f",
             "rawvideo",
             "-pix_fmt",
@@ -91,6 +113,9 @@ class airsim(module):
         """
         This method executes the AirSim step.
         """
+        if HELPER.isPaused():
+            HELPER.resume()
+
         LOGGER.debug(f"AirSim Execute Step")
         # HELPER.resume()
         pose = HELPER.airsim_getpose()
@@ -104,15 +129,14 @@ class airsim(module):
             "z-pos": float(pose[2]),
             "speed": 5.0,
         }
+        # Send the message to ns-3 and sionna
         await NATS.send(self.__class__.__name__, message, "sionna")
-        # HELPER.pause()
-
+        await NATS.send(self.__class__.__name__, message, "ns3")
         responses = HELPER.client.simGetImages(
             [ARS.ImageRequest(0, ARS.ImageType.Scene, False, False)]
         )  # raw bytes
         if len(responses):
             image_response = responses[0]
-            # TODO: MAYBE SEND THESE BYTES TO ns-3, since the transmission will occur in ns-3 block
             image_bytes = image_response.image_data_uint8
             self.ffmpeg_process.stdin.write(image_bytes)
             self.ffmpeg_process.stdin.flush()
