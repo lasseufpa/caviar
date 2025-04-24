@@ -39,6 +39,8 @@ class process(Process):
         stderr=subprocess.PIPE,
         wait=False,
         process_name="",
+        cwd=None,
+        preexec_fnction=None,
     ):
         """
         This method creates a new shell or python process.
@@ -88,7 +90,7 @@ class process(Process):
                 f"Creating process: {command} with stdout={stdout} and stderr={stderr}"
             )
             process = subprocess.Popen(
-                command, stdin=stdin, stdout=stdout, stderr=stderr
+                command, stdin=stdin, stdout=stdout, stderr=stderr, cwd=cwd, preexec_fn=preexec_fnction
             )
             self.processes.append(process)
             self.process_names[process_name] = process
