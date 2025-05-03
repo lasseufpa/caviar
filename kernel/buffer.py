@@ -48,7 +48,7 @@ class Buffer(ABC):
             f"Buffer granularity: {self.grn} samples per second, buffer size: {len(queue_list)}"
         )
 
-    def _add(self, item):
+    def add(self, item):
         """
         Add an item to the buffer. If the buffer is full, remove the oldest item.
 
