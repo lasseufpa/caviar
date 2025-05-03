@@ -1,5 +1,6 @@
 import asyncio
 import os
+import time
 from abc import ABC, abstractmethod
 
 from .buffer import Buffer
@@ -26,8 +27,9 @@ class module(ABC):
             f"Module {self.__class__.__name__} created with instance ID: {id(self)}"
         )
         self.buffer: Buffer = Buffer(
-            100
+            10000
         )  # !< Buffer of the module (using size equal to 100 as default)
+        self._lock = asyncio.Lock()
 
     @abstractmethod
     def _do_init(self):
@@ -95,27 +97,13 @@ class module(ABC):
         """
         msg = NATS.decode(msg, self.__class__.__name__)
         if msg is None:
-            await self.__execute_step()
+            async with self._lock:
+                await self.__execute_step()
             return
         LOGGER.debug(
             f"Module {self.__class__.__name__} received message: {msg} in subprocess {os.getpid()}"
         )
-        PROCESS.QUEUE.put([self.__class__.__name__, True])
-        self.buffer.add(self.__transform_to_buffer_item(msg))
-
-    def __transform_to_buffer_item(self, msg):
-        """
-        This method transforms the message to a buffer item.
-
-        item is only the parameters of the message, without the _header_.
-        The item is a list.
-
-        @param msg: The message to be transformed.
-        @return: The transformed message.
-
-        @TODO: MAKE THIS ROBUST or crash the system if the message is not in the expected format.
-        """
-        if not isinstance(msg, list):
-            raise TypeError(f"Message is not a list. It is {type(msg)}")
-        if isinstance(msg[1], dict):
-            return list(list(msg[1].values())[0].values())
+        self.buffer.add(msg)
+        PROCESS.QUEUE.put(
+            [self.__class__.__name__, True]
+        )  # Notify the orchestrator that the module is ready to execute the step
