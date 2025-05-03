@@ -23,6 +23,7 @@ class IdealBuffer(Buffer):
 
     def __init__(self, size: int):
         """
+        @TODO: Maybe it should be a personalized sionna buffer.
         Constructor that initializes the buffer object.
         """
         super().__init__(size)
@@ -38,6 +39,8 @@ class IdealBuffer(Buffer):
         element in the buffer. The similarity is defined by the Euclidian
         distance between the last element in the buffer and the new item.
         """
+        item = self.__transform_to_buffer_item(item)
+        LOGGER.debug("Report buffer condition: %s", self.__len__())
         if self.is_full():
             self.dump()
 
@@ -51,7 +54,7 @@ class IdealBuffer(Buffer):
                     f"Item {item} is too similar to the last item {last_item}, ignoring it."
                 )
                 return
-        self._add(item)
+        super().add(item)
 
     def dump(self, epsilon=0.1, algorithm="iter"):
         """
@@ -92,11 +95,11 @@ class IdealBuffer(Buffer):
                 if i < n_windows - 1
                 else len(points)
             )
-            janela = points[start:end]
-            if len(janela) >= 2:
+            window = points[start:end]
+            if len(window) >= 2:
                 simplified.extend(
                     rdp.rdp(
-                        janela,
+                        window,
                         epsilon=epsilon,
                         algo=algorithm,
                         dist=nd_dist,
@@ -106,11 +109,11 @@ class IdealBuffer(Buffer):
         preserved = list(self.buffer.queue)[: self.__cursor]
         self.clean()
         for item in preserved:
-            self._add(item[0])
+            super().add(item[0])
         for item in simplified:
             if not is_2d:
                 item = item[0]
-            self._add(item)
+            super().add(item)
 
         self.__cursor = self.__len__()
 
@@ -138,3 +141,24 @@ class IdealBuffer(Buffer):
         n_windows = np.clip(n_windows, N_min, N_max)
         window_length = len(self.buffer.queue) // n_windows
         return n_windows, window_length
+
+    def __transform_to_buffer_item(self, msg):
+        """
+        This method transforms the message to a buffer item.
+
+        item is only the parameters of the message, without the _header_.
+        The item is a list.
+
+        @param msg: The message to be transformed.
+        @return: The transformed message.
+
+        @TODO: MAKE THIS ROBUST or crash the system if the message is not in the expected format.
+        """
+        if not isinstance(msg, list):
+            raise TypeError(f"Message is not a list. It is {type(msg)}")
+        if isinstance(msg[1], dict):
+            buffer_item = list(list(msg[1].values())[0].values())
+            return buffer_item
+
+    def fill(self):
+        pass
