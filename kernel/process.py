@@ -1,7 +1,8 @@
 import os
 import signal
 import subprocess
-from multiprocessing import Lock, Manager, Pipe, Process, Queue, active_children
+from multiprocessing import (Lock, Manager, Pipe, Process, Queue,
+                             active_children)
 
 from .logger import LOGGER
 
@@ -41,6 +42,7 @@ class process(Process):
         process_name="",
         cwd=None,
         preexec_fnction=None,
+        start_new_session=False,
     ):
         """
         This method creates a new shell or python process.
@@ -54,9 +56,8 @@ class process(Process):
         @param process_name: The name of the process
         """
 
-        from .handler import (
-            handler,
-        )  # __Really ugly__ import to avoid circular dependency
+        from .handler import \
+            handler  # __Really ugly__ import to avoid circular dependency
 
         @handler.subprocess_handler
         def __run(command, *args):
@@ -90,7 +91,13 @@ class process(Process):
                 f"Creating process: {command} with stdout={stdout} and stderr={stderr}"
             )
             process = subprocess.Popen(
-                command, stdin=stdin, stdout=stdout, stderr=stderr, cwd=cwd, preexec_fn=preexec_fnction
+                command,
+                stdin=stdin,
+                stdout=stdout,
+                stderr=stderr,
+                cwd=cwd,
+                preexec_fn=preexec_fnction,
+                start_new_session=start_new_session,  # , shell=True
             )
             self.processes.append(process)
             self.process_names[process_name] = process
@@ -138,6 +145,16 @@ class process(Process):
             if module_state[1]:
                 all_available_modules.append(module_state[0])
         return all_available_modules
+
+    def run_process(self):
+        """
+        This method runs a new process.
+        Its different from create_process, since it is not a subprocess.
+        But runs a new process in a 'blocking' mode. The finalization of the process
+        is _NOT_ done by the manager. It should be only used to run a simple process.
+        """
+        raise NotImplementedError("This method is not implemented yet.")
+        subprocess.run()
 
 
 PROCESS = process()
