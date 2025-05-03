@@ -26,7 +26,8 @@ class handler:
                 LOGGER.debug(f"Running {func.__name__}")
                 return func(*args, **kwargs)
             except Exception as e:
-                LOGGER.error(f"An error occurred in {func.__name__}: {e}")
+                class_name = type(args[0]).__name__ if args else "UnknownClass"
+                LOGGER.error(f"An error occurred in {class_name}.{func.__name__}: {e}")
                 handler.__destroy()
                 sys.exit(1)
 
@@ -108,7 +109,10 @@ class handler:
             try:
                 return await func(*args, **kwargs)
             except Exception as e:
-                LOGGER.error(f"An error occurred in {func.__name__}: {e}")
+                class_name = type(args[0]).__name__ if args else "UnknownClass"
+                LOGGER.error(
+                    f"An error occurred in {class_name.upper()}.{func.__name__}: {e}"
+                )
                 handler.__destroy()
                 sys.exit(1)
 
@@ -141,7 +145,8 @@ class handler:
                 LOGGER.debug(f"Running {func.__name__}")
                 return await func(*args, **kwargs)
             except Exception as e:
-                LOGGER.error(f"An error occurred in {func.__name__}: {e}")
+                class_name = type(args[0]).__name__ if args else "UnknownClass"
+                LOGGER.error(f"An error occurred in {class_name}.{func.__name__}: {e}")
                 # Since the callback possible errors will not occur in the main thread, we need to kill
                 # all the processes using the SIGTERM signal to avoid zombie processes.
                 os.kill(os.getpid(), signal.SIGTERM)
