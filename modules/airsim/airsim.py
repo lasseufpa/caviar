@@ -58,7 +58,7 @@ class airsim(module):
         HELPER.airsim_takeoff()
         HELPER.move_on_path(paths=self.PATH, speed=0.80)  # speed = 0.8 m/s
         HELPER.pause()  # Pause the simulation and resume only in __execute_step
-
+        self.index = 0
         """
         Prepare here the ffmpeg process to stream the drone
         video streaming. First, start the mediamtx server.
@@ -70,11 +70,9 @@ class airsim(module):
         )
         args = [mtx, mtx_conf]
         PROCESS.create_process(args, wait=False, process_name="mediamtx")
-
+        reso = "144p"
         # Start ffmpeg process to stream video
-        resolution = (
-            str(self.RESOLUTION["144p"][0]) + "x" + str(self.RESOLUTION["144p"][1])
-        )
+        resolution = str(self.RESOLUTION[reso][0]) + "x" + str(self.RESOLUTION[reso][1])
         ffmpeg_command = [
             "ffmpeg",
             "-probesize",
@@ -113,13 +111,20 @@ class airsim(module):
         """
         This method executes the AirSim step.
         """
+        LOGGER.debug(f"AirSim Execute Step")
         if HELPER.isPaused():
             HELPER.resume()
 
-        LOGGER.debug(f"AirSim Execute Step")
-        # HELPER.resume()
+        """
+        Since the granularity of the AirSim step is high, we need to
+        limit the number of messages sent to sionna. We do this by
+        sending a message every 25 steps. Avoiding in the source
+        problems with backpressure and buffer overflow.
+        """
+        self.index += 1
+        if not self.index % 25 == 0:
+            return
         pose = HELPER.airsim_getpose()
-        print(f"Pose: {pose}")
         if HELPER.airsim_getcollision():
             raise Exception("Collision detected")
 
@@ -127,11 +132,11 @@ class airsim(module):
             "x-pos": float(pose[0]),
             "y-pos": float(pose[1]),
             "z-pos": float(pose[2]),
-            "speed": 5.0,
+            "speed": 0.8,
         }
-        # Send the message to ns-3 and sionna
+        # Send the message to sionna
         await NATS.send(self.__class__.__name__, message, "sionna")
-        await NATS.send(self.__class__.__name__, message, "ns3")
+
         responses = HELPER.client.simGetImages(
             [ARS.ImageRequest(0, ARS.ImageType.Scene, False, False)]
         )  # raw bytes
