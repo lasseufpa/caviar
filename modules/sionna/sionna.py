@@ -2,6 +2,8 @@
 import os
 import time
 
+import numpy as np
+
 from kernel.idealBuffer import IdealBuffer
 from kernel.logger import LOGGER
 from kernel.module import module
@@ -26,14 +28,14 @@ class sionna(module):
 
         self.scene = RT.load_scene(dir_path + "/central_park.xml", merge_shapes=True)
         LOGGER.debug(f"Loading scene {self.scene}")
-        self.scene.frequency = 28e9
+        self.scene.frequency = 2.8e9
         self.solver = RT.PathSolver()
         """
         Set the transmitter and receiver arrays.
         """
         self.scene.tx_array = RT.PlanarArray(
-            num_rows=8,
-            num_cols=8,
+            num_rows=6,
+            num_cols=6,
             vertical_spacing=0.5,
             horizontal_spacing=0.5,
             pattern="iso",
@@ -68,8 +70,9 @@ class sionna(module):
         This method executes the Sionna step.
         """
         LOGGER.debug(f"Sionna Execute Step")
-        self.scene.get("rx").position = self.convertMovementFromAirSimToSionna(
-            self.buffer.get()[0]
+        self.scene.get("rx").position = np.array(
+            self.convertMovementFromAirSimToSionna(self.buffer.get()[0]),
+            dtype=np.float32,
         )
         start = time.time_ns()
         paths = self.solver(
@@ -83,18 +86,57 @@ class sionna(module):
             seed=41,
         )
         end = time.time_ns()
-        LOGGER.info(f"Sionna step took {end - start} ns ({(end - start) / 1e6} ms)")
+        LOGGER.debug(f"Sionna step took {end - start} ns ({(end - start) / 1e6} ms)")
+        coefficients_real, coefficients_imag = np.array(paths.a)
+        # Get the coefficients of the paths (rx, rx, mpcs), since its only one
+        # rx and tx, we can just take the first element
+        coefficients_real = coefficients_real[0, :, 0, :, :]
+        coefficients_imag = coefficients_imag[0, :, 0, :, :]
+        taus = np.array(paths.tau)[0, 0, :]
         """
+        When no paths are found, the coefficients are empty. 
+        However, in ns-3/nr, it always expects a channel even if the gain is 
+        really low.
+        So we need to add a dummy path with a minor gain to prevent 
+        ns-3/nr from crashing.
+        """
+        if np.array(coefficients_real).shape[2] < 1 and taus.shape[0] < 1:
+            coefficients_real = np.zeros(
+                (coefficients_real.shape[0], coefficients_real.shape[1], 1)
+            )
+            coefficients_imag = np.zeros(
+                (coefficients_imag.shape[0], coefficients_imag.shape[1], 1)
+            )
+            coefficients_real.fill(1e-12)
+            coefficients_imag.fill(1e-12)
+            taus = np.zeros((1,))
+
+        # ns-3 expects the coefficients to be in the shape of (num_rx, num_tx, num_paths)
+        coefficients = coefficients_real + 1j * coefficients_imag * (2 ** 12)
+        coefficients = [
+            [
+                [
+                    {
+                        "real": float(coefficients[rx, tx, mpc].real),
+                        "imag": float(coefficients[rx, tx, mpc].imag),
+                    }
+                    for mpc in range(coefficients.shape[2])
+                ]
+                for tx in range(coefficients.shape[1])
+            ]
+            for rx in range(coefficients.shape[0])
+        ]
+        taus = taus.tolist()
+        msg = {
+            "coefficients": coefficients,
+            "delays": taus,
+        }
         await NATS.send(
             self.__class__.__name__,
-            {
-                "paths": paths,
-                "rx_pos": self.scene.get("rx").position,
-                "tx_pos": self.scene.get("tx").position,
-            },
-            "airsim",
+            msg,
+            "ns3",
         )
-        """
+        print(self.buffer.__len__())
 
     def convertMovementFromAirSimToSionna(
         self,
@@ -106,6 +148,7 @@ class sionna(module):
         into Y-forward, Z-up coordinates for Sionna.
 
         @param airsim_position: The position in AirSim coordinates
+        @param initial_pose_offset: The offset between the AirSim and Sionna coordinates
         @return: The position in Sionna coordinates
 
         """
