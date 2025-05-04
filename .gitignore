@@ -149,3 +149,7 @@ runs
 *.pt
 
 3d/
+
+.vscode
+
+build
