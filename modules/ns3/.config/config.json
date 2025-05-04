@@ -2,26 +2,14 @@
     "module": {
         "name": "ns3",
         "id": "communication",
-        "enabled": false,
+        "enabled": true,
         "dependency":{
             "communication":
             {
                 "sionna":
                 [
-                "txId",
-                "rxId",
                 "coefficients",
                 "delays"
-                ]
-            },
-            "mobility":
-            {
-                "airsim":
-                [
-                "x-pos",
-                "y-pos",
-                "z-pos",
-                "speed"
                 ]
             }
         },
