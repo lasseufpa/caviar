@@ -1,0 +1,30 @@
+version: "3.8"
+
+services: 
+  influxdb:
+    image: influxdb:latest
+    ports:
+      - '8086:8086'
+    volumes:
+      - ./influxdb-storage:/var/lib/influxdb2:rw
+    environment:
+      - INFLUXDB_DB=db0
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_ORG=lasse
+      - DOCKER_INFLUXDB_INIT_USERNAME=lasse
+      - DOCKER_INFLUXDB_INIT_PASSWORD=demo1234
+      - DOCKER_INFLUXDB_INIT_BUCKET=lasse
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=nlUwG8uHneAP2SVYWRqOk0OJ1p19H8ddKR9o292rEmk2ZMli33cO8WqndkM1IWgrNqbGmI7tia1X4AGb6PXWQQ==
+    
+  telegraf:
+    image: telegraf:latest
+    volumes:
+      - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    depends_on:
+        - influxdb
+    links:
+        - influxdb
+    ports:
+      - '127.0.0.1:8125:8125/udp'
+      
+

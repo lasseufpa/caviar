@@ -1,0 +1,716 @@
+apiVersion: influxdata.com/v2alpha1
+kind: Bucket
+metadata:
+    name: angry-dewdney-d85001
+spec:
+    name: SRE
+---
+apiVersion: influxdata.com/v2alpha1
+kind: Bucket
+metadata:
+    name: beautiful-shaw-d85009
+spec:
+    name: network_requirements
+---
+apiVersion: influxdata.com/v2alpha1
+kind: Bucket
+metadata:
+    name: cool-darwin-d8500d
+spec:
+    name: recommendations
+---
+apiVersion: influxdata.com/v2alpha1
+kind: Bucket
+metadata:
+    name: rustic-curie-d8500f
+spec:
+    name: traffic_metrics
+---
+apiVersion: influxdata.com/v2alpha1
+kind: Bucket
+metadata:
+    name: sharp-curie-d85003
+spec:
+    name: alarms
+---
+apiVersion: influxdata.com/v2alpha1
+kind: Bucket
+metadata:
+    name: strange-maxwell-d85007
+spec:
+    name: lasse
+---
+apiVersion: influxdata.com/v2alpha1
+kind: Bucket
+metadata:
+    name: strange-pasteur-d8500b
+spec:
+    name: network_topology
+---
+apiVersion: influxdata.com/v2alpha1
+kind: Bucket
+metadata:
+    name: victorious-leavitt-d85005
+spec:
+    name: gnn_qos_metrics
+---
+apiVersion: influxdata.com/v2alpha1
+kind: CheckDeadman
+metadata:
+    name: condescending-dhawan-d85017
+spec:
+    every: 5s
+    level: CRIT
+    name: Latency (slice 2 no data)
+    query: |-
+        from(bucket: "traffic_metrics")
+          |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+          |> filter(fn: (r) => r["_measurement"] == "hosts")
+          |> filter(fn: (r) => r["TOS"] == "0x10")
+          |> filter(fn: (r) => r["_field"] == "GTDelay")
+    staleTime: 10m0s
+    status: active
+    statusMessageTemplate: 'Check: ${ r._check_name } is: ${ r._level }'
+    timeSince: 5s
+---
+apiVersion: influxdata.com/v2alpha1
+kind: CheckDeadman
+metadata:
+    name: pensive-ritchie-d85015
+spec:
+    every: 5s
+    level: CRIT
+    name: Latency (slice 1 no data)
+    query: |-
+        from(bucket: "traffic_metrics")
+          |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+          |> filter(fn: (r) => r["_measurement"] == "hosts")
+          |> filter(fn: (r) => r["TOS"] == "0x10")
+          |> filter(fn: (r) => r["_field"] == "GTDelay")
+    staleTime: 10m0s
+    status: active
+    statusMessageTemplate: 'Check: ${ r._check_name } is: ${ r._level }'
+    timeSince: 5s
+---
+apiVersion: influxdata.com/v2alpha1
+kind: CheckThreshold
+metadata:
+    name: clever-feistel-d85013
+spec:
+    every: 5s
+    name: Latency (Slice 2)
+    query: |-
+        from(bucket: "traffic_metrics")
+          |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+          |> filter(fn: (r) => r["_measurement"] == "hosts")
+          |> filter(fn: (r) => r["TOS"] == "0x20")
+          |> filter(fn: (r) => r["_field"] == "GTDelay")
+          |> aggregateWindow(every: 1m, fn: last, createEmpty: false)
+          |> yield(name: "last")
+    status: active
+    statusMessageTemplate: 'Check: ${ r._check_name } is: ${ r._level }'
+    thresholds:
+      - level: OK
+        type: lesser
+        value: 2
+      - level: CRIT
+        type: greater
+        value: 2
+---
+apiVersion: influxdata.com/v2alpha1
+kind: CheckThreshold
+metadata:
+    name: nifty-sanderson-d85011
+spec:
+    every: 5s
+    name: Latency (Slice 1)
+    query: |-
+        from(bucket: "traffic_metrics")
+          |> range(start: v.timeRangeStart, stop: v.timeRangeStop)
+          |> filter(fn: (r) => r["_measurement"] == "hosts")
+          |> filter(fn: (r) => r["TOS"] == "0x10")
+          |> filter(fn: (r) => r["_field"] == "GTDelay")
+          |> aggregateWindow(every: 1m, fn: last, createEmpty: false)
+          |> yield(name: "last")
+    status: active
+    statusMessageTemplate: 'Check: ${ r._check_name } is: ${ r._level }'
+    thresholds:
+      - level: OK
+        type: lesser
+        value: 1
+      - level: CRIT
+        type: greater
+        value: 1
+---
+apiVersion: influxdata.com/v2alpha1
+kind: NotificationEndpointHTTP
+metadata:
+    name: goofy-euler-d85019
+spec:
+    method: POST
+    name: recommendation_system
+    status: active
+    type: none
+    url: http://192.168.10.11:8182/predict
+---
+apiVersion: influxdata.com/v2alpha1
+kind: NotificationRule
+metadata:
+    name: exciting-poitras-d8501b
+spec:
+    endpointName: goofy-euler-d85019
+    every: 5s
+    name: Teste
+    statusRules:
+      - currentLevel: CRIT
+---
+apiVersion: influxdata.com/v2alpha1
+kind: Task
+metadata:
+    name: annoying-gagarin-d8501f
+spec:
+    every: 10s
+    name: Jitter SLI (Slice 2)
+    query: |-
+        import "experimental"
+
+
+
+        data =
+            from(bucket: "traffic_metrics")
+                |> range(start: -30s)
+                |> filter(fn: (r) => r["_measurement"] == "hosts")
+                |> filter(fn: (r) => r["TOS"] == "0x20")
+                |> filter(fn: (r) => r["_field"] == "Jitter")
+
+        total_count =
+            data
+                |> count()
+                |> findRecord(fn: (key) => true, idx: 0)
+
+        success =
+            data
+                |> filter(fn: (r) => r._value < 0.002)
+                |> count()
+                |> findRecord(fn: (key) => true, idx: 0)
+
+        sli =
+            if total_count._value > 0 and success._value > 0 then
+                float(v: success._value) / float(v: total_count._value) * 100.0
+            else
+                0.0
+
+        sli_data =
+            from(bucket: "traffic_metrics")
+                |> range(start: -30s)
+                |> limit(n: 1)
+                |> map(
+                    fn: (r) =>
+                        ({
+                            _time: experimental.addDuration(d: 0s, to: now()),
+                            _measurement: "jitter_SLI",
+                            _field: "SLI",
+                            _value: sli,
+                            slice: "eMBB",
+                        }),
+                )
+
+        sli_data
+            |> to(bucket: "SRE")
+---
+apiVersion: influxdata.com/v2alpha1
+kind: Task
+metadata:
+    name: boring-chatterjee-185007
+spec:
+    every: 10s
+    name: Latency SLI (Slice 2)
+    query: |-
+        import "experimental"
+
+
+
+        data =
+            from(bucket: "traffic_metrics")
+                |> range(start: -30s)
+                |> filter(fn: (r) => r["_measurement"] == "hosts")
+                |> filter(fn: (r) => r["TOS"] == "0x20")
+                |> filter(fn: (r) => r["_field"] == "GTDelay")
+
+        total_count =
+            data
+                |> count()
+                |> findRecord(fn: (key) => true, idx: 0)
+
+        success =
+            data
+                |> filter(fn: (r) => r._value < 10)
+                |> count()
+                |> findRecord(fn: (key) => true, idx: 0)
+
+        sli =
+            if total_count._value > 0 and success._value > 0 then
+                float(v: success._value) / float(v: total_count._value) * 100.0
+            else
+                0.0
+
+        sli_data =
+            from(bucket: "traffic_metrics")
+                |> range(start: -30s)
+                |> limit(n: 1)
+                |> map(
+                    fn: (r) =>
+                        ({
+                            _time: experimental.addDuration(d: 0s, to: now()),
+                            _measurement: "latency_SLI",
+                            _field: "SLI",
+                            _value: sli,
+                            slice: "eMBB",
+                        }),
+                )
+
+        sli_data
+            |> to(bucket: "SRE")
+---
+apiVersion: influxdata.com/v2alpha1
+kind: Task
+metadata:
+    name: distracted-mahavira-185009
+spec:
+    every: 10s
+    name: Packet loss SLI (Slice 1)
+    query: |-
+        import "experimental"
+
+
+
+        data =
+            from(bucket: "traffic_metrics")
+                |> range(start: -30s)
+                |> filter(fn: (r) => r["_measurement"] == "hosts")
+                |> filter(fn: (r) => r["TOS"] == "0x10")
+                |> filter(fn: (r) => r["_field"] == "Packetloss")
+
+        total_count =
+            data
+                |> count()
+                |> findRecord(fn: (key) => true, idx: 0)
+
+        success =
+            data
+                |> filter(fn: (r) => r._value < 15)
+                |> count()
+                |> findRecord(fn: (key) => true, idx: 0)
+
+        sli =
+            if total_count._value > 0 and success._value > 0 then
+                float(v: success._value) / float(v: total_count._value) * 100.0
+            else
+                0.0
+
+        sli_data =
+            from(bucket: "traffic_metrics")
+                |> range(start: -30s)
+                |> limit(n: 1)
+                |> map(
+                    fn: (r) =>
+                        ({
+                            _time: experimental.addDuration(d: 0s, to: now()),
+                            _measurement: "packetloss_SLI",
+                            _field: "SLI",
+                            _value: sli,
+                            slice: "URLLC",
+                        }),
+                )
+
+        sli_data
+            |> to(bucket: "SRE")
+---
+apiVersion: influxdata.com/v2alpha1
+kind: Task
+metadata:
+    name: dreamy-kare-185001
+spec:
+    every: 10s
+    name: Throughput  SLI (Slice 1)
+    query: |-
+        import "experimental"
+
+
+
+        data =
+            from(bucket: "traffic_metrics")
+                |> range(start: -30s)
+                |> filter(fn: (r) => r["_measurement"] == "hosts")
+                |> filter(fn: (r) => r["TOS"] == "0x10")
+                |> filter(fn: (r) => r["_field"] == "Bandwidth/Bitrate")
+
+        total_count =
+            data
+                |> count()
+                |> findRecord(fn: (key) => true, idx: 0)
+
+        success =
+            data
+                |> filter(fn: (r) => r._value > 1)
+                |> count()
+                |> findRecord(fn: (key) => true, idx: 0)
+
+        sli =
+            if total_count._value > 0 and success._value > 0 then
+                float(v: success._value) / float(v: total_count._value) * 100.0
+            else
+                0.0
+
+        sli_data =
+            from(bucket: "traffic_metrics")
+                |> range(start: -30s)
+                |> limit(n: 1)
+                |> map(
+                    fn: (r) =>
+                        ({
+                            _time: experimental.addDuration(d: 0s, to: now()),
+                            _measurement: "throughput_SLI",
+                            _field: "SLI",
+                            _value: sli,
+                            slice: "URLLC",
+                        }),
+                )
+
+        sli_data
+            |> to(bucket: "SRE")
+---
+apiVersion: influxdata.com/v2alpha1
+kind: Task
+metadata:
+    name: pensive-bose-185005
+spec:
+    every: 10s
+    name: Throughput  SLI (Slice 2)
+    query: |-
+        import "experimental"
+
+
+
+        data =
+            from(bucket: "traffic_metrics")
+                |> range(start: -30s)
+                |> filter(fn: (r) => r["_measurement"] == "hosts")
+                |> filter(fn: (r) => r["TOS"] == "0x20")
+                |> filter(fn: (r) => r["_field"] == "Bandwidth/Bitrate")
+
+        total_count =
+            data
+                |> count()
+                |> findRecord(fn: (key) => true, idx: 0)
+
+        success =
+            data
+                |> filter(fn: (r) => r._value > 10)
+                |> count()
+                |> findRecord(fn: (key) => true, idx: 0)
+
+        sli =
+            if total_count._value > 0 and success._value > 0 then
+                float(v: success._value) / float(v: total_count._value) * 100.0
+            else
+                0.0
+
+        sli_data =
+            from(bucket: "traffic_metrics")
+                |> range(start: -30s)
+                |> limit(n: 1)
+                |> map(
+                    fn: (r) =>
+                        ({
+                            _time: experimental.addDuration(d: 0s, to: now()),
+                            _measurement: "throughput_SLI",
+                            _field: "SLI",
+                            _value: sli,
+                            slice: "eMBB",
+                        }),
+                )
+
+        sli_data
+            |> to(bucket: "SRE")
+---
+apiVersion: influxdata.com/v2alpha1
+kind: Task
+metadata:
+    name: priceless-jang-18500b
+spec:
+    every: 10s
+    name: Latency Error Budget (slice 1)
+    query: |-
+        import "experimental"
+        import "math"
+
+
+
+        slo = 90.0
+        moving_average_period = 14d
+
+        // Define the period for the moving average (e.g., 14 days)
+        sli_data =
+            from(bucket: "SRE")
+                |> range(start: -moving_average_period)
+                |> filter(fn: (r) => r["_measurement"] == "latency_SLI")
+                |> filter(fn: (r) => r["_field"] == "SLI")
+                |> filter(fn: (r) => r["slice"] == "slice1")
+
+        moving_average_sli =
+            sli_data
+                |> aggregateWindow(every: 1d, fn: mean)
+                // Calculate daily mean
+                |> movingAverage(n: 14)
+
+        // Calculate 14-day moving average
+        error_budget =
+            moving_average_sli
+                |> map(
+                    fn: (r) =>
+                        ({
+                            _time: r._time,
+                            _measurement: "latency_error_budget",
+                            _field: "remaining_error_budget",
+                            _value: (slo - r._value) / (100.0 - slo) * 100.0,
+                            // Scale into 0-100% interval
+                            slice: r.slice,
+                        }),
+                )
+
+        error_budget
+            |> to(bucket: "SRE")
+---
+apiVersion: influxdata.com/v2alpha1
+kind: Task
+metadata:
+    name: spectacular-diffie-d85021
+spec:
+    every: 10s
+    name: Latency SLI (Slice 1)
+    query: |-
+        import "experimental"
+
+
+
+        data =
+            from(bucket: "traffic_metrics")
+                |> range(start: -30s)
+                |> filter(fn: (r) => r["_measurement"] == "hosts")
+                |> filter(fn: (r) => r["TOS"] == "0x10")
+                |> filter(fn: (r) => r["_field"] == "GTDelay")
+
+        total_count =
+            data
+                |> count()
+                |> findRecord(fn: (key) => true, idx: 0)
+
+        success =
+            data
+                |> filter(fn: (r) => r._value < 1)
+                |> count()
+                |> findRecord(fn: (key) => true, idx: 0)
+
+        sli =
+            if total_count._value > 0 and success._value > 0 then
+                float(v: success._value) / float(v: total_count._value) * 100.0
+            else
+                0.0
+
+        sli_data =
+            from(bucket: "traffic_metrics")
+                |> range(start: -30s)
+                |> limit(n: 1)
+                |> map(
+                    fn: (r) =>
+                        ({
+                            _time: experimental.addDuration(d: 0s, to: now()),
+                            _measurement: "latency_SLI",
+                            _field: "SLI",
+                            _value: sli,
+                            slice: "URLLC",
+                        }),
+                )
+
+        sli_data
+            |> to(bucket: "SRE")
+---
+apiVersion: influxdata.com/v2alpha1
+kind: Task
+metadata:
+    name: spectacular-hopper-185003
+spec:
+    every: 10s
+    name: Packet loss SLI (Slice 2)
+    query: |-
+        import "experimental"
+
+
+
+        data =
+            from(bucket: "traffic_metrics")
+                |> range(start: -30s)
+                |> filter(fn: (r) => r["_measurement"] == "hosts")
+                |> filter(fn: (r) => r["TOS"] == "0x20")
+                |> filter(fn: (r) => r["_field"] == "Packetloss")
+
+        total_count =
+            data
+                |> count()
+                |> findRecord(fn: (key) => true, idx: 0)
+
+        success =
+            data
+                |> filter(fn: (r) => r._value < 15)
+                |> count()
+                |> findRecord(fn: (key) => true, idx: 0)
+
+        sli =
+            if total_count._value > 0 and success._value > 0 then
+                float(v: success._value) / float(v: total_count._value) * 100.0
+            else
+                0.0
+
+        sli_data =
+            from(bucket: "traffic_metrics")
+                |> range(start: -30s)
+                |> limit(n: 1)
+                |> map(
+                    fn: (r) =>
+                        ({
+                            _time: experimental.addDuration(d: 0s, to: now()),
+                            _measurement: "packetloss_SLI",
+                            _field: "SLI",
+                            _value: sli,
+                            slice: "eMBB",
+                        }),
+                )
+
+        sli_data
+            |> to(bucket: "SRE")
+---
+apiVersion: influxdata.com/v2alpha1
+kind: Task
+metadata:
+    name: tender-almeida-d8501d
+spec:
+    every: 10s
+    name: Jitter SLI (Slice 1)
+    query: |-
+        import "experimental"
+
+
+
+        data =
+            from(bucket: "traffic_metrics")
+                |> range(start: -30s)
+                |> filter(fn: (r) => r["_measurement"] == "hosts")
+                |> filter(fn: (r) => r["TOS"] == "0x10")
+                |> filter(fn: (r) => r["_field"] == "Jitter")
+
+        total_count =
+            data
+                |> count()
+                |> findRecord(fn: (key) => true, idx: 0)
+
+        success =
+            data
+                |> filter(fn: (r) => r._value < 0.002)
+                |> count()
+                |> findRecord(fn: (key) => true, idx: 0)
+
+        sli =
+            if total_count._value > 0 and success._value > 0 then
+                float(v: success._value) / float(v: total_count._value) * 100.0
+            else
+                0.0
+
+        sli_data =
+            from(bucket: "traffic_metrics")
+                |> range(start: -30s)
+                |> limit(n: 1)
+                |> map(
+                    fn: (r) =>
+                        ({
+                            _time: experimental.addDuration(d: 0s, to: now()),
+                            _measurement: "jitter_SLI",
+                            _field: "SLI",
+                            _value: sli,
+                            slice: "URLLC",
+                        }),
+                )
+
+        sli_data
+            |> to(bucket: "SRE")
+---
+apiVersion: influxdata.com/v2alpha1
+kind: Dashboard
+metadata:
+    name: affectionate-heisenberg-18500d
+spec:
+    charts:
+      - colors:
+          - hex: '#ffffff'
+            id: base
+            name: white
+            type: text
+        fieldOptions:
+          - displayName: _start
+            fieldName: _start
+            visible: true
+          - displayName: _stop
+            fieldName: _stop
+            visible: true
+          - displayName: _time
+            fieldName: _time
+            visible: true
+          - displayName: _value
+            fieldName: _value
+            visible: true
+          - displayName: _field
+            fieldName: _field
+            visible: true
+          - displayName: _measurement
+            fieldName: _measurement
+            visible: true
+          - displayName: color
+            fieldName: color
+            visible: true
+          - displayName: id
+            fieldName: id
+            visible: true
+          - displayName: source
+            fieldName: source
+            visible: true
+          - displayName: target
+            fieldName: target
+            visible: true
+          - displayName: '#default'
+            fieldName: '#default'
+            visible: true
+        height: 4
+        kind: Table
+        name: Name this Cell
+        queries:
+          - query: |-
+                data = from(bucket: "recommendations")
+                  |> range(start: 0, stop: now())
+                  |> filter(fn: (r) => r["_measurement"] == "link7")
+                  |> group(columns: ["_measurement"])
+                  |> sort(columns: ["_time", "id"], desc: false)
+
+                // Find the newest timestamp
+                newestTimestamp = data
+                  |> keep(columns: ["_time"])
+                  |> max(column: "_time")
+                  |> findRecord(fn: (key) => true, idx: 0)
+
+                data
+                  |> filter(fn: (r) => r["_time"] == newestTimestamp._time)
+        staticLegend: {}
+        tableOptions:
+            verticalTimeAxis: true
+        timeFormat: YYYY-MM-DD HH:mm:ss
+        width: 4
+    name: Test
