@@ -26,16 +26,16 @@ class sionna(module):
         )  # !< Buffer of the module (using size equal to 1000)
         dir_path = os.path.dirname(os.path.realpath(__file__))
 
-        self.scene = RT.load_scene(dir_path + "/central_park.xml", merge_shapes=True)
-        LOGGER.debug(f"Loading scene {self.scene}")
+        self.scene = RT.load_scene(dir_path + "/beach_street.xml", merge_shapes=True)
+        LOGGER.info(f"Loading scene {self.scene}")
         self.scene.frequency = 2.8e9
         self.solver = RT.PathSolver()
         """
         Set the transmitter and receiver arrays.
         """
         self.scene.tx_array = RT.PlanarArray(
-            num_rows=6,
-            num_cols=6,
+            num_rows=1,
+            num_cols=1,
             vertical_spacing=0.5,
             horizontal_spacing=0.5,
             pattern="iso",
@@ -43,8 +43,8 @@ class sionna(module):
         )
 
         self.scene.rx_array = RT.PlanarArray(
-            num_rows=2,
-            num_cols=2,
+            num_rows=1,
+            num_cols=1,
             vertical_spacing=0.5,
             horizontal_spacing=0.5,
             pattern="iso",
@@ -54,9 +54,9 @@ class sionna(module):
         """
         Set and add the transmitter and receiver to the scene.
         """
-        tx = RT.Transmitter(name="tx", position=[-154, 64, 120])
+        tx = RT.Transmitter(name="tx", position=[-195.4, 230.51, 81]) # Tx above a building
         self.scene.add(tx)
-        rx = RT.Receiver(name="rx", position=[23.69, -3.351, 139])
+        rx = RT.Receiver(name="rx", position=[-208.75, 200.15, 1.02])
         self.scene.add(rx)
 
         # Make sure the transmitter and receiver are looking at each other
@@ -69,7 +69,7 @@ class sionna(module):
         """
         This method executes the Sionna step.
         """
-        LOGGER.debug(f"Sionna Execute Step")
+        LOGGER.info(f"Sionna Execute Step")
         self.scene.get("rx").position = np.array(
             self.convertMovementFromAirSimToSionna(self.buffer.get()[0]),
             dtype=np.float32,
@@ -87,12 +87,23 @@ class sionna(module):
         )
         end = time.time_ns()
         LOGGER.debug(f"Sionna step took {end - start} ns ({(end - start) / 1e6} ms)")
+
         coefficients_real, coefficients_imag = np.array(paths.a)
-        # Get the coefficients of the paths (rx, rx, mpcs), since its only one
-        # rx and tx, we can just take the first element
-        coefficients_real = coefficients_real[0, :, 0, :, :]
-        coefficients_imag = coefficients_imag[0, :, 0, :, :]
+        # Get the coefficients of the paths (rxAntennas, txAntennas, mpcs), since its only one
+        # rx and tx, we can just take the first element. Since its a SISO, we can just take the first element
+        # of the coefficients -> [mpcs]
+        coefficients_real = coefficients_real[0, 0, 0, 0, :] 
+        coefficients_imag = coefficients_imag[0, 0, 0, 0, :]
+        '''
+        The phase is the angle of the complex number, and the magnitude is the absolute value for 
+        each MPC. The taus are the delays for each MPC.
+        '''
+        phase  = np.angle(coefficients_real + 1j * coefficients_imag)
+        magnitude = np.abs(coefficients_real + 1j * coefficients_imag)
         taus = np.array(paths.tau)[0, 0, :]
+        LOGGER.info(
+            f"Phases: {phase}, Magnitudes: {magnitude}, Delays: {taus}"
+        )
         """
         When no paths are found, the coefficients are empty. 
         However, in ns-3/nr, it always expects a channel even if the gain is 
@@ -100,48 +111,33 @@ class sionna(module):
         So we need to add a dummy path with a minor gain to prevent 
         ns-3/nr from crashing.
         """
-        if np.array(coefficients_real).shape[2] < 1 and taus.shape[0] < 1:
-            coefficients_real = np.zeros(
-                (coefficients_real.shape[0], coefficients_real.shape[1], 1)
-            )
-            coefficients_imag = np.zeros(
-                (coefficients_imag.shape[0], coefficients_imag.shape[1], 1)
-            )
-            coefficients_real.fill(1e-12)
-            coefficients_imag.fill(1e-12)
-            taus = np.zeros((1,))
-
-        # ns-3 expects the coefficients to be in the shape of (num_rx, num_tx, num_paths)
-        coefficients = coefficients_real + 1j * coefficients_imag * (2 ** 12)
-        coefficients = [
-            [
-                [
-                    {
-                        "real": float(coefficients[rx, tx, mpc].real),
-                        "imag": float(coefficients[rx, tx, mpc].imag),
-                    }
-                    for mpc in range(coefficients.shape[2])
-                ]
-                for tx in range(coefficients.shape[1])
-            ]
-            for rx in range(coefficients.shape[0])
-        ]
-        taus = taus.tolist()
+        phase_len = len(phase)
+        magnitude_len = len(magnitude)
+        taus_len = len(taus)
+        assert phase_len == magnitude_len == taus_len, "Phase, magnitude and taus are not the same length"
+        if magnitude_len < 1: # or phase_len < 1 or taus_len < 1
+            # @TODO: Check whether these values can be deterministic when null values are found
+            magnitude = [1e-11] # Really low gain
+            phase = [0]
+            taus = [1]
+        
+        id_objects = paths.objects.numpy()[:, 0, 0, :].T.tolist() # Rays objects list
         msg = {
-            "coefficients": coefficients,
-            "delays": taus,
+            "magnitudes": magnitude.tolist(),
+            "phases": phase.tolist(),
+            "delays": taus.tolist(),
+            "id_objects": id_objects,
         }
         await NATS.send(
             self.__class__.__name__,
             msg,
             "ns3",
         )
-        print(self.buffer.__len__())
 
     def convertMovementFromAirSimToSionna(
         self,
         airsim_position: list,
-        initial_pose_offset: list = [23.34, -3.42, 137.23],  # [14, -28, 8.4]
+        initial_pose_offset: list = [-208.75, 200.15, 1.02] # Central-park [23.34, -3.42, 137.23]
     ):
         """
         Converts the NED (x: North, y: East, z: Down) coordinates from AirSim
