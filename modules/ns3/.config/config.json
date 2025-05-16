@@ -8,8 +8,14 @@
             {
                 "sionna":
                 [
-                "coefficients",
-                "delays"
+                "path_coef",
+                "phase",
+                "tau",
+                "id_objects",
+                "theta_t",
+                "theta_r",
+                "phi_t",
+                "phi_r"
                 ]
             }
         },
