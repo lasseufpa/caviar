@@ -28,7 +28,7 @@ class logger(logging.Logger):
     This class is used to create and manage logging.
     """
 
-    def __init__(self, name="logger", log_level=logging.DEBUG):
+    def __init__(self, name="logger", log_level=logging.INFO):
         """
         Constructor that initializes the Log object.
 

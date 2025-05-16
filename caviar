@@ -1,6 +1,40 @@
 #! /usr/bin/env python3
 
+import argparse
+from subprocess import Popen
+
 from kernel import core
 
-settings = core()
-settings.initialize()
+parser = argparse.ArgumentParser(description="Caviar Simulator")
+parser.add_argument(
+    "--enable-monitor",
+    help="Enable metrics monitoring",
+    action="store_true",
+)
+
+if __name__ == "__main__":
+    args = parser.parse_args()
+    enable_monitor = False
+    if args.enable_monitor:
+        enable_monitor = True
+        # Docker-compose up
+        '''
+        try:
+            process = Popen(
+                ["docker-compose", "-f", "compose.yml", "up", "-d"],
+                stdout=None,
+                stderr=None,
+            )
+            stdout, stderr = process.communicate()
+            if process.returncode == 0:
+                print("Docker Compose started successfully.")
+            else:
+                print("Error starting Docker Compose.")
+        except FileNotFoundError:
+            print("Docker Compose not found. Please install Docker Compose.")
+        except Exception as e:
+            print(f"An unexpected error occurred: {e}")
+        '''
+    core(enable_monitor).initialize()
+    
+

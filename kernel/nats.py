@@ -3,6 +3,8 @@ import json
 
 import nats as Nats
 
+from monitor import Monitor
+
 from .logger import LOGGER, logging
 from .process import PROCESS, subprocess
 
@@ -27,17 +29,22 @@ class nats:
         """
         self.supress = True
         self.verbose = False
+        self._monitor = None
         pass
 
-    async def send(self, module_name, msg, subject):
+    async def send(self, module_name: str, msg, subject):
         """
         This method sends a message to the NATS server in a specific subject.
+        If the monitoring is set, it will send the message to the monitor
+        and the message will be sent to the current Iflux DB (localhost:).
 
         @param module_name: The name of the module that sends the message.
         @param msg: The message to be sent.
         @param subject: The subject to send the message (mostly the module's name which will receive the message).
         """
         message = {module_name: msg}
+        if self.monitor:
+            asyncio.create_task(self.monitor.monitor(message, module_name))
         encoded_msg = self.__encode(message)
         full_subject = "kernel." + subject
         LOGGER.debug(f"Sending message: {message} to {full_subject}")
@@ -80,7 +87,8 @@ class nats:
     def __decode(self, msg, module_name: str):
         """
         Basically, __decodes to retrieve the deserialized information, in format:
-        [subject, message]. It also checks if the message is valid.
+        [subject, message]. It also checks if the message is valid, acoording to the module
+        allowed messages.
         Moreover, control messages are also decoded and returned.
 
         @param msg: The message to be decoded.
@@ -199,6 +207,40 @@ class nats:
         """
         await asyncio.gather(*(nc.publish(subj, message) for subj in subjects))
         await nc.drain()
+
+    @property
+    def monitor(self):
+        """
+        Getter of the monitor property.
+        """
+        return self._monitor
+
+    @monitor.setter
+    def monitor(self, monitor: Monitor):
+        """
+        Setter of the monitor property.
+
+        @param monitor: The monitor to be set.
+        """
+        self._monitor = monitor
+
+    def monitor_untracked_info(self, info, module_name="UNKNOWN"):
+        """
+        This method sends the untracked information to the monitor.
+
+        @param info: The information to be sent.
+        @param module_name: The module name to be sent.
+        """
+        if self.monitor:
+            asyncio.create_task(self.monitor.monitor(info))
+        else:
+            LOGGER.debug(f"Untracked info: {info} not sent to monitor")
+
+    def is_monitor(self):
+        """
+        This method returns True if the monitor is set, False otherwise.
+        """
+        return self.monitor is not None
 
 
 NATS = nats()

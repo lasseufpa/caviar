@@ -96,6 +96,11 @@ class module(ABC):
         It is responsible for calling the user-defined callback and setting the available flag.
         """
         msg = NATS.decode(msg, self.__class__.__name__)
+        """
+        @TODO: This is probably causing a soft-bug, since the callback could be innvoked
+        multiple time by some module message. So the control message may be backpressured
+        and the module will not be able to execute the step.
+        """
         if msg is None:
             async with self._lock:
                 await self.__execute_step()

@@ -1,6 +1,6 @@
 services:
   influxdb:
-    container_name: influxdb
+    container_name: caviar.influxdb
     image: influxdb:latest
     restart: unless-stopped
     ports:
@@ -12,13 +12,13 @@ services:
         ipv4_address: 192.168.10.13
   
   influxdb_cli:
-    container_name: influxdb_cli
+    container_name: caviar.influxdb_cli
     links:
       - influxdb
     image: influxdb:latest
     volumes: 
       - ./monitor/templates:/home/templates:rw
-    entrypoint: influx apply -o "lasse" -f /home/templates/template.yml -t "nlUwG8uHneAP2SVYWRqOk0OJ1p19H8ddKR9o292rEmk2ZMli33cO8WqndkM1IWgrNqbGmI7tia1X4AGb6PXWQQ==" --host=http://influxdb:8086 --force yes
+    entrypoint: influx apply -o "lasse" -f /home/templates/template1.yml -t "nlUwG8uHneAP2SVYWRqOk0OJ1p19H8ddKR9o292rEmk2ZMli33cO8WqndkM1IWgrNqbGmI7tia1X4AGb6PXWQQ==" --host=http://influxdb:8086 --force yes
     restart: on-failure:20
     depends_on:
       - influxdb
@@ -28,11 +28,12 @@ services:
 
   grafana:
     image: grafana/grafana-oss
-    container_name: grafana
+    container_name: caviar.grafana
     restart: unless-stopped
     ports:
       - "3000:3000"
     user: "0"
+    privileged: true
     volumes:
       - ./monitor/grafana/grafana.db:/var/lib/grafana/grafana.db
     depends_on:

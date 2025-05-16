@@ -4,6 +4,8 @@ import os
 import threading
 from pathlib import Path
 
+from monitor import Monitor
+
 from .asynchronous import Async, Scheduler
 from .handler import handler
 from .logger import LOGGER, logging
@@ -32,15 +34,20 @@ class core:
     __settings: dict = {}  #!< The settings from the config.json file
     __allowed_messages: dict = {}  #!< The allowed messages for the NATS orchestrator
     __modules: dict = {}  #!< The modules to be used in the co-simulation
+    __monitor: Monitor = None  #!< The monitor object
 
     @handler.exception_handler
-    def __init__(self):
+    def __init__(self, enable_monitor: bool = False):
         """
         Constructor that initializes the Core object.
+
+        @param enable_monitor: If True, the monitor will be enabled.
         """
         self.__dir = Path(__file__).resolve().parent
         self.__load_json()
         handler.register_signals()
+        if enable_monitor:
+            self.__monitor = Monitor()
 
     @handler.exception_handler
     def __load_json(self):
@@ -108,6 +115,8 @@ class core:
         LOGGER.debug(f"Initialize NATS")
         NATS.init()
         NATS.allowed_messages(self.__allowed_messages)
+        if self.__monitor:
+            NATS.monitor = self.__monitor
 
     @handler.exception_handler
     def __check_correct_format(self):
@@ -331,3 +340,11 @@ class core:
         sync_type = str(self.__settings["scheduler"]["type"])
         time_type = str(self.__settings["scheduler"]["time"])
         return sync_type, time_type
+
+    def get_scheduler(self):
+        """
+        This method returns the scheduler object.
+
+        @return: The scheduler object.
+        """
+        return self.__scheduler
