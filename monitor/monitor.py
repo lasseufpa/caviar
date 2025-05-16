@@ -1,0 +1,83 @@
+import time
+
+from influxdb_client import InfluxDBClient, Point, WritePrecision
+from influxdb_client.client.write_api import ASYNCHRONOUS, SYNCHRONOUS
+
+
+class Monitor:
+    """
+    The monitor class is the class that monitors all the published metrics.
+    It ups the InfluxDB and Grafana services to visualize the metrics.
+    """
+
+    def __init__(
+        self,
+        url: str = "http://localhost:8086",
+        token: str = "nlUwG8uHneAP2SVYWRqOk0OJ1p19H8ddKR9o292rEmk2ZMli33cO8WqndkM1IWgrNqbGmI7tia1X4AGb6PXWQQ==",
+        org: str = "lasse",
+        write_option=SYNCHRONOUS,
+        bucket: str = "caviar",
+    ):
+        """
+        This method initializes all the necessary monitor configuration.
+        So, it starts the InfluxDB and Grafana services.
+
+        from kernel.process import PROCESS # @TODO: Avoid circular dependency
+        dir_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        docker_compose_file = os.path.join(dir_path, "compose.yml")
+        PROCESS.create_process(f"docker-compose -f {docker_compose_file} up", wait=True)
+        """
+
+        self.__token = token  # os.environ.get("INFLUXDB_TOKEN")
+        self._org = org
+        self._url = url
+        self._bucket = bucket
+
+        # Create a client to write the data
+        self._db = InfluxDBClient(url=url, token=token, org=org).write_api(
+            write_options=write_option
+        )
+
+    async def monitor(self, msg: dict, module_name: str):
+        """
+        This method is the main loop of the monitor.
+        It basically subscribes to all the enable module NATS topics.
+
+        @NOTE: If the dictionary contains a list of lists, this method
+        supress addiotional dimensions. I.e., a tensor with NxMxK dimensions
+        will be flattened to a list of K elements.
+        """
+        point = Point("modules").tag("module", module_name)
+
+        for key, value in msg.items():
+            if isinstance(value, list):
+                # Flatten the list and add it to the point
+                flat_list = list(self.__flatten_list(value))
+                for i, list_value in enumerate(flat_list):
+                    point.field(f"{key}_{i}", list_value)
+            elif isinstance(value, dict):
+                for k, v in value.items():
+                    if isinstance(v, list):
+                        # Flatten the list and add it to the point
+                        flat_list = list(self.__flatten_list(v))
+                        for i, list_value in enumerate(flat_list):
+                            point.field(f"{key}_{k}_{i}", list_value)
+                    else:
+                        point.field(f"{key}_{k}", v)
+            else:
+                point.field(key, value)
+        point.time(
+            time=time.time_ns(),
+            write_precision=WritePrecision.NS,
+        )
+        self._db.write(bucket=self._bucket, org=self._org, record=point)
+
+    def __flatten_list(self, nested_list):
+        """
+        Recursively flattens a nested list into a flat list.
+        """
+        for item in nested_list:
+            if isinstance(item, list):
+                yield from self.__flatten_list(item)
+            else:
+                yield item
