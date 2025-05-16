@@ -36,8 +36,8 @@ class sionna(module):
         self.scene.tx_array = RT.PlanarArray(
             num_rows=1,
             num_cols=1,
-            vertical_spacing=0.5,
-            horizontal_spacing=0.5,
+            # vertical_spacing=0.5,
+            # horizontal_spacing=0.5,
             pattern="iso",
             polarization="V",
         )
@@ -45,8 +45,8 @@ class sionna(module):
         self.scene.rx_array = RT.PlanarArray(
             num_rows=1,
             num_cols=1,
-            vertical_spacing=0.5,
-            horizontal_spacing=0.5,
+            # vertical_spacing=0.5,
+            # horizontal_spacing=0.5,
             pattern="iso",
             polarization="V",
         )
@@ -54,7 +54,9 @@ class sionna(module):
         """
         Set and add the transmitter and receiver to the scene.
         """
-        tx = RT.Transmitter(name="tx", position=[-195.4, 230.51, 81]) # Tx above a building
+        tx = RT.Transmitter(
+            name="tx", position=[-195.4, 230.51, 81]
+        )  # Tx above a building
         self.scene.add(tx)
         rx = RT.Receiver(name="rx", position=[-208.75, 200.15, 1.02])
         self.scene.add(rx)
@@ -69,7 +71,7 @@ class sionna(module):
         """
         This method executes the Sionna step.
         """
-        LOGGER.info(f"Sionna Execute Step")
+        LOGGER.debug(f"Sionna Execute Step")
         self.scene.get("rx").position = np.array(
             self.convertMovementFromAirSimToSionna(self.buffer.get()[0]),
             dtype=np.float32,
@@ -88,22 +90,32 @@ class sionna(module):
         end = time.time_ns()
         LOGGER.debug(f"Sionna step took {end - start} ns ({(end - start) / 1e6} ms)")
 
+        """
+        Since the simulation is being made assuming a SISO communication, we need to
+        save the angles to be able to calculate (estimate) the channel coefficients for a 
+        MIMO communication afterwards.
+        """
+        phi_r = np.array(paths.phi_r[0, 0, :])  # All MPCs Azimuth angle of arrival
+        phi_t = np.array(paths.phi_t[0, 0, :])  # All MPCs Azimuth angle of departure
+        theta_r = np.array(paths.theta_r[0, 0, :])  # All MPCs  Zenith angle of arrival
+        theta_t = np.array(
+            paths.theta_t[0, 0, :]
+        )  # All MPCs  Zenith angle of departure
+
         coefficients_real, coefficients_imag = np.array(paths.a)
         # Get the coefficients of the paths (rxAntennas, txAntennas, mpcs), since its only one
         # rx and tx, we can just take the first element. Since its a SISO, we can just take the first element
         # of the coefficients -> [mpcs]
-        coefficients_real = coefficients_real[0, 0, 0, 0, :] 
+        coefficients_real = coefficients_real[0, 0, 0, 0, :]
         coefficients_imag = coefficients_imag[0, 0, 0, 0, :]
-        '''
+        """
         The phase is the angle of the complex number, and the magnitude is the absolute value for 
         each MPC. The taus are the delays for each MPC.
-        '''
-        phase  = np.angle(coefficients_real + 1j * coefficients_imag)
+        """
+        phase = np.angle(coefficients_real + 1j * coefficients_imag)
         magnitude = np.abs(coefficients_real + 1j * coefficients_imag)
         taus = np.array(paths.tau)[0, 0, :]
-        LOGGER.info(
-            f"Phases: {phase}, Magnitudes: {magnitude}, Delays: {taus}"
-        )
+        LOGGER.debug(f"Phases: {phase}, Magnitudes: {magnitude}, Delays: {taus}")
         """
         When no paths are found, the coefficients are empty. 
         However, in ns-3/nr, it always expects a channel even if the gain is 
@@ -114,19 +126,25 @@ class sionna(module):
         phase_len = len(phase)
         magnitude_len = len(magnitude)
         taus_len = len(taus)
-        assert phase_len == magnitude_len == taus_len, "Phase, magnitude and taus are not the same length"
-        if magnitude_len < 1: # or phase_len < 1 or taus_len < 1
+        assert (
+            phase_len == magnitude_len == taus_len
+        ), "Phase, magnitude and taus are not the same length"
+        if magnitude_len < 1:  # or phase_len < 1 or taus_len < 1
             # @TODO: Check whether these values can be deterministic when null values are found
-            magnitude = [1e-11] # Really low gain
+            magnitude = [1e-11]  # Really low gain
             phase = [0]
             taus = [1]
-        
-        id_objects = paths.objects.numpy()[:, 0, 0, :].T.tolist() # Rays objects list
+
+        id_objects = paths.objects.numpy()[:, 0, 0, :].T.tolist()  # MPCs objects list
         msg = {
-            "magnitudes": magnitude.tolist(),
-            "phases": phase.tolist(),
-            "delays": taus.tolist(),
+            "path_coef": magnitude.tolist(),
+            "phase": phase.tolist(),
+            "tau": taus.tolist(),
             "id_objects": id_objects,
+            "theta_t": theta_t.tolist(),
+            "theta_r": theta_r.tolist(),
+            "phi_t": phi_t.tolist(),
+            "phi_r": phi_r.tolist(),
         }
         await NATS.send(
             self.__class__.__name__,
@@ -137,7 +155,11 @@ class sionna(module):
     def convertMovementFromAirSimToSionna(
         self,
         airsim_position: list,
-        initial_pose_offset: list = [-208.75, 200.15, 1.02] # Central-park [23.34, -3.42, 137.23]
+        initial_pose_offset: list = [
+            -208.75,
+            200.15,
+            1.02,
+        ],  # Central-park [23.34, -3.42, 137.23]
     ):
         """
         Converts the NED (x: North, y: East, z: Down) coordinates from AirSim
