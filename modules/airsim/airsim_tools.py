@@ -41,14 +41,15 @@ class AirSimTools:
             assert armed, "Failed to arm the drone"
             time.sleep(1)
             self.client.takeoffAsync(timeout_sec=30).join()
-            '''
+            """
             while True:
                 takedoff = self.client.takeoffAsync().join()
                 if takedoff:
                     break
                 time.sleep(1)
             assert takedoff, "Failed to take off the drone"
-            '''
+            """
+
     """
     def airsim_takeoff_all(self, client):
         for uav in caviar_config.drone_ids:
@@ -77,9 +78,9 @@ class AirSimTools:
                 airsim.Vector3r(float(path[0]), float(path[1]), float(path[2]))
             )
 
-        #self.client.enableApiControl(True)
+        # self.client.enableApiControl(True)
         time.sleep(
-            5#0.5
+            5  # 0.5
         )  # @TODO: I don't know why but drone only works after adding this delay
         self.client.moveOnPathAsync(
             path_list,

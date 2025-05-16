@@ -1,6 +1,7 @@
 import os
-import numpy as np
+
 import airsim as ARS
+import numpy as np
 
 from kernel.logger import LOGGER
 from kernel.module import module
@@ -30,11 +31,11 @@ class airsim(module):
     PATH = [
         [4, 37.4, -7.8],
         [7, 62, -7.8],
-        [2.234, 95.6,-7.8],
-        [1.2,123.6,-7.8],
-        [1.2,174.6,-7.8],
-        [4.0, 225.1,-7.8],
-        [-12,307.4, -7.8],
+        [2.234, 95.6, -7.8],
+        [1.2, 123.6, -7.8],
+        [1.2, 174.6, -7.8],
+        [4.0, 225.1, -7.8],
+        [-12, 307.4, -7.8],
     ]
     """
     The path that the drone will follow.
