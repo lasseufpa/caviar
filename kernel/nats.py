@@ -32,7 +32,7 @@ class nats:
         self._monitor = None
         pass
 
-    async def send(self, module_name: str, msg, subject):
+    async def send(self, module_name: str, msg: dict, subject: str):
         """
         This method sends a message to the NATS server in a specific subject.
         If the monitoring is set, it will send the message to the monitor
@@ -98,7 +98,7 @@ class nats:
         LOGGER.debug(f"Decoding message: {msg}")
         message = msg.data
         if message == b"\00":
-            return
+            return None
         message_decoded = json.loads(message.decode())
         LOGGER.debug(f"Decoded message: {message_decoded}")
         if self.__check_message(message_decoded, module_name):
@@ -158,7 +158,7 @@ class nats:
             LOGGER.debug(f"Using existing client")
             nc = self.__clients[module_name]
         else:
-            nc = await Nats.connect()
+            nc = await Nats.connect(allow_reconnect=True)
             self.__clients[module_name] = nc
 
         await nc.subscribe(subscription, cb=callback)

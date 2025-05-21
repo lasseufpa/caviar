@@ -1,6 +1,5 @@
 import asyncio
 import os
-import time
 from abc import ABC, abstractmethod
 
 from .buffer import Buffer
@@ -9,7 +8,8 @@ from .logger import LOGGER
 from .nats import NATS
 from .process import PROCESS
 
-LOOP = asyncio.get_event_loop()
+LOOP = asyncio.new_event_loop()
+asyncio.set_event_loop(LOOP)
 
 
 class module(ABC):

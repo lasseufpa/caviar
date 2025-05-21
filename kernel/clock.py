@@ -11,7 +11,7 @@ class Clock:
         Constructor that initializes the Clock object.
         """
         self._start_time = 0
-        self.__time_stamp = 0.00010  # 0.01
+        self.__time_stamp = 0.0010
 
     def get_step_time(self):
         """
