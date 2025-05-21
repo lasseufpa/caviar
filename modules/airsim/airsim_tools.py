@@ -56,8 +56,8 @@ class AirSimTools:
             airsim(client, uav)
     """
 
-    def airsim_reset(self, client):
-        client.reset()
+    def airsim_reset(self): #, client
+        self.client.reset()
 
     def airsim_land(self, client, uav_id):
         landed = client.getMultirotorState(vehicle_name=uav_id).landed_state
@@ -401,6 +401,7 @@ class AirSimTools:
     """
 
     def airsim_getimages(self, client, uav_id):
+        self.client.confirmConnection
         image = client.simGetImage(0, airsim.ImageType.Scene, vehicle_name=uav_id)
         return image
 

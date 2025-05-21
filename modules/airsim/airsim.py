@@ -29,13 +29,13 @@ class airsim(module):
     """
 
     PATH = [
-        [4, 37.4, -7.8],
-        [7, 62, -7.8],
-        [2.234, 95.6, -7.8],
-        [1.2, 123.6, -7.8],
-        [1.2, 174.6, -7.8],
-        [4.0, 225.1, -7.8],
-        [-12, 307.4, -7.8],
+        [4, 37.4, -6.8],
+        [7, 62, -6.8],
+        [2.234, 95.6, -6.8],
+        [1.2, 123.6, -6.8],
+        [1.2, 174.6, -6.8],
+        [1.50, 225.1, -6.8],
+        [-12, 307.4, -6.8],
     ]
     """
     The path that the drone will follow.
@@ -98,17 +98,17 @@ class airsim(module):
         )
         args = [mtx, mtx_conf]
         PROCESS.create_process(args, wait=False, process_name="mediamtx")
-        reso = "144p"
+        reso = "720p"
         # Start ffmpeg process to stream video
         resolution = str(self.RESOLUTION[reso][0]) + "x" + str(self.RESOLUTION[reso][1])
         ffmpeg_command = [
             "ffmpeg",
             "-probesize",
-            "32M",  # Look at up to 32 megabytes of data
+            "4M",
             "-analyzeduration",
-            "1000000",
+            "500000",
             "-framerate",
-            "10",
+            "30",
             "-video_size",
             resolution,
             "-f",
@@ -120,7 +120,11 @@ class airsim(module):
             "-c:v",
             "libx264",
             "-preset",
-            "ultrafast",
+            "ultrafast", #ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow
+            "-rtbufsize", 
+            "10M",
+            "-x264-params", 
+            "keyint=10:min-keyint=10",
             "-tune",
             "zerolatency",
             "-f",
@@ -130,6 +134,8 @@ class airsim(module):
         PROCESS.create_process(
             ffmpeg_command,
             stdin=subprocess.PIPE,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
             process_name="ffmpeg",
         )
         self.ffmpeg_process = PROCESS.get_process_by_name("ffmpeg")
@@ -146,7 +152,7 @@ class airsim(module):
         """
         Since the granularity of the AirSim step is high, we need to
         limit the number of messages sent to sionna. We do this by
-        sending a message every 25 steps. Avoiding in the source
+        sending a message every 50 steps. Avoiding, in the source,
         problems with backpressure and buffer overflow.
         """
         self.index += 1
@@ -168,6 +174,8 @@ class airsim(module):
         responses = HELPER.client.simGetImages(
             [ARS.ImageRequest(0, ARS.ImageType.Scene, False, False)]
         )  # raw bytes
+        if self.ffmpeg_process.poll() is not None:
+            raise Exception("ffmpeg process has stopped")
         if len(responses):
             image_response = responses[0]
             image_bytes = image_response.image_data_uint8
