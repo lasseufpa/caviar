@@ -115,6 +115,7 @@ class sionna(module):
         phase = np.angle(coefficients_real + 1j * coefficients_imag)
         magnitude = np.abs(coefficients_real + 1j * coefficients_imag)
         taus = np.array(paths.tau)[0, 0, :]
+        id_objects = paths.objects.numpy()[:, 0, 0, :].T.tolist()  # MPCs objects list
         LOGGER.debug(f"Phases: {phase}, Magnitudes: {magnitude}, Delays: {taus}")
         """
         When no paths are found, the coefficients are empty. 
@@ -134,8 +135,13 @@ class sionna(module):
             magnitude = [1e-11]  # Really low gain
             phase = [0]
             taus = [1]
+            theta_r = [0]
+            theta_t = [0]
+            phi_r = [0]
+            phi_t = [0]
+            id_objects = [0]
 
-        id_objects = paths.objects.numpy()[:, 0, 0, :].T.tolist()  # MPCs objects list
+        del paths
         msg = {
             "path_coef": magnitude.tolist(),
             "phase": phase.tolist(),
