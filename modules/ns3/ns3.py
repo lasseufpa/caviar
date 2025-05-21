@@ -213,54 +213,52 @@ class ns3(module):
         First, attempt to perform the interpolation of the channel coefficients and delays.
         Attempts to maitain the buffer always with 100 messages.
         """
-        '''
         buffer_len = self.buffer.__len__()
         channels_len = len(self.mixed_channels)
-        print(f"Buffer length: {buffer_len}")
         if buffer_len < 2 and channels_len == 0:
             return
-        elif buffer_len % 2 == 0:
-            if channels_len < 100:
-                print(f"Entering interpolation")
-                """
-                Each buffer item countains a list with the values:
-                channel_coefficients, phases, delays, id_objects, and angles (zenith and azimuth).
-                To perform the interpolation between N messages, we need to extract the lists
-                and perform the interpolation.
-                """
-                N_TERMS = 100 - buffer_len # Number of terms to be added to the original buffer
-                pre_processed_rt_data = RaytracingGenerator(
-                    [self.buffer.get()[0][1]["sionna"] for _ in range(buffer_len)]  
-                ).get_dataset()
-                """
-                The interpolated data is a dictionary where the keys are the index of the scenes.
-                The values are the interpolated data, where each index is a list of MPCs. In each
-                MPC, we have, respectively, a list of:
-                - Magnitude
-                - Zenith angle of arrival
-                - Azimuth angle of arrival
-                - Zenith angle of departure
-                - Azimuth angle of departure
-                - Phase
-                - Delay
-                """
-                interpolated_scenes = self.interpolator.linear_n_factor_interp(pre_processed_rt_data, n_terms=N_TERMS)
-                """
-                Since we are working with lists, we need to convert the dictionary
-                to a list of lists.
-                """
-                for i_scene in interpolated_scenes.keys():
+        """
+        Each buffer item countains a list with the values:
+        magnitudes, phases, delays, id_objects, and angles (zenith and azimuth).
+        To perform the interpolation between N messages, we need to extract the lists
+        and perform the interpolation.
+        """
+        N_TERMS = 100 # Number of terms to be added to the original buffer
+        assert N_TERMS > 0, "N_TERMS must be greater than 0"
+        pre_processed_rt_data = RaytracingGenerator(
+            [self.buffer.get()[0][1]["sionna"] for _ in range(2)]  
+        ).get_dataset()
+        """
+        The interpolated data is a dictionary where the keys are the index of the scenes.
+        The values are the interpolated data, where each index is a list of MPCs. In each
+        MPC, we have, respectively, a list of:
+        - Magnitude
+        - Zenith angle of arrival
+        - Azimuth angle of arrival
+        - Zenith angle of departure
+        - Azimuth angle of departure
+        - Phase
+        - Delay
+        """
+        interpolated_scenes = self.interpolator.linear_n_factor_interp(pre_processed_rt_data, n_terms=N_TERMS)
+        """
+        Since we are working with lists, we need to convert the dictionary
+        to a list of lists.
+        """
+        for i_scene in interpolated_scenes.keys():
+                if isinstance(interpolated_scenes[i_scene], dict):
+                    interpolated_scenes[i_scene] = [interpolated_scenes[i_scene][rayIdx] for rayIdx in interpolated_scenes[i_scene].keys()]
+                self.mixed_channels.append(interpolated_scenes[i_scene])
+        del pre_processed_rt_data, interpolated_scenes
 
-                        if isinstance(interpolated_scenes[i_scene], dict):
-                            interpolated_scenes[i_scene] = [interpolated_scenes[i_scene][rayIdx] for rayIdx in interpolated_scenes[i_scene].keys()]
-                        self.mixed_channels.append(interpolated_scenes[i_scene])
-                del pre_processed_rt_data, interpolated_scenes
         '''
         msg = self.buffer.get()[0][1]["sionna"]
         magnitude = msg["path_coef"]
         phase = msg["phase"]
         delays = msg["tau"]
-        if True:
+        '''
+        while len(self.mixed_channels) > 0:
+            """
             """
             current_scene = self.mixed_channels.pop(0) # Get the most past scene
             '''
@@ -271,7 +269,6 @@ class ns3(module):
             delays = [mpc[6] for mpc in current_scene]
             del current_scene
             assert len(magnitude) == len(phase) == len(delays), "Magnitude, phase and delays should have the same length"
-            """
             coefficients = [
                 [[cmath.rect(magnitude[i], phase[i])]] for i in range(len(magnitude))
             ]
