@@ -36,6 +36,8 @@ services:
     privileged: true
     volumes:
       - ./monitor/grafana/grafana.db:/var/lib/grafana/grafana.db
+      - ./monitor/grafana/plugins:/var/lib/grafana/plugins
+      #- ./monitor/grafana/grafana.ini:/etc/grafana/grafana.ini
     depends_on:
       - influxdb
     networks:

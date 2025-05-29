@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 import argparse
-from subprocess import Popen
+from subprocess import Popen, DEVNULL
 
 from kernel import core
 
@@ -18,23 +18,25 @@ if __name__ == "__main__":
     if args.enable_monitor:
         enable_monitor = True
         # Docker-compose up
-        '''
         try:
             process = Popen(
                 ["docker-compose", "-f", "compose.yml", "up", "-d"],
-                stdout=None,
-                stderr=None,
+                stdout=DEVNULL,
+                stderr=DEVNULL,
             )
             stdout, stderr = process.communicate()
             if process.returncode == 0:
-                print("Docker Compose started successfully.")
+                pass
             else:
-                print("Error starting Docker Compose.")
+                raise Exception(
+                    f"Docker Compose failed with return code {process.returncode}"
+                )
         except FileNotFoundError:
-            print("Docker Compose not found. Please install Docker Compose.")
+            raise FileNotFoundError(
+                "Docker Compose not found. Please ensure Docker is installed and the docker-compose command is available."
+            )
         except Exception as e:
-            print(f"An unexpected error occurred: {e}")
-        '''
+            raise Exception(f"An error occurred while starting Docker Compose: {e}")
     core(enable_monitor).initialize()
     
 
