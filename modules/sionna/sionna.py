@@ -95,12 +95,18 @@ class sionna(module):
         save the angles to be able to calculate (estimate) the channel coefficients for a 
         MIMO communication afterwards.
         """
-        phi_r = np.array(paths.phi_r[0, 0, :])  # All MPCs Azimuth angle of arrival
-        phi_t = np.array(paths.phi_t[0, 0, :])  # All MPCs Azimuth angle of departure
-        theta_r = np.array(paths.theta_r[0, 0, :])  # All MPCs  Zenith angle of arrival
+        phi_r = np.array(
+            paths.phi_r[0, 0, :]
+        ).tolist()  # All MPCs Azimuth angle of arrival
+        phi_t = np.array(
+            paths.phi_t[0, 0, :]
+        ).tolist()  # All MPCs Azimuth angle of departure
+        theta_r = np.array(
+            paths.theta_r[0, 0, :]
+        ).tolist()  # All MPCs  Zenith angle of arrival
         theta_t = np.array(
             paths.theta_t[0, 0, :]
-        )  # All MPCs  Zenith angle of departure
+        ).tolist()  # All MPCs  Zenith angle of departure
 
         coefficients_real, coefficients_imag = np.array(paths.a)
         # Get the coefficients of the paths (rxAntennas, txAntennas, mpcs), since its only one
@@ -112,9 +118,9 @@ class sionna(module):
         The phase is the angle of the complex number, and the magnitude is the absolute value for 
         each MPC. The taus are the delays for each MPC.
         """
-        phase = np.angle(coefficients_real + 1j * coefficients_imag)
-        magnitude = np.abs(coefficients_real + 1j * coefficients_imag)
-        taus = np.array(paths.tau)[0, 0, :]
+        phase = np.angle(coefficients_real + 1j * coefficients_imag).tolist()
+        magnitude = np.abs(coefficients_real + 1j * coefficients_imag).tolist()
+        taus = np.array(paths.tau)[0, 0, :].tolist()  # All MPCs delays
         id_objects = paths.objects.numpy()[:, 0, 0, :].T.tolist()  # MPCs objects list
         LOGGER.debug(f"Phases: {phase}, Magnitudes: {magnitude}, Delays: {taus}")
         """
@@ -143,14 +149,14 @@ class sionna(module):
 
         del paths
         msg = {
-            "path_coef": magnitude.tolist(),
-            "phase": phase.tolist(),
-            "tau": taus.tolist(),
+            "path_coef": magnitude,
+            "phase": phase,
+            "tau": taus,
             "id_objects": id_objects,
-            "theta_t": theta_t.tolist(),
-            "theta_r": theta_r.tolist(),
-            "phi_t": phi_t.tolist(),
-            "phi_r": phi_r.tolist(),
+            "theta_t": theta_t,
+            "theta_r": theta_r,
+            "phi_t": phi_t,
+            "phi_r": phi_r,
         }
         await NATS.send(
             self.__class__.__name__,
