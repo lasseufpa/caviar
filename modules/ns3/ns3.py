@@ -3,6 +3,7 @@ import os
 import shutil
 import signal
 import time
+import numpy as np
 
 from kernel.buffer import Buffer
 from kernel.logger import LOGGER
@@ -80,6 +81,40 @@ class ns3(module):
         # os.mkfifo(os.path.join(ns_3_path, "position.fifo")) Ignore position, since rt module does not use it
         # to perform any mobility calculation
 
+        """
+        Before starting the ns-3 simulation, we need to start the docker container
+        that will be used to simulate the internet node. This is done using a bash script
+        that will create the container and start the route and interfaces of the container.
+        
+        Now, we start the internet container, using a **really ugly** bash script,
+        like the cave men... This is necessary, since we need to create the entire setup
+        according to the ns-3 logic. Nothing avoids you to use a docker-compose to perform
+        this step, it is just more simple to use a bash script here.
+        """
+
+        PROCESS.create_process(  # First, create the container and install dependencies
+            [
+                "sudo",
+                "bash",
+                os.path.join(dir_path, "construct.sh"),
+            ],
+            wait=True,
+            cwd=dir_path,
+            stdout=None,
+            stderr=None,
+        )
+        PROCESS.create_process(  # Second, configure the route and interfaces of the container
+            [
+                "sudo",
+                "bash",
+                os.path.join(dir_path, "start.sh"),
+            ],
+            wait=True,
+            cwd=dir_path,
+            stdout=None,
+            stderr=None,
+        )
+
         config_command = [
             "./ns3",
             "configure",
@@ -116,7 +151,9 @@ class ns3(module):
             the child process will not be able to reponse. Because of this, we need to
             set the process group to the child process, so it can receive the SIGCHLD
             signal by caviar and also set sigchild to default in this specific process.
-            @TODO: Check how to deal when ns-3 crashes.
+
+            @TODO: Check how to deal when ns-3 crashes. Now, I just check if the process
+            crashed and raise an exception. But this is not the best way to deal with it.
             """
             # os.setpgrp()
             signal.signal(signal.SIGCHLD, signal.SIG_DFL)
@@ -137,6 +174,7 @@ class ns3(module):
         # it will not be able to read the input. Here, we assume tap0 is the name
         # of the tap interface created by ns-3.
         process = PROCESS.get_process_by_name("ns3_run")
+        self.ns3_process = process
         while not os.path.exists("/sys/class/net/tap0"):
             if process.poll() is not None:
                 raise ValueError(
@@ -161,35 +199,6 @@ class ns3(module):
         ]
         PROCESS.create_process(route_command, wait=True)  # , stderr=None, stdout=None
 
-        # Now, we start the internet container, using a **really ugly** bash script,
-        # like the cave men... This is necessary, since we need to create the entire setup
-        # according to the ns-3 logic. Nothing avoids you to use a docker-compose to perform
-        # this step, it is just more simple to use a bash script here.
-
-        PROCESS.create_process(  # First, create the container and install dependencies
-            [
-                "sudo",
-                "bash",
-                os.path.join(dir_path, "construct.sh"),
-            ],
-            wait=True,
-            cwd=dir_path,
-            # stdout=None,
-            # stderr=None,
-        )
-
-        PROCESS.create_process(  # Second, start the route and interfaces of the container
-            [
-                "sudo",
-                "bash",
-                os.path.join(dir_path, "start.sh"),
-            ],
-            wait=True,
-            cwd=dir_path,
-            # stdout=None,
-            # stderr=None,
-        )
-
         # If enable-monitor is set, we need to create a route from the internet container
         # to the caviar.grafana container. We use a simple bash (like the cave men again)
         # to do this
@@ -202,8 +211,8 @@ class ns3(module):
                 ],
                 wait=True,
                 cwd=dir_path,
-                # stdout=None,
-                # stderr=None,
+                stdout=None,
+                stderr=None,
             )
 
     async def _execute_step(self):
@@ -213,6 +222,7 @@ class ns3(module):
         First, attempt to perform the interpolation of the channel coefficients and delays.
         Attempts to maitain the buffer always with 100 messages.
         """
+        assert self.ns3_process is not None, "ns-3 process crashed for some reason"
         buffer_len = self.buffer.__len__()
         channels_len = len(self.mixed_channels)
         if buffer_len < 2 and channels_len == 0:
@@ -223,10 +233,10 @@ class ns3(module):
         To perform the interpolation between N messages, we need to extract the lists
         and perform the interpolation.
         """
-        N_TERMS = 100 # Number of terms to be added to the original buffer
+        N_TERMS = 100  # Number of terms to be added to the original buffer
         assert N_TERMS > 0, "N_TERMS must be greater than 0"
         pre_processed_rt_data = RaytracingGenerator(
-            [self.buffer.get()[0][1]["sionna"] for _ in range(2)]  
+            [self.buffer.get()[0][1]["sionna"] for _ in range(2)]
         ).get_dataset()
         """
         The interpolated data is a dictionary where the keys are the index of the scenes.
@@ -240,73 +250,56 @@ class ns3(module):
         - Phase
         - Delay
         """
-        interpolated_scenes = self.interpolator.linear_n_factor_interp(pre_processed_rt_data, n_terms=N_TERMS)
+        interpolated_scenes = self.interpolator.linear_n_factor_interp(
+            pre_processed_rt_data, n_terms=N_TERMS
+        )
         """
         Since we are working with lists, we need to convert the dictionary
         to a list of lists.
         """
         for i_scene in interpolated_scenes.keys():
-                if isinstance(interpolated_scenes[i_scene], dict):
-                    interpolated_scenes[i_scene] = [interpolated_scenes[i_scene][rayIdx] for rayIdx in interpolated_scenes[i_scene].keys()]
-                self.mixed_channels.append(interpolated_scenes[i_scene])
+            if isinstance(interpolated_scenes[i_scene], dict):
+                interpolated_scenes[i_scene] = [
+                    interpolated_scenes[i_scene][rayIdx]
+                    for rayIdx in interpolated_scenes[i_scene].keys()
+                ]
+            self.mixed_channels.append(interpolated_scenes[i_scene])
         del pre_processed_rt_data, interpolated_scenes
 
-        '''
-        msg = self.buffer.get()[0][1]["sionna"]
-        magnitude = msg["path_coef"]
-        phase = msg["phase"]
-        delays = msg["tau"]
-        '''
         while len(self.mixed_channels) > 0:
+            """ """
+            current_scene = self.mixed_channels.pop(0)  # Get the most past scene
             """
-            """
-            current_scene = self.mixed_channels.pop(0) # Get the most past scene
-            '''
             Get each magnitude, phase and delay from the scene.
-            '''
+            """
             magnitude = [mpc[0] for mpc in current_scene]
             phase = [mpc[5] for mpc in current_scene]
             delays = [mpc[6] for mpc in current_scene]
+            angles = {
+                "zenith_aoa": [np.deg2rad(mpc[1]) for mpc in current_scene],
+                "azimuth_aoa": [np.deg2rad(mpc[2]) for mpc in current_scene],
+                "zenith_aod": [np.deg2rad(mpc[3]) for mpc in current_scene],
+                "azimuth_aod": [np.deg2rad(mpc[4]) for mpc in current_scene],
+            }
             del current_scene
-            assert len(magnitude) == len(phase) == len(delays), "Magnitude, phase and delays should have the same length"
+            assert (
+                len(magnitude) == len(phase) == len(delays)
+            ), "Magnitude, phase and delays should have the same length"
             coefficients = [
                 [[cmath.rect(magnitude[i], phase[i])]] for i in range(len(magnitude))
             ]
-            """
-            for i in range(len(magnitude)):
-                coefficients.append(
-                    [
-                        [
-                            complex(magnitude[i][j][k], phase[i][j][k])
-                            for k in range(len(magnitude[i][j]))
-                        ]
-                        for j in range(len(magnitude[i]))
-                    ]
-                )
-            coefficients = [
-                [
-                    [complex(entry["real"], entry["imag"]) for entry in mpc_list]
-                    for mpc_list in tx_list
-                ]
-                for tx_list in coefficients
-            ]
-            coefficients = [
-                [
-                    [coefficients[x][y][z] for y in range(len(coefficients[0]))]
-                    for x in range(len(coefficients))
-                ]
-                for z in range(len(coefficients[0][0]))
-            ]
-            # Write in the fifo file.
-            Here its a block operation, since the ns-3 will read the file
-            and will not continue until the file is read.
-            """
             with open(os.path.join(self.ns3_path, "coefficients.fifo"), "w") as f:
                 f.write(str(coefficients))
             with open(os.path.join(self.ns3_path, "delays.fifo"), "w") as f:
                 f.write(str(delays))
 
-    def __from_siso_to_mimo(self, phase: list, magnitude: list):
+        """
+        Send SINR information to be monitoring in case is enabled.
+        if NATS.is_monitor():
+            pass                
+        """
+
+    def __from_siso_to_mimo(self, phase: list, magnitude: list, angles: dict):
         """
         This method converts (estimates) the SISO H(f) coefficients to a _single port_ MIMO coefficients.
         sionna returns a list of phase and magnitude, where each index corresponds to a multipath component.
@@ -319,8 +312,8 @@ class ns3(module):
                 [H21, H22]
             ],
             [
-                [H31, H32],
-                [H41, H42]
+                [H11, H12],
+                [H21, H22]
             ]
         ]
 
@@ -348,4 +341,17 @@ class ns3(module):
         assert len(phase) == len(
             magnitude
         ), "Phase and magnitude should have the same length"
-        coefficients = []
+        coefficients = [
+            magnitude[i] * cmath.exp(1j * phase[i]) for i in range(len(phase))
+        ]
+        # Convert the coefficients to MIMO
+
+    def _calculate_beamforming_channel(self, coefficients: list):
+        """
+        This method calculates the beamforming channel for the given coefficients.
+        The coefficients are the SISO coefficients, and we need to convert them to MIMO
+        (please refer to the __from_siso_to_mimo method).
+
+        The codebook
+        """
+        pass
