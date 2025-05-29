@@ -56,7 +56,7 @@ class AirSimTools:
             airsim(client, uav)
     """
 
-    def airsim_reset(self): #, client
+    def airsim_reset(self):  # , client
         self.client.reset()
 
     def airsim_land(self, client, uav_id):

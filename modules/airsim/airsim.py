@@ -36,6 +36,13 @@ class airsim(module):
         [1.2, 174.6, -6.8],
         [1.50, 225.1, -6.8],
         [-12, 307.4, -6.8],
+        [1.50, 225.1, -6.8],
+        [1.2, 174.6, -6.8],
+        [1.2, 123.6, -6.8],
+        [2.234, 95.6, -6.8],
+        [7, 62, -6.8],
+        [4, 37.4, -6.8],
+        [0, 0, -6.8]
     ]
     """
     The path that the drone will follow.
@@ -108,7 +115,7 @@ class airsim(module):
             "-analyzeduration",
             "500000",
             "-framerate",
-            "30",
+            "10",
             "-video_size",
             resolution,
             "-f",
@@ -120,10 +127,10 @@ class airsim(module):
             "-c:v",
             "libx264",
             "-preset",
-            "ultrafast", #ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow
-            "-rtbufsize", 
+            "ultrafast",  # ultrafast, superfast, veryfast, faster, fast, medium, slow, slower, veryslow
+            "-rtbufsize",
             "10M",
-            "-x264-params", 
+            "-x264-params",
             "keyint=10:min-keyint=10",
             "-tune",
             "zerolatency",
