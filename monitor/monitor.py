@@ -43,9 +43,13 @@ class Monitor:
         This method is the main loop of the monitor.
         It basically subscribes to all the enable module NATS topics.
 
+        @param msg: The message to be monitored, which is a dictionary
+        @param module_name: The name of the module that is being monitored
+
         @NOTE: If the dictionary contains a list of lists, this method
         supress addiotional dimensions. I.e., a tensor with NxMxK dimensions
-        will be flattened to a list of K elements.
+        will be flattened to a list of K elements. Moreover, this method is not
+        supposed to save as string, but as a float value.
         """
         point = Point("modules").tag("module", module_name)
 
@@ -54,18 +58,18 @@ class Monitor:
                 # Flatten the list and add it to the point
                 flat_list = list(self.__flatten_list(value))
                 for i, list_value in enumerate(flat_list):
-                    point.field(f"{key}_{i}", list_value)
+                    point.field(f"{key}_{i}", float(list_value))
             elif isinstance(value, dict):
                 for k, v in value.items():
                     if isinstance(v, list):
                         # Flatten the list and add it to the point
                         flat_list = list(self.__flatten_list(v))
                         for i, list_value in enumerate(flat_list):
-                            point.field(f"{key}_{k}_{i}", list_value)
+                            point.field(f"{key}_{k}_{i}", float(list_value))
                     else:
-                        point.field(f"{key}_{k}", v)
+                        point.field(f"{key}_{k}", float(v))
             else:
-                point.field(key, value)
+                point.field(key, float(value))
         point.time(
             time=time.time_ns(),
             write_precision=WritePrecision.NS,
