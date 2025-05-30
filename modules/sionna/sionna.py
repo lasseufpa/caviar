@@ -113,10 +113,12 @@ class sionna(module):
         This method executes the Sionna step.
         """
         LOGGER.debug(f"Sionna Execute Step")
-        self.scene.get("rx").position = np.array(
-            self.convertMovementFromAirSimToSionna(self.buffer.get()[0]),
-            dtype=np.float32,
-        )
+        element = self.buffer.get()
+        if element is None:
+            LOGGER.debug("No element in buffer, skipping Sionna step")
+            return
+        pose = element[0][:3]
+        self.scene.get("rx").position = self.convertMovementFromAirSimToSionna(pose)
         start = time.time_ns()
         paths = self.solver(
             scene=self.scene,
@@ -180,6 +182,7 @@ class sionna(module):
             phase_len == magnitude_len == taus_len
         ), "Phase, magnitude and taus are not the same length"
         if magnitude_len < 1:  # or phase_len < 1 or taus_len < 1
+            LOGGER.info("No paths, sending really low gain MPCs")
             # @TODO: Check whether these values can be deterministic when null values are found
             magnitude = [1e-11]  # Really low gain
             phase = [0]
@@ -227,8 +230,6 @@ class sionna(module):
         @return: The position in Sionna coordinates
 
         """
-        return [
-            initial_pose_offset[0] + airsim_position[0],
-            initial_pose_offset[1] - airsim_position[1],
-            initial_pose_offset[2] - airsim_position[2],
-        ]
+        pos = np.array(airsim_position, dtype=np.float32)
+        offset = np.array(initial_pose_offset, dtype=np.float32)
+        return offset + pos * np.array([1, -1, -1], dtype=np.float32)
