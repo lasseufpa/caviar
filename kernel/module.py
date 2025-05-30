@@ -30,6 +30,7 @@ class module(ABC):
             10000
         )  # !< Buffer of the module (using size equal to 100 as default)
         self._lock = asyncio.Lock()
+        self.loop = LOOP  # !< The event loop of the module
 
     @abstractmethod
     def _do_init(self):
