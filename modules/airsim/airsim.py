@@ -1,5 +1,5 @@
 import os
-
+import asyncio
 import airsim as ARS
 import numpy as np
 
@@ -115,7 +115,7 @@ class airsim(module):
             "-analyzeduration",
             "500000",
             "-framerate",
-            "10",
+            "30",
             "-video_size",
             resolution,
             "-f",
@@ -147,6 +147,7 @@ class airsim(module):
         )
         self.ffmpeg_process = PROCESS.get_process_by_name("ffmpeg")
         assert self.ffmpeg_process is not None, "ffmpeg process not created"
+        self._start_streaming = False
 
     async def _execute_step(self):
         """
@@ -177,14 +178,27 @@ class airsim(module):
         }
         # Send the message to sionna
         await NATS.send(self.__class__.__name__, message, "sionna")
+        if not self._start_streaming:
+            LOGGER.info("Starting video streaming")
+            self._start_streaming = True
+            # Start the video streaming
+            asyncio.create_task(self.__start_video_streaming())
 
-        responses = HELPER.client.simGetImages(
-            [ARS.ImageRequest(0, ARS.ImageType.Scene, False, False)]
-        )  # raw bytes
-        if self.ffmpeg_process.poll() is not None:
-            raise Exception("ffmpeg process has stopped")
-        if len(responses):
-            image_response = responses[0]
-            image_bytes = image_response.image_data_uint8
-            self.ffmpeg_process.stdin.write(image_bytes)
-            self.ffmpeg_process.stdin.flush()
+    async def __start_video_streaming(self):
+        """
+        Start the video streaming. This is done asynchronously to avoid blocking
+        the main loop. The video is streamed outside the caviar scheduling. Unfortunately,
+        the AirSim API does not provide a way to get the video frames in a non-blocking way.
+        """
+        while True:
+            responses = HELPER.client.simGetImages(
+                [ARS.ImageRequest(0, ARS.ImageType.Scene, False, False)]
+            )  # raw bytes
+            if self.ffmpeg_process.poll() is not None:
+                raise Exception("ffmpeg process has stopped")
+            if len(responses):
+                image_response = responses[0]
+                image_bytes = image_response.image_data_uint8
+                self.ffmpeg_process.stdin.write(image_bytes)
+                self.ffmpeg_process.stdin.flush()
+            await asyncio.sleep(0.01)
