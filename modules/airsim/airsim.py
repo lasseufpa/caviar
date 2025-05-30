@@ -42,7 +42,7 @@ class airsim(module):
         [2.234, 95.6, -6.8],
         [7, 62, -6.8],
         [4, 37.4, -6.8],
-        [0, 0, -6.8]
+        [0, 0, -6.8],
     ]
     """
     The path that the drone will follow.
@@ -87,11 +87,11 @@ class airsim(module):
             stdout=subprocess.DEVNULL,  # subprocess.DEVNULL
             stderr=subprocess.DEVNULL,
         )
-
+        self.speed = 0.5  # m/s
         # Wait for AirSim connection
         HELPER.airsim_connect()
         HELPER.airsim_takeoff()
-        HELPER.move_on_path(paths=self.PATH, speed=0.50)  # speed = 0.5 m/s
+        HELPER.move_on_path(paths=self.PATH, speed=self.speed)  # speed = 0.5 m/s
         HELPER.pause()  # Pause the simulation and resume only in __execute_step
         self.index = 0
         """
