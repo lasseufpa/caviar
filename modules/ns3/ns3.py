@@ -269,7 +269,7 @@ class ns3(module):
         To perform the interpolation between N messages, we need to extract the lists
         and perform the interpolation.
         """
-        N_TERMS = 100  # Number of terms to be added to the original buffer
+        N_TERMS = 50  # Number of terms to be added to the original buffer
         assert N_TERMS > 0, "N_TERMS must be greater than 0"
         raw_data = [self.buffer.get()[0][1]["sionna"] for _ in range(2)]
         if self._rx_rotation is None and self._tx_rotation is None:
