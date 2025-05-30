@@ -62,7 +62,14 @@ class Buffer(ABC):
     def get(self):
         """
         Get an item from the buffer. If the buffer is empty, return None.
+
+        @NOTE: The normal buffer would wait until an item is available,
+        but this will produce an undefined behavior in the simulation.
+
+        @return: The item from the buffer or None if the buffer is empty.
         """
+        if self.buffer.empty():
+            return None
         return self.buffer.get()
 
     def is_empty(self):
