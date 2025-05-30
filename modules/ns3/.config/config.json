@@ -15,7 +15,9 @@
                 "theta_t",
                 "theta_r",
                 "phi_t",
-                "phi_r"
+                "phi_r",
+                "rx_rotation",
+                "tx_rotation"
                 ]
             }
         },

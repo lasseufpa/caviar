@@ -1,5 +1,6 @@
 import cmath
 import os
+import select
 import shutil
 import signal
 import time
@@ -9,8 +10,9 @@ from kernel.buffer import Buffer
 from kernel.logger import LOGGER
 from kernel.module import module
 from kernel.nats import NATS
-from kernel.process import PROCESS
+from kernel.process import PROCESS, subprocess
 from utils import Interpolators, RaytracingGenerator
+from scipy.constants import speed_of_light
 
 
 class ns3(module):
@@ -44,6 +46,20 @@ class ns3(module):
         dir_path = os.path.dirname(os.path.realpath(__file__))
         ns_3_path = os.path.join(dir_path, "ns-3-dev")
         self.ns3_path = ns_3_path
+        """
+        @TODO: These values of frequency and spacing are hardcoded and should be automatic set via
+        sionna module 
+        """
+        self.tx_array_size = (
+            self.TX_ANTENNA_ARCHITECTURE[0] * self.TX_ANTENNA_ARCHITECTURE[1]
+        )
+        self.rx_array_size = (
+            self.RX_ANTENNA_ARCHITECTURE[0] * self.RX_ANTENNA_ARCHITECTURE[1]
+        )
+        self._frequency = 2.8e9
+        self._wavelength = speed_of_light / self._frequency
+        self._rx_rotation = None
+        self._tx_rotation = None
         if not os.path.exists(ns_3_path):
             raise ValueError(
                 "ns3 should be installed. Please do: git submodule update --init --recursive"
@@ -164,7 +180,7 @@ class ns3(module):
             # wait=True, # This blocks the simulation
             cwd=ns_3_path,
             preexec_fnction=_preexec_fn,
-            stdout=None,
+            stdout=subprocess.PIPE,
             stderr=None,
             stdin=None,
             process_name="ns3_run",
@@ -214,19 +230,39 @@ class ns3(module):
                 stdout=None,
                 stderr=None,
             )
+            self.path_to_sinr_file = os.path.join(ns_3_path, "RxPacketTrace.txt")
+            """
+            Since the event loop is not running yet, and loop.create_task is not available.
+            We need to create a task that will run in the ns3 step (monitor parameters).
+            The ns-3 main code overrides the oldest file which is already being monitored.
+            To Prevent a bad behavior in the monitor class, we will remove the oldest to
+            avoid monitor_file to read a file that goes to be overwritten.
+            """
+            if os.path.exists(self.path_to_sinr_file):
+                os.remove(self.path_to_sinr_file)
+
+        self.is_already_monitored = False
 
     async def _execute_step(self):
+
         """
         This method executes the ns3 step.
-
         First, attempt to perform the interpolation of the channel coefficients and delays.
-        Attempts to maitain the buffer always with 100 messages.
+        Attempts to maitain the inner-buffer always with 100 channels.
         """
         assert self.ns3_process is not None, "ns-3 process crashed for some reason"
         buffer_len = self.buffer.__len__()
         channels_len = len(self.mixed_channels)
         if buffer_len < 2 and channels_len == 0:
             return
+        if self.is_already_monitored is False and os.path.exists(
+            self.path_to_sinr_file
+        ):
+            NATS.monitor_file(
+                "sinr", file_path=self.path_to_sinr_file, module_name="ns3"
+            )
+            self.is_already_monitored = True
+
         """
         Each buffer item countains a list with the values:
         magnitudes, phases, delays, id_objects, and angles (zenith and azimuth).
@@ -235,9 +271,11 @@ class ns3(module):
         """
         N_TERMS = 100  # Number of terms to be added to the original buffer
         assert N_TERMS > 0, "N_TERMS must be greater than 0"
-        pre_processed_rt_data = RaytracingGenerator(
-            [self.buffer.get()[0][1]["sionna"] for _ in range(2)]
-        ).get_dataset()
+        raw_data = [self.buffer.get()[0][1]["sionna"] for _ in range(2)]
+        if self._rx_rotation is None and self._tx_rotation is None:
+            self._rx_rotation = raw_data[0]["rx_rotation"]
+            self._tx_rotation = raw_data[0]["tx_rotation"]
+        pre_processed_rt_data = RaytracingGenerator(raw_data).get_dataset()
         """
         The interpolated data is a dictionary where the keys are the index of the scenes.
         The values are the interpolated data, where each index is a list of MPCs. In each
@@ -272,8 +310,9 @@ class ns3(module):
             """
             Get each magnitude, phase and delay from the scene.
             """
-            magnitude = [mpc[0] for mpc in current_scene]
-            phase = [mpc[5] for mpc in current_scene]
+            a_real, a_imag = [
+                mpc[0] * np.cos(np.deg2rad(mpc[5])) for mpc in current_scene
+            ], [mpc[0] * np.sin(np.deg2rad(mpc[5])) for mpc in current_scene]
             delays = [mpc[6] for mpc in current_scene]
             angles = {
                 "zenith_aoa": [np.deg2rad(mpc[1]) for mpc in current_scene],
@@ -282,24 +321,26 @@ class ns3(module):
                 "azimuth_aod": [np.deg2rad(mpc[4]) for mpc in current_scene],
             }
             del current_scene
-            assert (
-                len(magnitude) == len(phase) == len(delays)
-            ), "Magnitude, phase and delays should have the same length"
+            h_mimo = self.__from_siso_to_mimo_drjit(
+                a_real=a_real, a_imag=a_imag, angles=angles
+            )
+            """
+            SISO:
             coefficients = [
                 [[cmath.rect(magnitude[i], phase[i])]] for i in range(len(magnitude))
             ]
+            """
             with open(os.path.join(self.ns3_path, "coefficients.fifo"), "w") as f:
-                f.write(str(coefficients))
+                f.write(str(h_mimo))
             with open(os.path.join(self.ns3_path, "delays.fifo"), "w") as f:
                 f.write(str(delays))
 
-        """
-        Send SINR information to be monitoring in case is enabled.
-        if NATS.is_monitor():
-            pass                
-        """
-
-    def __from_siso_to_mimo(self, phase: list, magnitude: list, angles: dict):
+    def __from_siso_to_mimo(
+        self,
+        a_real: list,
+        a_imag: list,
+        angles: dict,
+    ):
         """
         This method converts (estimates) the SISO H(f) coefficients to a _single port_ MIMO coefficients.
         sionna returns a list of phase and magnitude, where each index corresponds to a multipath component.
@@ -337,16 +378,126 @@ class ns3(module):
 
         Where d_{rx} and d_{tx} are the distance between the antennas in the rx and tx arrays, respectively, and K is
         the wave vector of the derparture and arrival angles.
-        """
-        assert len(phase) == len(
-            magnitude
-        ), "Phase and magnitude should have the same length"
-        coefficients = [
-            magnitude[i] * cmath.exp(1j * phase[i]) for i in range(len(phase))
-        ]
-        # Convert the coefficients to MIMO
 
-    def _calculate_beamforming_channel(self, coefficients: list):
+        @param phase: List of phase values for each multipath component.
+        @param magnitude: List of magnitude values for each multipath component.
+        @param angles: Dictionary with the angles of arrival and departure for each multipath component.
+        @return h_ijk: List of lists of lists, where each list corresponds to a multipath component,
+        and each inner list corresponds to the coefficients for each RX antenna and TX antenna.
+        """
+        assert len(a_real) == len(
+            a_imag
+        ), "Phase and magnitude should have the same length"
+
+        max_num_paths = len(a_real)
+
+        # Calculate the wave vectors based on the angles for both rx and tx
+        rel_ant_positions_rx_x = self._rx_rotation[0]  # All antennas x positions
+        rel_ant_positions_rx_y = self._rx_rotation[1]  # All antennas y positions
+        rel_ant_positions_rx_z = self._rx_rotation[2]  # All antennas z positions
+        rel_ant_pos_tx_x = self._tx_rotation[0]  # All antennas x positions
+        rel_ant_pos_tx_y = self._tx_rotation[1]  # All antennas y positions
+        rel_ant_pos_tx_z = self._tx_rotation[2]  # All antennas z positions
+        h_ijk = []
+        for i in range(max_num_paths):
+            a = complex(a_real[i], a_imag[i])
+            k_rx_x = np.sin(angles["zenith_aoa"][i]) * np.cos(angles["azimuth_aoa"][i])
+            k_rx_y = np.sin(angles["zenith_aoa"][i]) * np.sin(angles["azimuth_aoa"][i])
+            k_rx_z = np.cos(angles["zenith_aoa"][i])
+            k_tx_x = np.sin(angles["zenith_aod"][i]) * np.cos(angles["azimuth_aod"][i])
+            k_tx_y = np.sin(angles["zenith_aod"][i]) * np.sin(angles["azimuth_aod"][i])
+            k_tx_z = np.cos(angles["zenith_aod"][i])
+            LOGGER.info(
+                f"Wave vectors for MPC {i}: k_rx=({k_rx_x}, {k_rx_y}, {k_rx_z}), k_tx=({k_tx_x}, {k_tx_y}, {k_tx_z})"
+            )
+            h_jk = []
+            for j in range(self.rx_array_size):
+                phase_shfts_rx = (
+                    2
+                    * (1 / self._wavelength)
+                    * np.pi
+                    * (
+                        rel_ant_positions_rx_x[j] * k_rx_x
+                        + rel_ant_positions_rx_y[j] * k_rx_y
+                        + rel_ant_positions_rx_z[j] * k_rx_z
+                    )
+                )
+
+                LOGGER.debug(
+                    f"Phase shifts for RX antennas for MPC {i}: {phase_shfts_rx}"
+                )
+                h_k = []
+                for k in range(self.tx_array_size):
+                    # Calculate the phase shifts for the tx antennas
+                    # using the wave vector and the relative positions
+                    # of the antennas
+                    phase_shfts_tx = (
+                        2
+                        * (1 / self._wavelength)
+                        * np.pi
+                        * (
+                            rel_ant_pos_tx_x[k] * k_tx_x
+                            + rel_ant_pos_tx_y[k] * k_tx_y
+                            + rel_ant_pos_tx_z[k] * k_tx_z
+                        )
+                    )
+
+                    LOGGER.debug(
+                        f"Phase shifts for TX antennas for MPC {i}: {phase_shfts_tx}"
+                    )
+                    # New coefficients for the MIMO channel, assuming
+                    # the phase shifts
+                    h_ij_temp = (
+                        a * np.exp(1j * phase_shfts_rx) * np.exp(1j * phase_shfts_tx)
+                    )
+                    h_k.append(h_ij_temp)
+                h_jk.append(h_k)
+            h_ijk.append(h_jk)
+        return h_ijk
+
+    def __from_siso_to_mimo_drjit(self, a_real: list, a_imag: list, angles: dict):
+        """
+        @TODO: Made with chatgpt; Need to check if it works properly.
+        """
+        assert len(a_real) == len(a_imag), "Real and imaginary parts must match"
+
+        a_complex = np.array(a_real) + 1j * np.array(a_imag)
+
+        rx_pos = np.stack(
+            (self._rx_rotation[0], self._rx_rotation[1], self._rx_rotation[2]), axis=-1
+        )
+        tx_pos = np.stack(
+            (self._tx_rotation[0], self._tx_rotation[1], self._tx_rotation[2]), axis=-1
+        )
+
+        k_rx = np.stack(
+            [
+                np.sin(angles["zenith_aoa"]) * np.cos(angles["azimuth_aoa"]),
+                np.sin(angles["zenith_aoa"]) * np.sin(angles["azimuth_aoa"]),
+                np.cos(angles["zenith_aoa"]),
+            ],
+            axis=-1,
+        )
+
+        k_tx = np.stack(
+            [
+                np.sin(angles["zenith_aod"]) * np.cos(angles["azimuth_aod"]),
+                np.sin(angles["zenith_aod"]) * np.sin(angles["azimuth_aod"]),
+                np.cos(angles["zenith_aod"]),
+            ],
+            axis=-1,
+        )
+        factor = 2 * np.pi / self._wavelength
+        phase_rx = factor * k_rx @ rx_pos.T
+        phase_tx = factor * k_tx @ tx_pos.T
+
+        U_rx = np.exp(1j * phase_rx)
+        U_tx = np.exp(1j * phase_tx)
+        H = a_complex[:, None, None] * U_rx[:, :, None] * U_tx[:, None, :]
+
+        return H.tolist()
+
+    def _calculate_equivalent_channel(self, coefficients: list):
         """
         This method calculates the beamforming channel for the given coefficients.
         The coefficients are the SISO coefficients, and we need to convert them to MIMO
