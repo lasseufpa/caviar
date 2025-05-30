@@ -65,6 +65,47 @@ class sionna(module):
         tx.look_at(rx)  # Transmitter points towards receiver
         rx.look_at(tx)  # Receiver points towards transmitter
 
+        """
+        This is a bit trick, but the idea is to get the relative positions of the
+        antennas in the array. The rotate method:
+        
+        *Computes the relative positions of all antennas rotated according to the orientation*
+        
+        This will be used to properly calculate the channel coefficients, similar to how
+        synthetic arrays performs in sionna.
+
+        @TODO: This is ugly. Remove it from here and perform the calculation
+        in ns3 part.
+        """
+        self._rx_rotation = np.array(
+            RT.PlanarArray(
+                num_rows=2,
+                num_cols=2,
+                vertical_spacing=0.5,
+                horizontal_spacing=0.5,
+                pattern="iso",
+                polarization="V",
+            ).rotate(
+                wavelength=self.scene.wavelength,
+                orientation=self.scene.get("rx").orientation,
+            )
+        ).tolist()
+
+        self._tx_rotation = np.array(
+            RT.PlanarArray(
+                num_rows=6,
+                num_cols=6,
+                vertical_spacing=0.5,
+                horizontal_spacing=0.5,
+                pattern="iso",
+                polarization="V",
+            ).rotate(
+                wavelength=self.scene.wavelength,
+                orientation=self.scene.get("tx").orientation,
+            )
+        ).tolist()
+        LOGGER.debug(f"Rx rotation: {self._rx_rotation}")
+        LOGGER.debug(f"Tx rotation: {self._tx_rotation}")
         LOGGER.debug(f"Finalizing Sionna Do Init")
 
     async def _execute_step(self):
@@ -118,7 +159,9 @@ class sionna(module):
         The phase is the angle of the complex number, and the magnitude is the absolute value for 
         each MPC. The taus are the delays for each MPC.
         """
-        phase = np.angle(coefficients_real + 1j * coefficients_imag).tolist()
+        phase = np.angle(
+            coefficients_real + 1j * coefficients_imag
+        ).tolist()  # in radians
         magnitude = np.abs(coefficients_real + 1j * coefficients_imag).tolist()
         taus = np.array(paths.tau)[0, 0, :].tolist()  # All MPCs delays
         id_objects = paths.objects.numpy()[:, 0, 0, :].T.tolist()  # MPCs objects list
@@ -157,6 +200,8 @@ class sionna(module):
             "theta_r": theta_r,
             "phi_t": phi_t,
             "phi_r": phi_r,
+            "rx_rotation": self._rx_rotation,
+            "tx_rotation": self._tx_rotation,
         }
         await NATS.send(
             self.__class__.__name__,
