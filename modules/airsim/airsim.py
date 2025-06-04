@@ -185,11 +185,11 @@ class airsim(module):
             asyncio.create_task(self.__start_video_streaming())
 
     async def __start_video_streaming(self):
-        """
+        '''
         Start the video streaming. This is done asynchronously to avoid blocking
         the main loop. The video is streamed outside the caviar scheduling. Unfortunately,
         the AirSim API does not provide a way to get the video frames in a non-blocking way.
-        """
+        '''
         while True:
             responses = HELPER.client.simGetImages(
                 [ARS.ImageRequest(0, ARS.ImageType.Scene, False, False)]
@@ -201,4 +201,4 @@ class airsim(module):
                 image_bytes = image_response.image_data_uint8
                 self.ffmpeg_process.stdin.write(image_bytes)
                 self.ffmpeg_process.stdin.flush()
-            await asyncio.sleep(0.01)
+            await asyncio.sleep(0.001)
