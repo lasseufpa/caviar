@@ -53,10 +53,17 @@ class Scheduler(ABC):
         # while True:
         LOGGER.info("Executing steps...")
         while True:
+            start_time = time.time_ns()
             LOGGER.debug(f"Event_id: {self._event}")
             self._execute_step()
-            self.__wait(self.__clock.get_step_time())
+            '''
+            @TODO: Check wheter its necessary to have a clock to control 
+            the sampling frequency of the caviar simulation. This is probably
+            unnecessary, since the co-simulator should be faster than any module,
+            '''
+            #self.__wait(self.__clock.get_step_time())
             self._event += 1
+            LOGGER.debug(f"Step {self._event} executed in {(time.time_ns() - start_time) / 1_000_000} ms")
 
     # @handler.exception_handler
     def update_modules(self, *modules):
