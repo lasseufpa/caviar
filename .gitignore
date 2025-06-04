@@ -148,7 +148,7 @@ runs
 
 *.pt
 
-3d/
+*.db
 
 .vscode
 
