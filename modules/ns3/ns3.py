@@ -1,6 +1,5 @@
 import cmath
 import os
-import select
 import shutil
 import signal
 import time
@@ -218,6 +217,7 @@ class ns3(module):
         # If enable-monitor is set, we need to create a route from the internet container
         # to the caviar.grafana container. We use a simple bash (like the cave men again)
         # to do this
+        self.path_to_sinr_file = ""
         if NATS.is_monitor():
             PROCESS.create_process(
                 [
@@ -320,16 +320,18 @@ class ns3(module):
                 "zenith_aod": [np.deg2rad(mpc[3]) for mpc in current_scene],
                 "azimuth_aod": [np.deg2rad(mpc[4]) for mpc in current_scene],
             }
-            del current_scene
+            """
             h_mimo = self.__from_siso_to_mimo_drjit(
                 a_real=a_real, a_imag=a_imag, angles=angles
             )
-            """
             SISO:
-            coefficients = [
+            """
+            magnitude = [mpc[0] for mpc in current_scene]
+            phase = [np.deg2rad(mpc[5]) for mpc in current_scene]
+            h_mimo = [
                 [[cmath.rect(magnitude[i], phase[i])]] for i in range(len(magnitude))
             ]
-            """
+            del current_scene
             with open(os.path.join(self.ns3_path, "coefficients.fifo"), "w") as f:
                 f.write(str(h_mimo))
             with open(os.path.join(self.ns3_path, "delays.fifo"), "w") as f:
