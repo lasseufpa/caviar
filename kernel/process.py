@@ -53,6 +53,9 @@ class process(Process):
         @param stderr: The stderr of the process
         @param wait: Whether to wait for the process to finish
         @param process_name: The name of the process
+        @param cwd: The current working directory of the process
+        @param preexec_fnction: The function to be executed before the process starts
+        @param start_new_session: Whether to start a new session for the process
         """
 
         from .handler import (
