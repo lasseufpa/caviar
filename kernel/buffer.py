@@ -67,6 +67,7 @@ class Buffer(ABC):
         but this will produce an undefined behavior in the simulation.
 
         @return: The item from the buffer or None if the buffer is empty.
+        The first value is the item and the second value is the time it was added.
         """
         if self.buffer.empty():
             return None
