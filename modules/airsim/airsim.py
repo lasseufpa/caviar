@@ -116,6 +116,7 @@ class airsim(module):
             "500000",
             "-framerate",
             "30",
+            "-an",
             "-video_size",
             resolution,
             "-f",
@@ -167,6 +168,7 @@ class airsim(module):
         if not self.index % 50 == 0:
             return
         pose = HELPER.airsim_getpose()
+        orientation = HELPER.airsim_getorientation()
         if HELPER.airsim_getcollision():
             raise Exception("Collision detected")
         speed = np.linalg.norm(HELPER.airsim_getlinearvel())
@@ -174,6 +176,9 @@ class airsim(module):
             "x-pos": float(pose[0]),
             "y-pos": float(pose[1]),
             "z-pos": float(pose[2]),
+            "roll": float(orientation[0]),
+            "pitch": float(orientation[1]),
+            "yaw": float(orientation[2]),
             "speed": float(speed),
         }
         # Send the message to sionna
@@ -185,11 +190,11 @@ class airsim(module):
             asyncio.create_task(self.__start_video_streaming())
 
     async def __start_video_streaming(self):
-        '''
+        """
         Start the video streaming. This is done asynchronously to avoid blocking
         the main loop. The video is streamed outside the caviar scheduling. Unfortunately,
         the AirSim API does not provide a way to get the video frames in a non-blocking way.
-        '''
+        """
         while True:
             responses = HELPER.client.simGetImages(
                 [ARS.ImageRequest(0, ARS.ImageType.Scene, False, False)]

@@ -4,11 +4,11 @@ import math
 import os
 import sys
 import time
-
 import airsim
 import numpy as np
 
 from kernel.logger import LOGGER, logging
+from scipy.spatial.transform import Rotation as R
 
 logging.getLogger("tornado.general").setLevel(logging.ERROR)
 sys.path.append("./")
@@ -168,10 +168,17 @@ class AirSimTools:
         return coordinates_offset
     """
 
-    def airsim_getorientation(self, client, uav_id):
-        orientation = client.getMultirotorState(
-            vehicle_name=uav_id
+    def airsim_getorientation(
+        self, euler: bool = True, degrees=False
+    ):  # , client, uav_id
+
+        orientation = self.client.getMultirotorState(
+            # vehicle_name=uav_id
         ).kinematics_estimated.orientation.to_numpy_array()
+        if euler:
+            # Convert quaternion to Euler angles (roll, pitch, yaw)
+            r = R.from_quat(orientation)
+            orientation = r.as_euler("xyz", degrees=degrees)
         return orientation
 
     def airsim_getangularacc(self, client, uav_id):
