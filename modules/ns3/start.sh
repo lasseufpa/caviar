@@ -29,7 +29,6 @@ sudo iptables -I FORWARD -m physdev --physdev-is-bridged -i br-gnb -p icmp -j AC
 sudo iptables -I FORWARD -m physdev --physdev-is-bridged -i br-gnb -p tcp -j ACCEPT
 sudo iptables -I FORWARD -m physdev --physdev-is-bridged -i br-gnb -p udp -j ACCEPT
 
-PIDUE=$(docker inspect --format '{{ .State.Pid }}' ue)
 PIDGNB=$(docker inspect --format '{{ .State.Pid }}' gnb)
 
 #Create a new veth pair's to link the gnb container to the br-gnb

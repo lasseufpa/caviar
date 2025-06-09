@@ -4,7 +4,7 @@ import cv2
 import time
 
 
-'''
+"""
 
 This script captures an RTSP stream, processes it with a YOLOv8 model for object detection,
 and streams the processed video back to an RTSP server using FFmpeg. This is done
@@ -12,26 +12,39 @@ inside the internet node (which is a docker container) of the ns3 simulation.
 This scriipt wull be copied to the docker container and executed there.
 
 It automatically reconnects to the RTSP stream if it is lost and handles FFmpeg errors gracefully.
-'''
+"""
 
 rtsp_url = "rtsp://10.1.1.2:8554/mystream"
 model = YOLO("yolov8n.pt")
 
 ffmpeg_command = [
     "ffmpeg",
-    "-probesize", "4M",
-    "-analyzeduration", "500000",
-    "-framerate", "10",
-    "-video_size", "1280x720",
-    "-f", "rawvideo",
-    "-pix_fmt", "bgr24",
-    "-i", "-",
-    "-c:v", "libx264",
-    "-preset", "ultrafast",
-    "-rtbufsize", "10M",
-    "-x264-params", "keyint=10:min-keyint=10",
-    "-tune", "zerolatency",
-    "-f", "rtsp",
+    "-probesize",
+    "4M",
+    "-analyzeduration",
+    "500000",
+    "-framerate",
+    "30",
+    "-video_size",
+    "1280x720",
+    "-f",
+    "rawvideo",
+    "-pix_fmt",
+    "bgr24",
+    "-i",
+    "-",
+    "-c:v",
+    "libx264",
+    "-preset",
+    "ultrafast",
+    "-rtbufsize",
+    "10M",
+    "-x264-params",
+    "keyint=10:min-keyint=10",
+    "-tune",
+    "zerolatency",
+    "-f",
+    "rtsp",
     "rtsp://localhost:8554/mystream",
 ]
 
@@ -39,9 +52,11 @@ ffmpeg_command = [
 import signal
 import sys
 
+
 def signal_handler(sig, frame):
     print("Signal received, terminating...")
     sys.exit(0)
+
 
 signal.signal(signal.SIGINT, signal_handler)
 signal.signal(signal.SIGTERM, signal_handler)
@@ -56,6 +71,7 @@ def get_stream():
         print("Waiting for RTSP stream to be available...")
         cap.release()
         time.sleep(1)
+
 
 def process_stream():
     while True:
@@ -104,5 +120,6 @@ def process_stream():
                 ffmpeg.terminate()
                 time.sleep(1)
                 break
+
 
 process_stream()

@@ -37,11 +37,13 @@ else
     docker exec gnb apt update
     docker exec gnb apt install python3.11 -y
     docker exec gnb update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
-    docker exec gnb apt install net-tools iproute2 iputils-ping ffmpeg tcpdump iptables python3-pip -y
+    docker exec gnb apt install net-tools iproute2 iputils-ping ffmpeg htop tcpdump iptables python3-pip -y
     docker exec gnb pip install ultralytics opencv-python
     docker cp ../airsim/mediamtx/. gnb:.
     docker cp stream.py gnb:stream.py
+    docker cp yolov8n.pt gnb:yolov8n.pt
     docker exec -d gnb ./mediamtx
+    sleep 5 # Wait for mediamtx to start
     docker exec -d gnb python3 stream.py 
 fi
 
