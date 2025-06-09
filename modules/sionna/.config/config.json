@@ -12,6 +12,9 @@
                 "x-pos",
                 "y-pos",
                 "z-pos",
+                "roll",
+                "pitch",
+                "yaw",
                 "speed"
                 ]
             }

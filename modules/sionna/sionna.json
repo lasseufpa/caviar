@@ -1,20 +1,20 @@
 {
-  "scene_frequency": 2.4,
+  "scene_frequency": 2.8e9,
   "rx":
   {
-    "rows": 4,
-    "columns": 4,
+    "rows": 2,
+    "columns": 2,
     "vcertical_antenna_spacing": 0.5,
-    "horizonttal_antenna_spacing": 0.5,
+    "horizontal_antenna_spacing": 0.5,
     "pattern": "iso",
     "position": [-208.75, 200.15, 1.02]
   },
   "tx":
   {
-    "rows": 8,
-    "columns": 8,
+    "rows": 6,
+    "columns": 6,
     "vcertical_antenna_spacing": 0.5,
-    "horizonttal_antenna_spacing": 0.5,
+    "horizontal_antenna_spacing": 0.5,
     "pattern": "iso",
     "position": [-195.4, 230.51, 81]
   }
