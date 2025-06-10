@@ -69,7 +69,7 @@ class Async(Scheduler):
                     self.__allowed_substeps.append(Substep(reference))
         LOGGER.debug(f"Allowed modules to run in Event: {self.__allowed_substeps}")
 
-    def _execute_step(self):
+    async def _execute_step(self):
         """
         This method executes the step of the simulation.
         """
@@ -77,7 +77,7 @@ class Async(Scheduler):
         if self.__allowed_substeps:
             self._encapsulate()
             LOGGER.debug(f"Allowed to walk {self.__allowed_substeps}")
-            ExecuteStep(self.__encapsulated)
+            await ExecuteStep.execute_step(self.__encapsulated)
             self.__clean__allowed_substeps()
 
     def __clean__allowed_substeps(self):

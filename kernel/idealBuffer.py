@@ -43,7 +43,7 @@ class IdealBuffer(Buffer):
         LOGGER.debug("Report buffer condition: %s", self.__len__())
         if self.is_full():
             self.dump()
-
+        """
         if not self.is_empty():
             last_item = self.buffer.queue[-1][0]
             # Perform Euclidian distance
@@ -54,6 +54,7 @@ class IdealBuffer(Buffer):
                     f"Item {item} is too similar to the last item {last_item}, ignoring it."
                 )
                 return
+        """
         super().add(item)
 
     def dump(self, epsilon=0.1, algorithm="iter"):

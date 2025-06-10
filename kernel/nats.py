@@ -224,11 +224,12 @@ class nats:
         """
         self._monitor = monitor
 
-    def monitor_untracked_info(self, info, module_name="UNKNOWN"):
+    def monitor_untracked_info(self, info: dict, module_name="UNKNOWN"):
         """
         This method sends the untracked information to the monitor.
 
-        @param info: The information to be sent.
+        @param info: The information to be sent. The dict must contain the name of the variable and its value.
+        For example: {"variable_name": "value"}.
         @param module_name: The module name to be sent.
         """
         if self.monitor:

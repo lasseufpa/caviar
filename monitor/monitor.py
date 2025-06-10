@@ -1,5 +1,5 @@
-import time
 import asyncio
+import time
 
 from influxdb_client import InfluxDBClient, Point, WritePrecision
 from influxdb_client.client.write_api import ASYNCHRONOUS, SYNCHRONOUS
@@ -97,22 +97,4 @@ class Monitor:
         @param module_name: The name of the module that is being monitored
         @param interval: The interval in seconds to read the file (default is 5 seconds)
         """
-        point = Point("modules").tag("module", module_name)
-        with open(file_path, "r") as file:
-            while True:
-                line_content = file.readline()
-                if not line_content:
-                    await asyncio.sleep(interval)
-                    continue
-                content = line_content.split()[14]
-                if content:
-                    try:
-                        content = float(content)
-                        point.field(str(variable_name), float(content))
-                        point.time(
-                            time=time.time_ns(),
-                            write_precision=WritePrecision.NS,
-                        )
-                        self._db.write(bucket=self._bucket, org=self._org, record=point)
-                    except ValueError:
-                        pass
+        raise NotImplementedError("Monitor file method is not implemented yet. Please implement it in the derived class.")

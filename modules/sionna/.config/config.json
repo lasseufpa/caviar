@@ -15,7 +15,8 @@
                 "roll",
                 "pitch",
                 "yaw",
-                "speed"
+                "speed",
+                "timestamp"
                 ]
             }
             

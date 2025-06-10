@@ -58,9 +58,8 @@ class process(Process):
         @param start_new_session: Whether to start a new session for the process
         """
 
-        from .handler import (
-            handler,
-        )  # __Really ugly__ import to avoid circular dependency
+        from .handler import \
+            handler  # __Really ugly__ import to avoid circular dependency
 
         @handler.subprocess_handler
         def __run(command, *args):

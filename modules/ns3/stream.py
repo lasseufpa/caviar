@@ -1,8 +1,8 @@
-from ultralytics import YOLO
 import subprocess
-import cv2
 import time
 
+import cv2
+from ultralytics import YOLO
 
 """
 

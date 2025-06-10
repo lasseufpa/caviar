@@ -1,7 +1,8 @@
 # import sionna.rt as RT
+import json
 import os
 import time
-import json
+
 import numpy as np
 
 from kernel.idealBuffer import IdealBuffer
@@ -55,7 +56,10 @@ class sionna(module):
         Set and add the transmitter and receiver to the scene.
         """
         tx = RT.Transmitter(
-            name="tx", position=config["tx"]["position"]  # [-195.4, 230.51, 81]
+            name="tx",
+            position=config["tx"][
+                "position"
+            ],  # [-195.4, 230.51, 81] # Highest point: [654.997, -1434.44, 7121.8]
         )  # Tx above a building
         self.scene.add(tx)
         rx = RT.Receiver(
@@ -98,6 +102,8 @@ class sionna(module):
             LOGGER.debug("No element in buffer, skipping Sionna step")
             return
         pose = element[0][:3]
+        time_stamp = element[0][7]
+        speed = element[0][6]
         self.scene.get("rx").position = self.convertMovementFromAirSimToSionna(pose)
         roll, pitch, yaw = (element[0][3], element[0][4], element[0][5])
         self._rx_rotation = self._rotate(
@@ -193,6 +199,7 @@ class sionna(module):
             "phi_r": phi_r,
             "rx_rotation": self._rx_rotation,
             "tx_rotation": self._tx_rotation,
+            "timestamp": time_stamp,
         }
         await NATS.send(
             self.__class__.__name__,

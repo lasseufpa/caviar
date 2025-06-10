@@ -1,5 +1,6 @@
-import os
 import asyncio
+import os
+
 import airsim as ARS
 import numpy as np
 
@@ -90,6 +91,7 @@ class airsim(module):
         self.speed = 0.5  # m/s
         # Wait for AirSim connection
         HELPER.airsim_connect()
+        self.ini_epoch = HELPER.airsim_gettimestamp()
         HELPER.airsim_takeoff()
         HELPER.move_on_path(paths=self.PATH, speed=self.speed)  # speed = 0.5 m/s
         HELPER.pause()  # Pause the simulation and resume only in __execute_step
@@ -161,14 +163,16 @@ class airsim(module):
         """
         Since the granularity of the AirSim step is high, we need to
         limit the number of messages sent to sionna. We do this by
-        sending a message every 50 steps. Avoiding, in the source,
+        sending a message every 125 ms. Avoiding, in the source,
         problems with backpressure and buffer overflow.
         """
-        self.index += 1
-        if not self.index % 50 == 0:
+        current_epoch = HELPER.airsim_gettimestamp()
+        if ((current_epoch - self.ini_epoch) / 1e6) < 125:  # 125 ms
             return
+        self.ini_epoch = current_epoch
         pose = HELPER.airsim_getpose()
         orientation = HELPER.airsim_getorientation()
+        time_stap = HELPER.airsim_gettimestamp()
         if HELPER.airsim_getcollision():
             raise Exception("Collision detected")
         speed = np.linalg.norm(HELPER.airsim_getlinearvel())
@@ -180,6 +184,7 @@ class airsim(module):
             "pitch": float(orientation[1]),
             "yaw": float(orientation[2]),
             "speed": float(speed),
+            "timestamp": int(time_stap),
         }
         # Send the message to sionna
         await NATS.send(self.__class__.__name__, message, "sionna")
@@ -206,4 +211,4 @@ class airsim(module):
                 image_bytes = image_response.image_data_uint8
                 self.ffmpeg_process.stdin.write(image_bytes)
                 self.ffmpeg_process.stdin.flush()
-            await asyncio.sleep(0.001)
+            await asyncio.sleep(1 / 30)

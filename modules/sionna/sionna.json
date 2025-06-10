@@ -2,8 +2,8 @@
   "scene_frequency": 2.8e9,
   "rx":
   {
-    "rows": 2,
-    "columns": 2,
+    "rows": 1,
+    "columns": 1,
     "vcertical_antenna_spacing": 0.5,
     "horizontal_antenna_spacing": 0.5,
     "pattern": "iso",
@@ -11,8 +11,8 @@
   },
   "tx":
   {
-    "rows": 6,
-    "columns": 6,
+    "rows": 1,
+    "columns": 1,
     "vcertical_antenna_spacing": 0.5,
     "horizontal_antenna_spacing": 0.5,
     "pattern": "iso",

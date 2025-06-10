@@ -12,6 +12,7 @@ from .logger import LOGGER, logging
 from .module import module
 from .nats import NATS
 from .process import PROCESS
+from .synchronous import Sync
 
 # from .synchronous import Sync
 
@@ -232,7 +233,7 @@ class core:
         if s_type.lower() == "async":
             self.__scheduler = Async()
         elif s_type.lower() == "sync":
-            raise ValueError("Sync scheduler not implemented yet")
+            # raise ValueError("Sync scheduler not implemented yet")
             self.__scheduler = Sync()
         else:
             raise ValueError(f"Scheduler type {s_type} not recognized")
@@ -302,11 +303,14 @@ class core:
         """
         This method executes the steps of the modules in a loop.
         """
+        import asyncio
+
         LOGGER.debug(f"Executing steps in loop")
         LOGGER.debug(f"Updating modules in scheduler")
         self.__scheduler.update_modules(self.__dependencies)
         LOGGER.debug(f"Starting loop execution...")
-        self.__scheduler.execute_steps_in_loop()
+        LOOP = asyncio.get_event_loop()
+        LOOP.run_until_complete(self.__scheduler.execute_steps_in_loop())
 
     @handler.exception_handler
     def __check_inter_module_circular_dependencies(self):

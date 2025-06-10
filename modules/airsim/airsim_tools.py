@@ -4,11 +4,12 @@ import math
 import os
 import sys
 import time
+
 import airsim
 import numpy as np
+from scipy.spatial.transform import Rotation as R
 
 from kernel.logger import LOGGER, logging
-from scipy.spatial.transform import Rotation as R
 
 logging.getLogger("tornado.general").setLevel(logging.ERROR)
 sys.path.append("./")
@@ -205,8 +206,10 @@ class AirSimTools:
         ).kinematics_estimated.linear_velocity.to_numpy_array()
         return vel
 
-    def airsim_gettimestamp(self, client, uav_id):
-        timestamp = client.getMultirotorState(vehicle_name=uav_id).timestamp
+    def airsim_gettimestamp(self):  # , client, uav_id
+        timestamp = self.client.getMultirotorState(
+            # vehicle_name=uav_id
+        ).timestamp
         return timestamp
 
     def airsim_getcollision(

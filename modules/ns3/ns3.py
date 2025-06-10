@@ -1,19 +1,21 @@
+import cmath
 import json
 import os
 import shutil
 import signal
 import time
-import cmath
+from math import ceil
+
+import aiofiles
 import numpy as np
+from scipy.constants import speed_of_light
 
 from kernel.buffer import Buffer
 from kernel.logger import LOGGER
 from kernel.module import module
-from kernel.nats import NATS
-from kernel.process import PROCESS, subprocess
+from kernel.nats import NATS, asyncio
+from kernel.process import PROCESS
 from utils import Interpolators, RaytracingGenerator
-from scipy.constants import speed_of_light
-from math import ceil
 
 
 class ns3(module):
@@ -185,7 +187,6 @@ class ns3(module):
         PROCESS.create_process(
             build_command, wait=True, cwd=ns_3_path, stdout=None, stderr=None
         )
-        # @TODO: Check if the user err the password
         run_command = [
             "./ns3",
             "run",
@@ -210,8 +211,6 @@ class ns3(module):
             set the process group to the child process, so it can receive the SIGCHLD
             signal by caviar and also set sigchild to default in this specific process.
 
-            @TODO: Check how to deal when ns-3 crashes. Now, I just check if the process
-            crashed and raise an exception. But this is not the best way to deal with it.
             """
             # os.setpgrp()
             signal.signal(signal.SIGCHLD, signal.SIG_DFL)
@@ -261,6 +260,7 @@ class ns3(module):
         # to the caviar.grafana container. We use a simple bash (like the cave men again)
         # to do this
         self.path_to_sinr_file = ""
+        self.path_to_kpi_file = ""
         if NATS.is_monitor():
             PROCESS.create_process(
                 [
@@ -273,18 +273,22 @@ class ns3(module):
                 stdout=None,
                 stderr=None,
             )
-            self.path_to_sinr_file = os.path.join(ns_3_path, "RxPacketTrace.txt")
+            self.path_to_sinr_file = os.path.join(ns_3_path, "sinr.txt")
+            self.path_to_kpi_file = os.path.join(ns_3_path, "kpi.txt")
             """
             Since the event loop is not running yet, and loop.create_task is not available.
             We need to create a task that will run in the ns3 step (monitor parameters).
             The ns-3 main code overrides the oldest file which is already being monitored.
             To Prevent a bad behavior in the monitor class, we will remove the oldest to
             avoid monitor_file to read a file that goes to be overwritten.
-            """
             if os.path.exists(self.path_to_sinr_file):
                 os.remove(self.path_to_sinr_file)
+            """
+            # if os.path.exists(self.path_to_kpi_file):
+            # os.remove(self.path_to_kpi_file)
 
         self.is_already_monitored = False
+        self.is_already_monitored_kpi = False
 
     async def _execute_step(self):
 
@@ -301,10 +305,18 @@ class ns3(module):
         if self.is_already_monitored is False and os.path.exists(
             self.path_to_sinr_file
         ):
-            NATS.monitor_file(
-                "sinr", file_path=self.path_to_sinr_file, module_name="ns3"
+            asyncio.create_task(
+                self._monitor_sinr(file_path=self.path_to_sinr_file, module_name="ns3")
             )
             self.is_already_monitored = True
+
+        if self.is_already_monitored_kpi is False and os.path.exists(
+            self.path_to_kpi_file
+        ):
+            asyncio.create_task(
+                self._monitor_kpi(file_path=self.path_to_kpi_file, module_name="ns3")
+            )
+            self.is_already_monitored_kpi = True
 
         """
         Each buffer item countains a list with the values:
@@ -315,13 +327,17 @@ class ns3(module):
         @TODO: We should check how to generate a logic to perform the upsampling action
 
         """
-        ch_times = (
-            self.buffer.buffer.queue[1][1] - self.buffer.buffer.queue[0][1]
-        ) / 1e6
-        N_TERMS = 60  # min(ceil(ch_times), self.K) if buffer_len < self.K else ceil(self.K / 4)
-
-        assert N_TERMS > 0, "N_TERMS must be greater than 0"
         raw_data = [self.buffer.get()[0][1]["sionna"] for _ in range(2)]
+        time = (raw_data[1]["timestamp"] - raw_data[0]["timestamp"]) / 1e6
+        N_TERMS = (
+            min(ceil(time), self.K * 2) if buffer_len < self.K / 4 else ceil(self.K)
+        )
+        """
+        (
+            min(ceil(time), self.K * 2) if buffer_len < self.K / 4 else ceil(self.K)
+        )
+        """
+        assert N_TERMS > 0, "N_TERMS must be greater than 0"
         if self._rx_rotation is None and self._tx_rotation is None:
             self._rx_rotation = raw_data[0]["rx_rotation"]
             self._tx_rotation = raw_data[0]["tx_rotation"]
@@ -386,7 +402,6 @@ class ns3(module):
                 f.write(str(h_mimo))
             with open(os.path.join(self.ns3_path, "delays.fifo"), "w") as f:
                 f.write(str(delays))
-        print(buffer_len)
 
     def __from_siso_to_mimo_drjit(self, a_real: list, a_imag: list, angles: dict):
         """
@@ -478,3 +493,57 @@ class ns3(module):
         H_eff = (w_rx.conj().T @ H @ w_tx).tolist()
         # return H.tolist()
         return [[[c]] for c in H_eff]  # correct format for ns-3/nr/rt
+
+    async def _monitor_sinr(self, file_path: str, module_name: str):
+        module_name = self.__class__.__name__
+        last_pos = 0
+        async with aiofiles.open(file_path, "r") as file:
+            while True:
+                await file.seek(last_pos)
+                lines = await file.readlines()
+                if not lines:
+                    await asyncio.sleep(0.05)  # Reduced sleep for faster polling
+                    continue
+                for line_content in lines:
+                    parts = line_content.split()
+                    if not parts:
+                        continue
+                    try:
+                        value = float(parts[0])
+                        # Optionally, only log on significant change
+                        LOGGER.debug(f"Monitoring SINR: {value}")
+                        NATS.monitor_untracked_info(
+                            info={"sinr": value},
+                            module_name=module_name,
+                        )
+                    except ValueError:
+                        continue
+                last_pos = await file.tell()
+                # await asyncio.sleep(0.01)
+
+    async def _monitor_kpi(self, file_path: str, module_name: str = "ns3"):
+        """
+        This method monitors the kpi file and sends the data to the monitor module.
+        It is used to monitor the KPI file generated by ns-3.
+        """
+        last_pos = 0
+        async with aiofiles.open(file_path, "r") as file:
+            while True:
+                await file.seek(last_pos)
+                lines = await file.readlines()
+                if not lines:
+                    await asyncio.sleep(0.05)  # Reduced sleep for faster polling
+                    continue
+                for line_content in lines:
+                    parts = line_content.split()
+                    if not parts:
+                        continue
+                    try:
+                        value = float(parts[0])
+                        NATS.monitor_untracked_info(
+                            info={"throughput": value},
+                            module_name=module_name,
+                        )
+                    except ValueError:
+                        continue
+                last_pos = await file.tell()
