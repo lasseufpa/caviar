@@ -19,10 +19,11 @@ if __name__ == "__main__":
         enable_monitor = True
         # Docker-compose up
         try:
+            print("Your passowrd required to run docker-compose")
             process = Popen(
-                ["docker-compose", "-f", "compose.yml", "up", "-d"],
-                stdout=DEVNULL,
-                stderr=DEVNULL,
+                ["sudo", "docker-compose", "-f", "compose.yml", "up", "-d"],
+                stdout=None,
+                stderr=None,
             )
             stdout, stderr = process.communicate()
             if process.returncode == 0:

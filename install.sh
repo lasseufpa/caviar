@@ -1,0 +1,60 @@
+#!/bin/bash
+
+set -e  # Exit on any error
+set -o pipefail
+
+# Check if OS is Linux or macOS
+if [[ "$OSTYPE" != "linux-gnu"* && "$OSTYPE" != "darwin"* ]]; then
+    echo "This script is only supported on Linux and macOS."
+    exit 1
+fi
+
+# Check if conda is installed
+if ! command -v conda &> /dev/null; then
+    echo "Conda not found. Please install Anaconda or Miniconda first."
+    exit 1
+fi
+
+# Get the environment name from environment.yml
+ENV_NAME=$(grep -m 1 "^name:" environment.yml | cut -d ' ' -f2)
+
+# Check if the conda environment already exists
+if conda env list | grep -qw "$ENV_NAME"; then
+    echo "Conda environment '$ENV_NAME' already exists. Skipping creation."
+else
+    echo "Creating conda environment '$ENV_NAME' from environment.yml..."
+    conda env create -f environment.yml
+    echo "Conda environment '$ENV_NAME' created successfully."
+fi
+
+# Initialize conda (in case it's not)
+eval "$(conda shell.bash hook)"
+
+# Activate the conda environment
+conda activate "$ENV_NAME" || {
+    echo "Failed to activate conda environment '$ENV_NAME'."
+    exit 1
+}
+
+# Function to install a package if missing
+install_if_missing() {
+    local cmd="$1"
+    local pkg_linux="$2"
+    local pkg_mac="$3"
+    local friendly_name="$4"
+
+    if ! command -v "$cmd" &> /dev/null; then
+        echo "$friendly_name not found. Installing..."
+        if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+            sudo apt-get update && sudo apt-get install -y "$pkg_linux"
+        elif [[ "$OSTYPE" == "darwin"* ]]; then
+            brew install "$pkg_mac"
+        fi
+    else
+        echo "$friendly_name is already installed."
+    fi
+}
+
+install_if_missing docker docker.io --cask docker "Docker"
+install_if_missing docker-compose docker-compose docker-compose "Docker Compose"
+install_if_missing ffmpeg ffmpeg ffmpeg "FFmpeg"
