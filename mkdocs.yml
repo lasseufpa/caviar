@@ -1,0 +1,32 @@
+site_name: CAVIAR
+site_description: CAVIAR 
+site_url: https://lasse.gitlab.io/caviar/
+repo_url: http://gitlab.lasse.ufpa.br/201907140017/caviar.git
+repo_name: caviar
+theme:
+  name: readthedocs
+  shortcuts:
+    help: 191    # ?
+    next: 78     # n
+    previous: 80 # p
+    search: 83   # s
+  features:
+    - navigation.instant
+    - navigation.tabs
+    #- navigation.sections
+    #- search.highlight
+    #- search.suggest
+    - content.code.copy
+extra_css:
+  - css/extra.css
+nav:
+  - CAVIAR: caviar.md
+  - About: about.md
+  - LICENSE: license.md
+  - Kernel:
+      - Modules: kernel/module.md
+      - Scheduler: kernel/scheduler.md
+      - Monitoring: kernel/monitor.md
+  - Blueprints:
+      - Blueprints: blueprints.md
+      - Blueprint's life-cycle: blueprints_lifecycle.md
