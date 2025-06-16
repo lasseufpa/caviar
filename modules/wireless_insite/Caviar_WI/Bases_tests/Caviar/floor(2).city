@@ -1,0 +1,59 @@
+Format type:keyword version: 1.1.0
+begin_<city> floor
+invisible
+begin_<reference> 
+cartesian
+longitude 0.000000000000000
+latitude 0.000000000000000
+visible no
+terrain
+end_<reference>
+begin_<Material> ITU Concrete 60 GHz
+Material 1
+LayeredDielectric
+begin_<Color> 
+ambient 0.501961 0.501961 0.501961 1.000000
+diffuse 0.501961 0.501961 0.501961 1.000000
+specular 0.501961 0.501961 0.501961 1.000000
+emission 0.000000 0.000000 0.000000 0.000000
+shininess 50.000000
+end_<Color>
+diffuse_scattering_model lambertian
+fields_diffusively_scattered 0.400000
+cross_polarized_power 0.400000
+directive_alpha 4
+directive_beta 4
+directive_lambda 0.750000
+subdivide_facets yes
+reflection_coefficient_options do_not_use
+nLayers 1
+begin_<DielectricLayer> 
+conductivity 8.967e-01
+permittivity 5.310000
+roughness 0.000e+00
+thickness 3.000e-01
+end_<DielectricLayer>
+end_<Material>
+begin_<structure_group> 
+begin_<structure> 
+begin_<sub_structure> 
+begin_<face> 
+invisible
+Material 1
+nVertices 3
+6.2596879005 2.2672600746 3.7884519100
+0.0346860886 8.8478717804 3.7884519100
+0.0346860886 2.2672600746 3.7884519100
+end_<face>
+begin_<face> 
+invisible
+Material 1
+nVertices 3
+6.2596879005 2.2672600746 3.7884519100
+6.2596879005 8.8478717804 3.7884519100
+0.0346860886 8.8478717804 3.7884519100
+end_<face>
+end_<sub_structure>
+end_<structure>
+end_<structure_group>
+end_<city>

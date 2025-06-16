@@ -1,0 +1,209 @@
+2025.01.20 13:28:28.629 
+
+wibatch version 3.3.0.4 - r60246
+  Built with gcc 4.4.7
+  Built with Qt 4.8.4
+  Using Qt 4.8.4
+
+2025.01.20 13:28:28.630 Mon Jan 20 13:28:28 2025
+
+2025.01.20 13:28:28.642 Detecting GPU Information..
+2025.01.20 13:28:28.653 OptiX Runtime version = 40100
+2025.01.20 13:28:28.654 CUDA runtime unable to retrieve version information. (CUDA driver version is insufficient for CUDA runtime version)
+2025.01.20 13:28:28.654 CUDA Runtime version = 0.0
+2025.01.20 13:28:28.654 CUDA Driver version  = 0.0
+2025.01.20 13:28:28.654 No X3D compatible CUDA cards detected - using CPU ray tracing.
+2025.01.20 13:28:28.654 Please see Appendix I.3 of the Reference Manual to troubleshoot this problem
+2025.01.20 13:28:28.757 Initializing Wireless InSite X3D model
+2025.01.20 13:28:28.757 Monte Carlo parameters not detected.
+2025.01.20 13:28:28.757 ============ GEOMETRY ============
+2025.01.20 13:28:28.757 Building geometry
+2025.01.20 13:28:30.042  ============ TRANSMITTER/RECEIVER SETS ============
+2025.01.20 13:28:30.042 Generating transmitter and receiver sets
+2025.01.20 13:28:30.047 Antenna: Isotropic
+Cable loss (dB): 0
+Polarization: Vertical
+Power threshold (dBm): -250
+Temperature (K): 293
+VSWR: 1
+
+2025.01.20 13:28:30.047 Waveform: Sinusoid
+Amplitude: 1
+Carrier frequency (MHz): 5000
+Phase (degrees): 0
+
+2025.01.20 13:28:30.047 Bandwidth (MHz): 1
+Dispersive: no
+
+2025.01.20 13:28:30.047 Set number: 1
+Type: PointSet
+Number of points: 1
+APG Accelerated: no
+Fit to terrain: yes
+
+2025.01.20 13:28:30.047 Antenna: Isotropic
+Cable loss (dB): 0
+Polarization: Vertical
+Power threshold (dBm): -250
+Temperature (K): 293
+VSWR: 1
+
+2025.01.20 13:28:30.047 Waveform: Sinusoid
+Amplitude: 1
+Carrier frequency (MHz): 5000
+Phase (degrees): 0
+
+2025.01.20 13:28:30.047 Bandwidth (MHz): 1
+Dispersive: no
+
+2025.01.20 13:28:30.047 Set number: 2
+Type: PointSet
+Number of points: 1
+APG Accelerated: no
+Fit to terrain: yes
+
+2025.01.20 13:28:30.047 Receiver collection radius (m): auto
+
+2025.01.20 13:28:30.047 Auto Collection Radius = 2.46902
+2025.01.20 13:28:30.047 Scene information: 
+    Number of facets: 79213
+    Number of spheres: 1
+
+BSPTree information: 
+    Number of superfacets: 2924
+    Number of subfacets: 79213
+    Maximum depth: 31
+    Bounding box: 
+      Minimum: (-204.668, -188.64, -0.001)
+      Maximum: (204.175, 184.694, 113)
+
+CompleteEdgeSet information: 
+    Number of superedges: 666
+    Number of subedges: 23290
+Maximum Scene Distance: 1131.72
+
+2025.01.20 13:28:30.047 ============ MATERIALS ============
+2025.01.20 13:28:30.047 Diffuse Scattering: Disabled
+2025.01.20 13:28:30.047 Material number: 1
+Type: LayeredDielectric
+Thickness (m): 0
+
+2025.01.20 13:28:30.047 Layer 0: 
+2025.01.20 13:28:30.047     Relative permittivity: 5.31
+    Conductivity (S/m): 0.12
+    Thickness (m): 0.3
+    Roughness (m): 0
+
+2025.01.20 13:28:30.047 Material number: 1
+Type: LayeredDielectric
+Thickness (m): 0
+
+2025.01.20 13:28:30.047 Layer 0: 
+2025.01.20 13:28:30.047     Relative permittivity: 6.27
+    Conductivity (S/m): 0.02931
+    Thickness (m): 0.003
+    Roughness (m): 0
+
+2025.01.20 13:28:30.047 Material number: 1
+Type: DielectricHalfspace
+Thickness (m): 0
+
+2025.01.20 13:28:30.047 Layer 0: 
+2025.01.20 13:28:30.047     Relative permittivity: 3
+    Conductivity (S/m): 0.00866
+    Thickness (m): 0
+    Roughness (m): 0
+
+2025.01.20 13:28:30.047 Material number: 0
+Type: LayeredDielectric
+Thickness (m): 0
+
+2025.01.20 13:28:30.048 Layer 0: 
+2025.01.20 13:28:30.048     Relative permittivity: 15
+    Conductivity (S/m): 0.015
+    Thickness (m): 0.3
+    Roughness (m): 0
+
+2025.01.20 13:28:30.048 Material number: 0
+Type: LayeredDielectric
+Thickness (m): 0
+
+2025.01.20 13:28:30.048 Layer 0: 
+2025.01.20 13:28:30.048     Relative permittivity: 15
+    Conductivity (S/m): 0.015
+    Thickness (m): 0.3
+    Roughness (m): 0
+
+2025.01.20 13:28:30.048 Material number: 0
+Type: LayeredDielectric
+Thickness (m): 0
+
+2025.01.20 13:28:30.048 Layer 0: 
+2025.01.20 13:28:30.048     Relative permittivity: 15
+    Conductivity (S/m): 0.015
+    Thickness (m): 0.3
+    Roughness (m): 0
+
+2025.01.20 13:28:30.048 ============ ATMOSPHERE ============
+2025.01.20 13:28:30.048 Pressure = 1013.25
+2025.01.20 13:28:30.048 Temperature = 22.2
+2025.01.20 13:28:30.048 Humidity = 50
+2025.01.20 13:28:36.487 ============ MODEL ============
+2025.01.20 13:28:36.637 Starting X3D ray tracing for Tx set 1, point 1 (point 1 of 1 total)
+2025.01.20 13:28:36.637   Initializing 4 threads
+2025.01.20 13:28:36.637   Diffraction cone ray angle=0.25
+2025.01.20 13:28:36.637   Using CPU ray tracer
+2025.01.20 13:28:36.864   Ray tracing ranges: 
+2025.01.20 13:28:36.864     Minimum phi: 0
+2025.01.20 13:28:36.864     Maximum phi: 360
+2025.01.20 13:28:36.864     Minimum theta: 0
+2025.01.20 13:28:36.864     Maximum theta: 180
+2025.01.20 13:28:36.864   Model parameters: 
+2025.01.20 13:28:36.864     Reflections:         6
+2025.01.20 13:28:36.864     Transmissions:       0
+2025.01.20 13:28:36.864     Diffractions:        1
+2025.01.20 13:28:36.864     Ray spacing (degrees): 0.25
+2025.01.20 13:28:36.866   Advanced model parameters:
+2025.01.20 13:28:36.866     Maximum reflections before first diffraction: 3
+2025.01.20 13:28:36.866     Maximum reflections between two diffractions: 0
+2025.01.20 13:28:36.866     Maximum reflections after last diffraction: 3
+2025.01.20 13:28:37.062 Initial Ray Generation: Phi/theta sweep mode
+
+2025.01.20 13:28:58.598   Beginning next round of queued diffractions
+
+2025.01.20 13:28:58.617   Total Number of Rays shot: 3014656
+2025.01.20 13:28:58.617   Total Number of active rays shot: 2768471
+2025.01.20 13:28:58.617   Total Initial Rays shot: 663228
+2025.01.20 13:28:58.617   Total cones: 0... cone rays shot: 0
+2025.01.20 13:28:58.617   191 unique paths found.
+
+2025.01.20 13:28:58.617   Calculating E-fields and generating output
+
+2025.01.20 13:28:58.619     ============ ATMOSPHERE ============
+
+2025.01.20 13:28:58.619     Frequency = 5e+09
+2025.01.20 13:28:58.619     Attenuation (db/km) = 0.00869769
+2025.01.20 13:28:58.905     Original interaction chains:           191
+2025.01.20 13:28:58.905     Interaction chains eliminated:         170
+2025.01.20 13:28:58.905     Physical paths generated:               21
+2025.01.20 13:28:58.905     High power paths retained:              21
+2025.01.20 13:28:58.905     Low power paths eliminated:              0
+
+2025.01.20 13:28:59.010 Total Diffraction Cones: 0
+2025.01.20 13:28:59.011 Output file location: /home/fritz/data/Caviar/Nats_test/NewYork/study/
+2025.01.20 13:28:59.011 Output prefix: model
+2025.01.20 13:28:59.024 Check for any far zone requests, non-partitioned job
+
+2025.01.20 13:28:59.025 Writing output files
+2025.01.20 13:28:59.029 Finished writing output files
+
+2025.01.20 13:28:59.029 Mon Jan 20 13:28:59 2025
+
+2025.01.20 13:28:59.031 Geometry Processing Time: : 00:00:01.284
+2025.01.20 13:28:59.031 TxRx Set Generation Time: : 00:00:00.005
+2025.01.20 13:28:59.032 Path Discovery Time: : 00:00:21.754
+2025.01.20 13:28:59.032 Path Generation Time: : 00:00:00.287
+2025.01.20 13:28:59.032 Writing Binary Output Time: : 00:00:00.000
+2025.01.20 13:28:59.032 Writing P2M Output Time: : 00:00:00.003
+
+2025.01.20 13:28:59.032 Total Runtime: : 00:00:30.402

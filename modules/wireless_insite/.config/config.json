@@ -1,0 +1,21 @@
+{
+    "module": {
+        "name": "wireless_insite",
+        "id": "communication",
+        "enabled": false,
+        "dependency":{
+            "mobility":
+            {
+            "airsim":
+            [   
+                "x-pos",
+                "y-pos",
+                "z-pos",
+                "orientation",
+                "run"
+            ]
+        }
+        },
+        "order": 2
+    }
+}

@@ -124,4 +124,5 @@ dependencies:
       - wrapt==1.17.2
       - influxdb-client==1.48.0
       - aiofiles==24.1.0
+      - attrdict==2.0.1
 prefix: /home/albu/miniconda3/envs/caviar
