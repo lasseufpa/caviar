@@ -29,4 +29,3 @@ nav:
       - Monitoring: kernel/monitor.md
   - Blueprints:
       - Blueprints: blueprints.md
-      - Blueprint's life-cycle: blueprints_lifecycle.md
