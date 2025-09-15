@@ -1,0 +1,10 @@
+{
+    "module": {
+        "name": "alice",
+        "id": "3D",
+        "enabled": true,
+        "dependency":{
+        },
+        "order": 0
+    }
+}

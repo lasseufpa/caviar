@@ -1,0 +1,15 @@
+{
+    "module": {
+        "name": "bob",
+        "id": "mobility",
+        "enabled": true,
+        "dependency":{
+            "3D": {
+                "alice": [
+                    "message"
+                ]
+            }
+        },
+        "order": 1
+    }
+}
