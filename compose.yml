@@ -6,7 +6,7 @@ services:
     ports:
       - '8086:8086'
     env_file:
-      - system.env
+      - monitor/system.env
     networks:
       demo:
         ipv4_address: 192.168.10.13
