@@ -33,11 +33,13 @@ class Async(Scheduler):
     __allowed_substeps = []
     __encapsulated = None
 
-    def __init__(self):
+    def __init__(self, interval: float):
         """
         Constructor that initializes the Async object.
+
+        @param interval: The time interval of the simulation.
         """
-        super(Async, self).__init__()
+        super(Async, self).__init__(interval)
 
     def _encapsulate(self):
         """

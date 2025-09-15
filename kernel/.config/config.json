@@ -1,7 +1,8 @@
 {
     "scheduler": {
         "type": "async",
-        "time": "virtual"
+        "time": "virtual",
+        "interval": 0.0
     },
     "config": {
         "logger": {

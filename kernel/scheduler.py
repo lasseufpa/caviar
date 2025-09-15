@@ -14,13 +14,16 @@ class Scheduler(ABC):
 
     _event = 0  # !< The event id of the simulation.
     _modules = None  # !< The enabled modules of the simulation.
-    __clock = Clock()  # !< Clock object
+    # __clock = Clock()  # !< Clock object
     """The enabled modules of the simulation."""
 
-    def __init__(self):
+    def __init__(self, interval: float):
         """
         Constructor that initializes the Scheduler object.
+
+        @param interval: The time interval of the simulation.
         """
+        self.__clock = Clock(interval)
         pass
 
     @handler.async_exception_handler

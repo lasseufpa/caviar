@@ -27,11 +27,13 @@ class Sync(Scheduler):
                 LOGGER.debug(f"Module added to run {reference}...")
                 self.__allowed_substeps.append(Substep(reference))
 
-    def __init__(self):
+    def __init__(self, interval: float):
         """
         Constructor that initializes the Sync object.
+
+        @param interval: The time interval of the simulation.
         """
-        super(Sync, self).__init__()
+        super(Sync, self).__init__(interval)
 
     def _encapsulate(self):
         """

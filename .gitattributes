@@ -1,4 +1,6 @@
-modules/airsim/3d/Engine filter=lfs diff=lfs merge=lfs -text
-modules/airsim/3d/Manifest_NonUFSFiles_Linux.txt filter=lfs diff=lfs merge=lfs -text
-modules/airsim/3d/ProjectOne filter=lfs diff=lfs merge=lfs -text
-modules/airsim/3d/ProjectOne.sh filter=lfs diff=lfs merge=lfs -text
+# modules/airsim/3d/Engine filter=lfs diff=lfs merge=lfs -text
+# modules/airsim/3d/Manifest_NonUFSFiles_Linux.txt filter=lfs diff=lfs merge=lfs -text
+# modules/airsim/3d/ProjectOne filter=lfs diff=lfs merge=lfs -text
+# modules/airsim/3d/ProjectOne.sh filter=lfs diff=lfs merge=lfs -text
+
+# '''Removing for now git LFS, since there are multiple files that are too large.'''

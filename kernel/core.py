@@ -36,6 +36,7 @@ class core:
     __allowed_messages: dict = {}  #!< The allowed messages for the NATS orchestrator
     __modules: dict = {}  #!< The modules to be used in the co-simulation
     __monitor: Monitor = None  #!< The monitor object
+    __interval: float = 0.0  #!< The time interval of the simulation
 
     @handler.exception_handler
     def __init__(self, enable_monitor: bool = False):
@@ -230,11 +231,12 @@ class core:
         """
         s_type, t_type = self.__update_sync()
         LOGGER.debug(f"Configured as Time: {t_type}, Sync: {s_type}")
+        interval = float(self.__settings["scheduler"]["interval"])
         if s_type.lower() == "async":
-            self.__scheduler = Async()
+            self.__scheduler = Async(interval)
         elif s_type.lower() == "sync":
             # raise ValueError("Sync scheduler not implemented yet")
-            self.__scheduler = Sync()
+            self.__scheduler = Sync(interval)
         else:
             raise ValueError(f"Scheduler type {s_type} not recognized")
 
