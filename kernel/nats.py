@@ -36,7 +36,7 @@ class nats:
         """
         This method sends a message to the NATS server in a specific subject.
         If the monitoring is set, it will send the message to the monitor
-        and the message will be sent to the current Iflux DB (localhost:).
+        and the message will be sent to the current Iflux DB (localhost:8086).
 
         @param module_name: The name of the module that sends the message.
         @param msg: The message to be sent.
