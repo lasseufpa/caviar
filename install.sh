@@ -55,6 +55,22 @@ install_if_missing() {
     fi
 }
 
+
 install_if_missing docker docker.io --cask docker "Docker"
 install_if_missing docker-compose docker-compose docker-compose "Docker Compose"
 install_if_missing ffmpeg ffmpeg ffmpeg "FFmpeg"
+
+# Install NATS server (Linux only)
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    if ! command -v nats-server &> /dev/null; then
+        echo "NATS server not found. Installing NATS server v2.11.9..."
+        NATS_DEB_URL="https://github.com/nats-io/nats-server/releases/download/v2.11.9/nats-server-v2.11.9-386.deb"
+        NATS_DEB_FILE="nats-server-v2.11.9-386.deb"
+        wget -O "$NATS_DEB_FILE" "$NATS_DEB_URL"
+        sudo dpkg -i "$NATS_DEB_FILE" || sudo apt-get install -f -y
+        rm -f "$NATS_DEB_FILE"
+        echo "NATS server installed."
+    else
+        echo "NATS server is already installed."
+    fi
+fi
