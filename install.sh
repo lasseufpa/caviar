@@ -33,7 +33,6 @@ eval "$(conda shell.bash hook)"
 # Activate the conda environment
 conda activate "$ENV_NAME" || {
     echo "Failed to activate conda environment '$ENV_NAME'."
-    exit 1
 }
 
 # Function to install a package if missing
@@ -74,3 +73,14 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         echo "NATS server is already installed."
     fi
 fi
+
+# Install 3D scene (Linux only)
+echo "Downloading 3D NTN urban scene..."
+curl -L https://nextcloud.lasseufpa.org/s/9yj6D9sw3LxpQXK/download/3d-urban.zip --output modules/airsim/3d/ntn-urban.zip
+unzip modules/airsim/3d/ntn-urban.zip -d modules/airsim/
+rm modules/airsim/3d/ntn-urban.zip
+echo "3D NTN urban scene downloaded and extracted."
+chmod +x modules/airsim/3d/ProjectOne/Binaries/Linux/ProjectOne
+
+# Init submodules
+git submodule update --init --recursive

@@ -1,0 +1,10 @@
+{
+    "module": {
+        "name": "airsim",
+        "id": "mobility",
+        "enabled": true,
+        "dependency":{
+        },
+        "order": 0
+    }
+}

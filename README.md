@@ -4,7 +4,9 @@
 
 ## Pre-requisites
 
-| RAM | GPU | CPU |
+| CPU | RAM  | GPU  |
+| :-----: | :-----------: | :-----------: |
+| 13th Gen Intel® Core™ i7-13700HX × 24 | 32,0 GiB     | RTX 4060 |
 
 ### Auxiliary linux packages
 
@@ -36,7 +38,7 @@
 
 Use the bash file script to install the requirements
 
-    bash install.sh
+    source install.sh
 
 ## Executing a simulation
 
@@ -61,3 +63,19 @@ To correct build the documentation, please run:
 In your browser, search for: 
 
     localhost:8000
+
+## Citation
+
+If you benefit from this work, please cite on your publications using:
+
+```
+@ARTICLE{borges2024caviar,
+  author={Borges, João and Bastos, Felipe and Correa, Ilan and Batista, Pedro and Klautau, Aldebaro},
+  journal={IEEE Internet of Things Journal},
+  title={{CAVIAR: Co-Simulation of 6G Communications, 3-D Scenarios, and AI for Digital Twins}},
+  year={2024},
+  volume={11},
+  number={19},
+  pages={31287-31300},
+  doi={10.1109/JIOT.2024.3418675}}
+```

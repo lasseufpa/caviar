@@ -1,0 +1,24 @@
+{
+    "module": {
+        "name": "ns3",
+        "id": "communication",
+        "enabled": true,
+        "dependency":{
+            "mobility":
+            {
+                "airsim":
+                [
+                    "x-pos",
+                    "y-pos",
+                    "z-pos",
+                    "roll",
+                    "pitch",
+                    "yaw",
+                    "speed",
+                    "timestamp"
+                ]
+            }
+        },
+        "order": 1
+    }
+}

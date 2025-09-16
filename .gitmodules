@@ -1,11 +1,9 @@
-# [submodule "modules/ns3/nr"]
-# 	path = modules/ns3/nr
-# 	url = https://gitlab.com/cttc-lena/nr.git
-# [submodule "modules/ns3/ns-3-dev"]
-# 	path = modules/ns3/ns-3-dev
-# 	url = https://gitlab.com/nsnam/ns-3-dev.git
-# [submodule "modules/ns3/rt"]
-# 	path = modules/ns3/rt
-# 	url = https://gitlab.com/Allbu/rt.git
-
-# '''Leave comments in place for future submodules.'''
+[submodule "modules/ns3/nr"]
+	path = modules/ns3/nr
+	url = https://gitlab.com/thiagomiyazaki/nr-ntn-dev.git
+[submodule "modules/ns3/ns-3-dev"]
+	path = modules/ns3/ns-3-dev
+	url = https://gitlab.com/nsnam/ns-3-dev.git
+[submodule "modules/ns3/rt"]
+	path = modules/ns3/rt
+	url = https://gitlab.com/Allbu/rt.git

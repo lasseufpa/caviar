@@ -1,1 +1,0 @@
-from .alice import alice
