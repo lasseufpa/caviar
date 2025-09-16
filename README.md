@@ -47,7 +47,7 @@ In the project root folder, run (use `--enable-monitor` flag to save parameters 
 To correctly abort a simulation, in the terminal press:
 
     ctrl+C
-AddX2Interface
+
 ## Configuring the simulation
 
 The configuration parameters used in the simulation are stored in `kernel/.config/config.json`
